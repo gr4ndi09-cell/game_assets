@@ -1,0 +1,359 @@
+{
+  "sprites": [
+    {
+      "fileName": "correndo1.png",
+      "width": 240,
+      "height": 237,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "fileName": "correndo2.png",
+      "width": 240,
+      "height": 237,
+      "x": 240,
+      "y": 0
+    },
+    {
+      "fileName": "correndo3.png",
+      "width": 240,
+      "height": 237,
+      "x": 480,
+      "y": 0
+    },
+    {
+      "fileName": "correndo4.png",
+      "width": 240,
+      "height": 237,
+      "x": 720,
+      "y": 0
+    },
+    {
+      "fileName": "correndo5.png",
+      "width": 240,
+      "height": 237,
+      "x": 960,
+      "y": 0
+    },
+    {
+      "fileName": "correndo6.png",
+      "width": 240,
+      "height": 237,
+      "x": 1200,
+      "y": 0
+    },
+    {
+      "fileName": "correndo7.png",
+      "width": 240,
+      "height": 237,
+      "x": 1440,
+      "y": 0
+    },
+    {
+      "fileName": "correndo8.png",
+      "width": 240,
+      "height": 237,
+      "x": 1680,
+      "y": 0
+    },
+    {
+      "fileName": "correndo9.png",
+      "width": 240,
+      "height": 237,
+      "x": 1920,
+      "y": 0
+    },
+    {
+      "fileName": "correndo10.png",
+      "width": 240,
+      "height": 237,
+      "x": 2160,
+      "y": 0
+    },
+    {
+      "fileName": "idle1.png",
+      "width": 240,
+      "height": 237,
+      "x": 0,
+      "y": 237
+    },
+    {
+      "fileName": "idle1.png",
+      "width": 240,
+      "height": 237,
+      "x": 240,
+      "y": 237
+    },
+    {
+      "fileName": "idle2.png",
+      "width": 240,
+      "height": 237,
+      "x": 480,
+      "y": 237
+    },
+    {
+      "fileName": "idle2.png",
+      "width": 240,
+      "height": 237,
+      "x": 720,
+      "y": 237
+    },
+    {
+      "fileName": "idle3.png",
+      "width": 240,
+      "height": 237,
+      "x": 960,
+      "y": 237
+    },
+    {
+      "fileName": "idle3.png",
+      "width": 240,
+      "height": 237,
+      "x": 1200,
+      "y": 237
+    },
+    {
+      "fileName": "idle4.png",
+      "width": 240,
+      "height": 237,
+      "x": 1440,
+      "y": 237
+    },
+    {
+      "fileName": "idle4.png",
+      "width": 240,
+      "height": 237,
+      "x": 1680,
+      "y": 237
+    },
+    {
+      "fileName": "idle4.png",
+      "width": 240,
+      "height": 237,
+      "x": 1920,
+      "y": 237
+    },
+    {
+      "fileName": "idle5.png",
+      "width": 240,
+      "height": 237,
+      "x": 2160,
+      "y": 237
+    },
+    {
+      "fileName": "idle5.png",
+      "width": 240,
+      "height": 237,
+      "x": 0,
+      "y": 474
+    },
+    {
+      "fileName": "melee1.png",
+      "width": 240,
+      "height": 237,
+      "x": 240,
+      "y": 474
+    },
+    {
+      "fileName": "melee2.png",
+      "width": 240,
+      "height": 237,
+      "x": 480,
+      "y": 474
+    },
+    {
+      "fileName": "melee3.png",
+      "width": 240,
+      "height": 237,
+      "x": 720,
+      "y": 474
+    },
+    {
+      "fileName": "melee4.png",
+      "width": 240,
+      "height": 237,
+      "x": 960,
+      "y": 474
+    },
+    {
+      "fileName": "melee5.png",
+      "width": 240,
+      "height": 237,
+      "x": 1200,
+      "y": 474
+    },
+    {
+      "fileName": "melee6.png",
+      "width": 240,
+      "height": 237,
+      "x": 1440,
+      "y": 474
+    },
+    {
+      "fileName": "melee7.png",
+      "width": 240,
+      "height": 237,
+      "x": 1680,
+      "y": 474
+    },
+    {
+      "fileName": "melee8.png",
+      "width": 240,
+      "height": 237,
+      "x": 1920,
+      "y": 474
+    },
+    {
+      "fileName": "melee9.png",
+      "width": 240,
+      "height": 237,
+      "x": 2160,
+      "y": 474
+    },
+    {
+      "fileName": "melee10.png",
+      "width": 240,
+      "height": 237,
+      "x": 0,
+      "y": 711
+    },
+    {
+      "fileName": "pulo1.png",
+      "width": 240,
+      "height": 237,
+      "x": 240,
+      "y": 711
+    },
+    {
+      "fileName": "pulo1.png",
+      "width": 240,
+      "height": 237,
+      "x": 480,
+      "y": 711
+    },
+    {
+      "fileName": "pulo2.png",
+      "width": 240,
+      "height": 237,
+      "x": 720,
+      "y": 711
+    },
+    {
+      "fileName": "pulo2.png",
+      "width": 240,
+      "height": 237,
+      "x": 960,
+      "y": 711
+    },
+    {
+      "fileName": "pulo3.png",
+      "width": 240,
+      "height": 237,
+      "x": 1200,
+      "y": 711
+    },
+    {
+      "fileName": "pulo3.png",
+      "width": 240,
+      "height": 237,
+      "x": 1440,
+      "y": 711
+    },
+    {
+      "fileName": "pulo4.png",
+      "width": 240,
+      "height": 237,
+      "x": 1680,
+      "y": 711
+    },
+    {
+      "fileName": "pulo4.png",
+      "width": 240,
+      "height": 237,
+      "x": 1920,
+      "y": 711
+    },
+    {
+      "fileName": "pulo5.png",
+      "width": 240,
+      "height": 237,
+      "x": 2160,
+      "y": 711
+    },
+    {
+      "fileName": "shoot1.png",
+      "width": 240,
+      "height": 237,
+      "x": 0,
+      "y": 948
+    },
+    {
+      "fileName": "shoot2.png",
+      "width": 240,
+      "height": 237,
+      "x": 240,
+      "y": 948
+    },
+    {
+      "fileName": "shoot3.png",
+      "width": 240,
+      "height": 237,
+      "x": 480,
+      "y": 948
+    },
+    {
+      "fileName": "shoot4.png",
+      "width": 240,
+      "height": 237,
+      "x": 720,
+      "y": 948
+    },
+    {
+      "fileName": "shoot5.png",
+      "width": 240,
+      "height": 237,
+      "x": 960,
+      "y": 948
+    },
+    {
+      "fileName": "shoot6.png",
+      "width": 240,
+      "height": 237,
+      "x": 1200,
+      "y": 948
+    },
+    {
+      "fileName": "shoot7.png",
+      "width": 240,
+      "height": 237,
+      "x": 1440,
+      "y": 948
+    },
+    {
+      "fileName": "shoot8.png",
+      "width": 240,
+      "height": 237,
+      "x": 1680,
+      "y": 948
+    },
+    {
+      "fileName": "shoot9.png",
+      "width": 240,
+      "height": 237,
+      "x": 1920,
+      "y": 948
+    },
+    {
+      "fileName": "shoot10.png",
+      "width": 240,
+      "height": 237,
+      "x": 2160,
+      "y": 948
+    }
+  ],
+  "packMode": "grid",
+  "padding": 0,
+  "backgroundColor": "rgba(0, 0, 0, 0)",
+  "spriteSheetWidth": 2400,
+  "spriteSheetHeight": 1185
+}
