@@ -1,0 +1,6 @@
+colocar audios:
+        - intro.mp3     (Toca uma vez no início)
+        - ambience.mp3  (Loop de fundo: vento, pássaros, etc)
+        - event1.mp3    (Reservado)
+        - event2.mp3
+        ...

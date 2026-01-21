@@ -1,0 +1,3 @@
+colocar audios:
+- jump.mp3
+- charge_shot.mp3
