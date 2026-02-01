@@ -16,7 +16,7 @@
     {
       "type": "upward",
       "count": 10,
-      "color": "rgba(100, 255, 100, 0.5)",
+      "color": "rgba(100, 255, 100, 0.8)",
       "layer": "scene"
     },
     {
@@ -29,7 +29,7 @@
     },
     {
       "type": "ambient",
-      "count": 6,
+      "count": 3,
       "color": "rgba(255, 150, 0, 0.8)",
       "layer": "main",
       "zone": { "x": 136, "y": 970, "w": 20, "h": 20 }
@@ -37,7 +37,7 @@
     {
       "_comentario": "--- EFEITOS LOCAIS (VELA 2 - Centro Baixo) ---",
       "type": "upward",
-      "count": 6,
+      "count": 5,
       "color": "rgba(80, 80, 80, 0.8)",
       "layer": "main",
       "zone": { "x": 1433, "y": 1419, "w": 40, "h": 50 }
@@ -45,15 +45,15 @@
     {
       "_comentario": "--- EFEITOS LOCAIS (VELA 3 - Centro Cima) ---",
       "type": "upward",
-      "count": 6,
+      "count": 5,
       "color": "rgba(80, 80, 80, 0.8)",
       "layer": "main",
       "zone": { "x": 1462, "y": 323, "w": 40, "h": 50 }
     }
   ],
   "lights": [
-    { "x": 400, "y": 900, "radius": 200, "color": "rgba(255, 200, 50, 0.2)" },
-    { "x": 2200, "y": 1100, "radius": 250, "color": "rgba(255, 100, 50, 0.15)" },
+    { "x": 400, "y": 900, "radius": 200, "color": "rgba(255, 200, 50, 0.5)" },
+    { "x": 2200, "y": 1100, "radius": 250, "color": "rgba(255, 100, 50, 0.3)" },
     { "x": 146, "y": 984, "radius": 80, "color": "rgba(255, 140, 0, 0.8)" },
     { "x": 1453, "y": 1439, "radius": 80, "color": "rgba(255, 140, 0, 0.8)" },
     { "x": 1530, "y": 999, "radius": 80, "color": "rgba(255, 140, 0, 0.8)" },
@@ -62,6 +62,3 @@
     { "x": 2236, "y": 1114, "radius": 80, "color": "rgba(255, 140, 0, 0.8)" }
   ]
 }
-
-
-
