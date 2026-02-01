@@ -1,5 +1,5 @@
 {
-    "CENARIO_01_FLORESTA_MAGICA": {
+    {
     "emitters": [
       { "type": "ambient", "count": 40, "color": "#ffcc00", "layer": "main" },
       { "type": "ambient", "count": 20, "color": "#ffffff", "layer": "bg" },
@@ -10,7 +10,7 @@
       { "x": 2200, "y": 1100, "radius": 250, "color": "rgba(255, 100, 50, 0.15)" }
     ]
   },
-"CENARIO_DETALHE_VELA": {
+{
     "emitters": [
       { "type": "upward", "count": 5, "color": "rgba(50, 50, 50, 0.2)", "layer": "main" },
       { "type": "ambient", "count": 5, "color": "rgba(255, 100, 0, 0.5)", "layer": "main" }
@@ -25,4 +25,5 @@
       
     ]
   }
+
 }
