@@ -24,7 +24,7 @@
       "_comentario": "--- EFEITOS LOCAIS (VELA 2) ---",
       "type": "upward",
       "count": 6,
-      "color": "rgba(156, 108, 229, 0.9)",
+      "color": "rgba(164, 242, 136, 0.85)",
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 0.5,
@@ -34,7 +34,7 @@
       "_comentario": "--- EFEITOS LOCAIS (VELA 2) ---",
       "type": "upward",
       "count": 6,
-      "color": "rgba(156, 108, 229, 0.9)",
+      "color": "rgba(164, 242, 136, 0.85)",
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 0.5,
@@ -48,6 +48,7 @@
     { "layer": "front","x": 2619, "y": 216, "radius": 250, "color": "rgba(70, 227, 13, 0.9))","effect": "pulse" }
   ]
 }
+
 
 
 
