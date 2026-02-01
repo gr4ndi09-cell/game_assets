@@ -23,7 +23,8 @@
     ],
 
   "lights": [
-    { "layer": "front","x": 657, "y": 138, "radius": 100, "color": "rgba(45, 43, 73, 0.9)","effect": "pulse" }
+    { "layer": "front","x": 657, "y": 138, "radius": 250, "color": "rgba(45, 43, 73, 0.9)","effect": "pulse" }
   ]
 }
+
 
