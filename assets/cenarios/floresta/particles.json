@@ -8,7 +8,7 @@
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
-      "zone": { "x": 143, "y": 977, "w": 18, "h": 18 }
+      "zone": { "x": 143, "y": 977, "w": 10, "h": 10 }
     },
       {
       "type": "upward",
@@ -17,7 +17,7 @@
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
-      "zone": { "x": 143, "y": 977, "w": 18, "h": 18 }
+      "zone": { "x": 143, "y": 977, "w": 10, "h": 10 }
     },
     {
       "_comentario": "--- EFEITOS LOCAIS (VELA 2) ---",
@@ -27,7 +27,7 @@
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
-      "zone": { "x": 1448, "y": 1437, "w": 18, "h": 18 }
+      "zone": { "x": 1448, "y": 1437, "w": 10, "h": 10 }
     },
       {
       "type": "upward",
@@ -36,7 +36,7 @@
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
-      "zone": { "x": 1448, "y": 1437, "w": 18, "h": 18 }
+      "zone": { "x": 1448, "y": 1437, "w": 10, "h": 10 }
     },
     {
       "_comentario": "--- EFEITOS LOCAIS (VELA 3) ---",
@@ -46,7 +46,7 @@
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
-      "zone": { "x": 1524, "y": 1000, "w": 18, "h": 18 }
+      "zone": { "x": 1524, "y": 1000, "w": 10, "h": 10 }
     },
       {
       "type": "upward",
@@ -55,7 +55,7 @@
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
-      "zone": { "x": 1524, "y": 1000, "w": 18, "h": 18 }
+      "zone": { "x": 1524, "y": 1000, "w": 10, "h": 10 }
     },
     {
       "_comentario": "--- EFEITOS LOCAIS (VELA 4) ---",
@@ -65,7 +65,7 @@
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
-      "zone": { "x": 1479, "y": 341, "w": 18, "h": 18 }
+      "zone": { "x": 1479, "y": 341, "w": 10, "h": 10 }
     },
       {
       "type": "upward",
@@ -74,7 +74,7 @@
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
-      "zone": { "x": 1479, "y": 341, "w": 18, "h": 18 }
+      "zone": { "x": 1479, "y": 341, "w": 10, "h": 10 }
     },
     {
       "_comentario": "--- EFEITOS LOCAIS (VELA 5) ---",
@@ -84,7 +84,7 @@
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
-      "zone": { "x": 2226, "y": 1113, "w": 18, "h": 18 }
+      "zone": { "x": 2226, "y": 1113, "w": 10, "h": 10 }
     },
       {
       "type": "upward",
@@ -93,7 +93,7 @@
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
-      "zone": { "x": 2226, "y": 1113, "w": 18, "h": 18 }
+      "zone": { "x": 2226, "y": 1113, "w": 10, "h": 10 }
     },
     {
       "_comentario": "--- EFEITOS LOCAIS (VELA 6) ---",
@@ -103,7 +103,7 @@
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
-      "zone": { "x": 2212, "y": 577, "w": 18, "h": 18 }
+      "zone": { "x": 2212, "y": 577, "w": 10, "h": 10 }
     },
       {
       "type": "upward",
@@ -112,7 +112,7 @@
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
-      "zone": { "x": 2212, "y": 577, "w": 18, "h": 18 }
+      "zone": { "x": 2212, "y": 577, "w": 10, "h": 10 }
     },
     
     {
@@ -129,8 +129,8 @@
     }
   ],
   "lights": [
-    { "layer": "front","x": 456, "y": 1292, "radius": 300, "color": "rgba(255, 200, 50, 1.0)" },
-    { "layer": "front","x": 2200, "y": 1100, "radius": 250, "color": "rgba(255, 100, 50, 0.5)","effect": "flicker" },
+    { "layer": "front","x": 456, "y": 1292, "radius": 300, "color": "rgba(255, 200, 50, 0.9)" },
+    { "layer": "front","x": 2200, "y": 1100, "radius": 80, "color": "rgba(255, 100, 50, 0.5)","effect": "flicker" },
     { "layer": "front","x": 146, "y": 984, "radius": 80, "color": "rgba(255, 140, 0, 0.8)", "effect": "flicker" },
     { "layer": "front","x": 1453, "y": 1439, "radius": 80, "color": "rgba(255, 140, 0, 0.8)", "effect": "flicker" },
     { "layer": "front", "x": 1530, "y": 999, "radius": 80, "color": "rgba(255, 140, 0, 0.8)", "effect": "flicker" },
@@ -139,4 +139,5 @@
     { "layer": "front","x": 2236, "y": 1114, "radius": 80, "color": "rgba(255, 140, 0, 0.8)", "effect": "flicker" }
   ]
 }
+
 
