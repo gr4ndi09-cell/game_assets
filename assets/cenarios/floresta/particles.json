@@ -8,6 +8,8 @@
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
+      "zone": { "x": 143, "y": 977, "w": 18, "h": 18 }
+    },
       {
       "type": "upward",
       "count": 5,
@@ -17,7 +19,7 @@
       "fadeRate": 1.2,
       "zone": { "x": 143, "y": 977, "w": 18, "h": 18 }
     },
-    },
+    
     {
       "_comentario": "--- FAÍSCAS COM FÍSICA (Exemplo na vela central de baixo) ---",
       "type": "spark",
@@ -62,7 +64,7 @@
   ],
   "lights": [
     { "layer": "front","x": 456, "y": 1292, "radius": 300, "color": "rgba(255, 200, 50, 1.0)" },
-    { "layer": "front","x": 2200, "y": 1100, "radius": 250, "color": "rgba(255, 100, 50, 0.5)" },
+    { "layer": "front","x": 2200, "y": 1100, "radius": 250, "color": "rgba(255, 100, 50, 0.5)","effect": "flicker" },
     { "layer": "front","x": 146, "y": 984, "radius": 80, "color": "rgba(255, 140, 0, 0.8)", "effect": "flicker" },
     { "layer": "front","x": 1453, "y": 1439, "radius": 80, "color": "rgba(255, 140, 0, 0.8)", "effect": "flicker" },
     { "layer": "front", "x": 1530, "y": 999, "radius": 80, "color": "rgba(255, 140, 0, 0.8)", "effect": "flicker" },
@@ -71,18 +73,3 @@
     { "layer": "front","x": 2236, "y": 1114, "radius": 80, "color": "rgba(255, 140, 0, 0.8)", "effect": "flicker" }
   ]
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
