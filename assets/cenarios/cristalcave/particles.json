@@ -5,7 +5,7 @@
       "type": "upward",
       "count": 6,
       "color": "rgba(156, 108, 229, 0.9)",
-      "layer": "front",
+      "layer": "bg",
       "spawnRate": 8,
       "fadeRate": 0.5,
       "zone": { "x": 549, "y": 12, "w": 201, "h": 201 }
@@ -26,6 +26,7 @@
     { "layer": "front","x": 657, "y": 138, "radius": 250, "color": "rgba(166, 137, 210, 0.9)","effect": "pulse" }
   ]
 }
+
 
 
 
