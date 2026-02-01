@@ -49,17 +49,8 @@
       "spawnRate": 8,
       "fadeRate": 0.5,
       "zone": { "x": 1410, "y": 477, "w": 130, "h": 60 }
-    },
-        {
-      "_comentario": "--- EFEITOS LOCAIS (VELA 4) ---",
-      "type": "upward",
-      "count": 6,
-      "color": "rgba(164, 242, 136, 0.85)",
-      "layer": "front",
-      "spawnRate": 8,
-      "fadeRate": 0.5,
-      "zone": { "x": 1410, "y": 477, "w": 130, "h": 60 }
     }
+  
     ],
 
   "lights": [
@@ -68,6 +59,7 @@
     { "layer": "bg","x": 1473, "y": 483, "radius": 100, "color": "rgba(65, 105, 225, 0.90)","effect": "pulse" }
   ]
 }
+
 
 
 
