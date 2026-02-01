@@ -19,13 +19,36 @@
       "spawnRate": 8,
       "fadeRate": 0.5,
       "zone": { "x": 549, "y": 12, "w": 201, "h": 201 }
+    },
+    {
+      "_comentario": "--- EFEITOS LOCAIS (VELA 2) ---",
+      "type": "upward",
+      "count": 6,
+      "color": "rgba(156, 108, 229, 0.9)",
+      "layer": "front",
+      "spawnRate": 8,
+      "fadeRate": 0.5,
+      "zone": { "x": 2604, "y": 201, "w": 30, "h": 30 }
+    },
+    {
+      "_comentario": "--- EFEITOS LOCAIS (VELA 2) ---",
+      "type": "upward",
+      "count": 6,
+      "color": "rgba(156, 108, 229, 0.9)",
+      "layer": "front",
+      "spawnRate": 8,
+      "fadeRate": 0.5,
+      "zone": { "x": 2658, "y": 171, "w": 30, "h": 30 }
     }
     ],
 
   "lights": [
-    { "layer": "front","x": 657, "y": 138, "radius": 250, "color": "rgba(166, 137, 210, 0.9)","effect": "pulse" }
+    { "layer": "front","x": 657, "y": 138, "radius": 250, "color": "rgba(166, 137, 210, 0.9)","effect": "pulse" },
+    { "layer": "front","x": 2679, "y": 198, "radius": 250, "color": "rgba(70, 227, 13, 0.9)","effect": "pulse" },
+    { "layer": "front","x": 2619, "y": 216, "radius": 250, "color": "rgba(70, 227, 13, 0.9))","effect": "pulse" }
   ]
 }
+
 
 
 
