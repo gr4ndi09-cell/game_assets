@@ -44,7 +44,7 @@
       "_comentario": "--- EFEITOS LOCAIS (VELA 3) ---",
       "type": "upward",
       "count": 6,
-      "color": "rgba(9, 65, 236, 0.90)",
+      "color": "rgba(55, 84, 169, 0.90)",
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 0.5,
@@ -59,6 +59,7 @@
     { "layer": "bg","x": 1473, "y": 483, "radius": 100, "color": "rgba(65, 105, 225, 0.90)","effect": "pulse" }
   ]
 }
+
 
 
 
