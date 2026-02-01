@@ -1,0 +1,18 @@
+{
+  "emitters": [
+    {
+      "_comentario": "--- EFEITOS LOCAIS (VELA 1) ---",
+      "type": "upward",
+      "count": 6,
+      "color": "rgba(56, 65, 85, 0.9)",
+      "layer": "front",
+      "spawnRate": 8,
+      "fadeRate": 1.2,
+      "zone": { "x": 549, "y": 12, "w": 201, "h": 201 }
+    }
+    ],
+
+  "lights": [
+    { "layer": "front","x": 657, "y": 138, "radius": 100, "color": "rgba(45, 43, 73, 0.9)","effect": "pulse" }
+  ]
+}
