@@ -4,7 +4,7 @@
       "_comentario": "--- EFEITOS LOCAIS (VELA 1) ---",
       "type": "upward",
       "count": 6,
-      "color": "rgba(80, 80, 80, 0.4)",
+      "color": "rgba(80, 80, 80, 0.9)",
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
@@ -23,7 +23,7 @@
       "_comentario": "--- EFEITOS LOCAIS (VELA 2) ---",
       "type": "upward",
       "count": 6,
-      "color": "rgba(80, 80, 80, 0.4)",
+      "color": "rgba(80, 80, 80, 0.9)",
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
@@ -42,7 +42,7 @@
       "_comentario": "--- EFEITOS LOCAIS (VELA 3) ---",
       "type": "upward",
       "count": 6,
-      "color": "rgba(80, 80, 80, 0.4)",
+      "color": "rgba(80, 80, 80, 0.9)",
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
@@ -61,7 +61,7 @@
       "_comentario": "--- EFEITOS LOCAIS (VELA 4) ---",
       "type": "upward",
       "count": 6,
-      "color": "rgba(80, 80, 80, 0.4)",
+      "color": "rgba(80, 80, 80, 0.9)",
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
@@ -80,7 +80,7 @@
       "_comentario": "--- EFEITOS LOCAIS (VELA 5) ---",
       "type": "upward",
       "count": 6,
-      "color": "rgba(80, 80, 80, 0.4)",
+      "color": "rgba(80, 80, 80, 0.9)",
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
@@ -99,7 +99,7 @@
       "_comentario": "--- EFEITOS LOCAIS (VELA 6) ---",
       "type": "upward",
       "count": 6,
-      "color": "rgba(80, 80, 80, 0.4)",
+      "color": "rgba(80, 80, 80, 0.9)",
       "layer": "front",
       "spawnRate": 8,
       "fadeRate": 1.2,
@@ -139,3 +139,4 @@
     { "layer": "front","x": 2236, "y": 1114, "radius": 80, "color": "rgba(255, 140, 0, 0.8)", "effect": "flicker" }
   ]
 }
+
