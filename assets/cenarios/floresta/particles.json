@@ -5,14 +5,14 @@
       "type": "upward",
       "count": 5,
       "color": "rgba(80, 80, 80, 0.4)",
-      "layer": "main",
+      "layer": "front",
       "zone": { "x": 126, "y": 960, "w": 40, "h": 100 }
     },
     {
-      "type": "ambient",
+      "type": "upward",
       "count": 3,
       "color": "rgba(255, 150, 0, 0.8)",
-      "layer": "main",
+      "layer": "front",
       "zone": { "x": 136, "y": 970, "w": 40, "h": 100 }
     },
     {
@@ -20,7 +20,7 @@
       "type": "upward",
       "count": 5,
       "color": "rgba(80, 80, 80, 0.4)",
-      "layer": "main",
+      "layer": "front",
       "zone": { "x": 1433, "y": 1419, "w": 40, "h": 100 }
     },
     {
@@ -28,7 +28,7 @@
       "type": "upward",
       "count": 5,
       "color": "rgba(80, 80, 80, 0.4)",
-      "layer": "main",
+      "layer": "front",
       "zone": { "x": 1462, "y": 323, "w": 40, "h": 100 }
     }
   ],
@@ -43,5 +43,6 @@
     { "x": 2236, "y": 1114, "radius": 80, "color": "rgba(255, 140, 0, 0.8)" }
   ]
 }
+
 
 
