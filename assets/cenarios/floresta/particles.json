@@ -3,11 +3,20 @@
     {
       "_comentario": "--- EFEITOS LOCAIS (VELA 1 - Esquerda) ---",
       "type": "upward",
-      "count": 10,
-      "color": "rgba(80, 80, 80, 1.0)",
+      "count": 30,
+      "color": "rgba(80, 80, 80, 0.4)",
       "layer": "front",
+      "spawnRate": 8,
+      "fadeRate": 1.2,
+      {
+      "type": "upward",
+      "count": 5,
+      "color": "rgba(255, 150, 0, 0.9)",
+      "layer": "front",
+      "spawnRate": 8,
       "fadeRate": 1.2,
       "zone": { "x": 143, "y": 977, "w": 18, "h": 18 }
+    },
     },
     {
       "_comentario": "--- FAÍSCAS COM FÍSICA (Exemplo na vela central de baixo) ---",
@@ -25,6 +34,8 @@
       "count": 5,
       "color": "rgba(255, 150, 0, 0.9)",
       "layer": "front",
+      "spawnRate": 8,
+      "fadeRate": 1.2,
       "zone": { "x": 143, "y": 977, "w": 18, "h": 18 }
     },
     {
@@ -55,6 +66,7 @@
     { "layer": "front","x": 2236, "y": 1114, "radius": 80, "color": "rgba(255, 140, 0, 0.8)", "effect": "flicker" }
   ]
 }
+
 
 
 
