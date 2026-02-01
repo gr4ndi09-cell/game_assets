@@ -6,6 +6,7 @@
       "count": 10,
       "color": "rgba(80, 80, 80, 1.0)",
       "layer": "front",
+      "fadeRate": 1.2,
       "zone": { "x": 143, "y": 977, "w": 18, "h": 18 }
     },
     {
@@ -54,6 +55,7 @@
     { "layer": "front","x": 2236, "y": 1114, "radius": 80, "color": "rgba(255, 140, 0, 0.8)", "effect": "flicker" }
   ]
 }
+
 
 
 
