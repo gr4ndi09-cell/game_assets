@@ -1,10 +1,55 @@
 {
   "emitters": [
-    { "type": "ambient", "count": 40, "color": "#ffcc00", "layer": "main" },
-    { "type": "ambient", "count": 20, "color": "#ffffff", "layer": "bg" },
-    { "type": "upward", "count": 10, "color": "rgba(100, 255, 100, 0.2)", "layer": "scene" },
-    { "type": "upward", "count": 5, "color": "rgba(50, 50, 50, 0.2)", "layer": "main" },
-    { "type": "ambient", "count": 5, "color": "rgba(255, 100, 0, 0.5)", "layer": "main" }
+    {
+      "_comentario": "--- EFEITOS GLOBAIS (FLORESTA) ---",
+      "type": "ambient",
+      "count": 40,
+      "color": "#ffcc00",
+      "layer": "main"
+    },
+    {
+      "type": "ambient",
+      "count": 20,
+      "color": "#ffffff",
+      "layer": "bg"
+    },
+    {
+      "type": "upward",
+      "count": 10,
+      "color": "rgba(100, 255, 100, 0.2)",
+      "layer": "scene"
+    },
+    {
+      "_comentario": "--- EFEITOS LOCAIS (VELA 1 - Esquerda) ---",
+      "type": "upward",
+      "count": 5,
+      "color": "rgba(80, 80, 80, 0.4)",
+      "layer": "main",
+      "zone": { "x": 126, "y": 960, "w": 40, "h": 50 }
+    },
+    {
+      "type": "ambient",
+      "count": 3,
+      "color": "rgba(255, 150, 0, 0.8)",
+      "layer": "main",
+      "zone": { "x": 136, "y": 970, "w": 20, "h": 20 }
+    },
+    {
+      "_comentario": "--- EFEITOS LOCAIS (VELA 2 - Centro Baixo) ---",
+      "type": "upward",
+      "count": 5,
+      "color": "rgba(80, 80, 80, 0.4)",
+      "layer": "main",
+      "zone": { "x": 1433, "y": 1419, "w": 40, "h": 50 }
+    },
+    {
+      "_comentario": "--- EFEITOS LOCAIS (VELA 3 - Centro Cima) ---",
+      "type": "upward",
+      "count": 5,
+      "color": "rgba(80, 80, 80, 0.4)",
+      "layer": "main",
+      "zone": { "x": 1462, "y": 323, "w": 40, "h": 50 }
+    }
   ],
   "lights": [
     { "x": 400, "y": 900, "radius": 200, "color": "rgba(255, 200, 50, 0.2)" },
