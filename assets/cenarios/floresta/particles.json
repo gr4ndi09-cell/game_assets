@@ -21,10 +21,10 @@
     },
     {
       "type": "upward",
-      "count": 3,
+      "count": 5,
       "color": "rgba(255, 150, 0, 0.9)",
       "layer": "front",
-      "zone": { "x": 136, "y": 970, "w": 40, "h": 100 }
+      "zone": { "x": 143, "y": 977, "w": 18, "h": 18 }
     },
     {
       "_comentario": "--- EFEITOS LOCAIS (VELA 2 - Centro Baixo) ---",
@@ -54,6 +54,7 @@
     { "layer": "front","x": 2236, "y": 1114, "radius": 80, "color": "rgba(255, 140, 0, 0.8)", "effect": "flicker" }
   ]
 }
+
 
 
 
