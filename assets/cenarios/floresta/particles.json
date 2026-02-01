@@ -27,6 +27,7 @@
       "gravity": 800,
       "bounce": 0.5,
       "spawnRate": 8,
+      "fadeRate": 1.2,
       "zone": { "x": 422, "y": 1277, "w": 59, "h": 59 }
     },
     {
@@ -44,6 +45,8 @@
       "count": 5,
       "color": "rgba(80, 80, 80, 0.9)",
       "layer": "front",
+      "spawnRate": 8,
+      "fadeRate": 1.2,
       "zone": { "x": 1433, "y": 1419, "w": 40, "h": 100 }
     },
     {
@@ -52,6 +55,8 @@
       "count": 10,
       "color": "rgba(80, 80, 80, 0.9)",
       "layer": "front",
+      "spawnRate": 8,
+      "fadeRate": 1.2,
       "zone": { "x": 1520, "y": 937, "w": 17, "h": 72 }
     }
   ],
@@ -66,6 +71,7 @@
     { "layer": "front","x": 2236, "y": 1114, "radius": 80, "color": "rgba(255, 140, 0, 0.8)", "effect": "flicker" }
   ]
 }
+
 
 
 
