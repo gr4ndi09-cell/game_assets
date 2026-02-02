@@ -104,7 +104,7 @@
       "count": 20,
       "color": "rgba(242, 166, 170, 0.95)",
       "layer": "front",
-      "spawnRate": 5,
+      "spawnRate": 2,
       "fadeRate": 0.3,
       "baseSize": 4.0,
       "zone": { "x": 2058, "y": 1347, "w": 264, "h": 147 }
@@ -123,6 +123,7 @@
     { "layer": "front","x": 2193, "y": 1413, "radius": 500, "color": "rgba(242, 2, 14, 0.61)","effect": "pulse" }
   ]
 }
+
 
 
 
