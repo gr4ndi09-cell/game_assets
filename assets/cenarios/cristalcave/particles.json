@@ -65,7 +65,7 @@
       "type": "upward",
       "count": 9,
       "color": "rgba(93, 229, 195, 0.9)",
-      "layer": "scene",
+      "layer": "front",
       "spawnRate": 8,
       "fadeRate": 0.5,
       "zone": { "x": 2451, "y": 762, "w": 132, "h": 48 }
@@ -76,11 +76,12 @@
   "lights": [
     { "layer": "front","x": 657, "y": 138, "radius": 250, "color": "rgba(166, 137, 210, 0.9)","effect": "pulse" },
     { "layer": "front","x": 2679, "y": 198, "radius": 200, "color": "rgba(70, 227, 13, 0.9)","effect": "pulse" },
-    { "layer": "scene","x": 1473, "y": 483, "radius": 200, "color": "rgba(17, 223, 171, 0.9)","effect": "pulse" },
-    { "layer": "scene","x": 531, "y": 786, "radius": 200, "color": "rgba(55, 110, 169, 0.9)","effect": "pulse" },
+    { "layer": "front","x": 1473, "y": 483, "radius": 200, "color": "rgba(17, 223, 171, 0.9)","effect": "pulse" },
+    { "layer": "front","x": 531, "y": 786, "radius": 200, "color": "rgba(55, 110, 169, 0.9)","effect": "pulse" },
     { "layer": "front","x": 2508, "y": 765, "radius": 150, "color": "rgba(223, 168, 17, 0.9)","effect": "pulse" }
   ]
 }
+
 
 
 
