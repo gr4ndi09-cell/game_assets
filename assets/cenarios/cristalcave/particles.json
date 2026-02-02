@@ -71,6 +71,14 @@
       "zone": { "x": 2451, "y": 762, "w": 132, "h": 48 }
     },
     {
+      "_comentario": "--- ENXAME DE MOSCAS (Novo Efeito) ---",
+      "type": "insect",
+      "count": 8,
+      "color": "rgba(30, 242, 2, 1.0)",
+      "layer": "front",
+      "zone": { "x": 402, "y": 447, "w": 90, "h": 90 }
+    },
+    {
       "_comentario": "--- EFEITOS LOCAIS (VELA 4) ---",
       "type": "upward",
       "count": 9,
@@ -92,6 +100,7 @@
     { "layer": "front","x": 2688, "y": 1179, "radius": 150, "color": "rgba(194, 10, 90, 0.90)","effect": "pulse" }
   ]
 }
+
 
 
 
