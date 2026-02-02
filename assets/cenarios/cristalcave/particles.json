@@ -89,9 +89,10 @@
     { "layer": "front","x": 1473, "y": 483, "radius": 200, "color": "rgba(17, 223, 171, 0.9)","effect": "pulse" },
     { "layer": "front","x": 531, "y": 786, "radius": 200, "color": "rgba(55, 110, 169, 0.9)","effect": "pulse" },
     { "layer": "front","x": 2508, "y": 765, "radius": 150, "color": "rgba(223, 168, 17, 0.9)","effect": "pulse" },
-    { "layer": "front","x": 2688, "y": 1179, "radius": 150, "color": "rgba(194, 10, 90, 0.90))","effect": "pulse" }
+    { "layer": "front","x": 2688, "y": 1179, "radius": 150, "color": "rgba(194, 10, 90, 0.90)","effect": "pulse" }
   ]
 }
+
 
 
 
