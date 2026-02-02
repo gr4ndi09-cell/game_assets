@@ -87,6 +87,16 @@
       "spawnRate": 5,
       "fadeRate": 0.5,
       "zone": { "x": 2628, "y": 1161, "w": 129, "h": 57 }
+    },
+    {
+      "_comentario": "--- EFEITOS LOCAIS (VELA 4) ---",
+      "type": "upward",
+      "count": 9,
+      "color": "rgba(231, 157, 189, 0.9)",
+      "layer": "front",
+      "spawnRate": 5,
+      "fadeRate": 0.5,
+      "zone": { "x": 1419, "y": 1050, "w": 117, "h": 57 }
     }
   
     ],
@@ -97,9 +107,11 @@
     { "layer": "front","x": 1473, "y": 483, "radius": 200, "color": "rgba(17, 223, 171, 0.9)","effect": "pulse" },
     { "layer": "front","x": 531, "y": 786, "radius": 200, "color": "rgba(55, 110, 169, 0.9)","effect": "pulse" },
     { "layer": "front","x": 2508, "y": 765, "radius": 150, "color": "rgba(223, 168, 17, 0.9)","effect": "pulse" },
-    { "layer": "front","x": 2688, "y": 1179, "radius": 150, "color": "rgba(194, 10, 90, 0.90)","effect": "pulse" }
+    { "layer": "front","x": 2688, "y": 1179, "radius": 150, "color": "rgba(194, 10, 90, 0.90)","effect": "pulse" },
+    { "layer": "front","x": 1476, "y": 1083, "radius": 200, "color": "rgba(17, 223, 171, 0.9)","effect": "pulse" }
   ]
 }
+
 
 
 
