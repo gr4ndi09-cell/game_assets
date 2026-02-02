@@ -66,7 +66,7 @@
       "count": 9,
       "color": "rgba(93, 229, 195, 0.9)",
       "layer": "front",
-      "spawnRate": 8,
+      "spawnRate": 5,
       "fadeRate": 0.5,
       "zone": { "x": 2451, "y": 762, "w": 132, "h": 48 }
     },
@@ -76,7 +76,7 @@
       "count": 9,
       "color": "rgba(231, 157, 189, 0.9)",
       "layer": "front",
-      "spawnRate": 8,
+      "spawnRate": 5,
       "fadeRate": 0.1,
       "zone": { "x": 2628, "y": 1161, "w": 129, "h": 57 }
     }
@@ -92,6 +92,7 @@
     { "layer": "front","x": 2688, "y": 1179, "radius": 150, "color": "rgba(194, 10, 90, 0.90))","effect": "pulse" }
   ]
 }
+
 
 
 
