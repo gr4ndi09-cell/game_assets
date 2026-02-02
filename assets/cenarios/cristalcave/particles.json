@@ -45,7 +45,7 @@
       "type": "upward",
       "count": 6,
       "color": "rgba(55, 110, 169, 0.90))",
-      "layer": "front",
+      "layer": "scene",
       "spawnRate": 8,
       "fadeRate": 0.5,
       "zone": { "x": 1410, "y": 477, "w": 130, "h": 60 }
@@ -55,10 +55,10 @@
       "type": "upward",
       "count": 6,
       "color": "rgba(9, 65, 236, 0.90)",
-      "layer": "front",
+      "layer": "scene",
       "spawnRate": 8,
       "fadeRate": 0.5,
-      "zone": { "x": 589, "y": 768, "w": 90, "h": 72 }
+      "zone": { "x": 489, "y": 768, "w": 90, "h": 72 }
     }
   
     ],
@@ -66,10 +66,11 @@
   "lights": [
     { "layer": "front","x": 657, "y": 138, "radius": 250, "color": "rgba(166, 137, 210, 0.9)","effect": "pulse" },
     { "layer": "front","x": 2679, "y": 198, "radius": 200, "color": "rgba(70, 227, 13, 0.9)","effect": "pulse" },
-    { "layer": "front","x": 1473, "y": 483, "radius": 100, "color": "rgba(55, 110, 169, 0.90)","effect": "pulse" },
-    { "layer": "front","x": 531, "y": 786, "radius": 100, "color": "rgba(55, 110, 169, 0.90)","effect": "pulse" }
+    { "layer": "scene","x": 1473, "y": 483, "radius": 100, "color": "rgba(55, 110, 169, 0.90)","effect": "pulse" },
+    { "layer": "scene","x": 531, "y": 786, "radius": 100, "color": "rgba(55, 110, 169, 0.90)","effect": "pulse" }
   ]
 }
+
 
 
 
