@@ -120,13 +120,15 @@
     { "layer": "front","x": 531, "y": 786, "radius": 200, "color": "rgba(55, 110, 169, 0.9)","effect": "pulse" },
     { "layer": "front","x": 2508, "y": 765, "radius": 150, "color": "rgba(223, 168, 17, 0.9)","effect": "pulse" },
     { "layer": "front","x": 2688, "y": 1179, "radius": 150, "color": "rgba(194, 10, 90, 0.90)","effect": "pulse" },
-    { "layer": "front","x": 1476, "y": 1083, "radius": 200, "color": "rgba(17, 223, 171, 0.9)","effect": "pulse" }
+    { "layer": "front","x": 1476, "y": 1083, "radius": 200, "color": "rgba(17, 223, 171, 0.9)","effect": "pulse" },
+    { "layer": "front","x": 2184, "y": 1400, "radius": 200, "color": "rgba(234, 6, 6, 0.90)","effect": "pulse" },
+    { "layer": "front","x": 168, "y": 11420, "radius": 200, "color": "rgba(6, 234, 165, 0.90)","effect": "pulse" }
   ],
   "zones": [
 {
 "_comentario": "Zona de Calor Real",
-"x": 0, "y": 1464, "w": 2784, "h": 75,
-"color": "rgba(23, 7, 243, 0.7)",
+"x": 0, "y": 1464, "w": 2784, "h": 60,
+"color": "rgba(23, 7, 243, 0.8)",
 "style": "rect",
 "distortion": { "amplitude": 5, "frequency": 0.1, "speed": 5 }
 }
