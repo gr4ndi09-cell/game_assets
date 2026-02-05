@@ -1,4 +1,5 @@
 
+
 {
   "emitters": [
     {
@@ -132,14 +133,16 @@
 "_comentario": "--- ZONA DE ÁGUA (Parte inferior) ---",
 "layer": "front",
 "x": 0, "y": 1464, "w": 2783, "h": 60,
-"layer": "front",
 "color": "rgba(0, 100, 255, 0.3)",
 "style": "rect",
-"distortion": {"amplitude": 10, "frequency": 0.05, "speed": 3}
+"distortion": { 
+  "amplitude": 10, 
+  "frequency": 0.05, 
+  "speed": 3
+}
 }
   ]
 }
-
 
 
 
