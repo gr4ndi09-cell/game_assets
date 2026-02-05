@@ -127,6 +127,7 @@
   "zones": [
 {
 "_comentario": "Zona de Calor Real",
+"layer": "front",
 "x": 0, "y": 1464, "w": 2784, "h": 60,
 "color": "rgba(23, 7, 243, 0.8)",
 "style": "rect",
@@ -134,5 +135,4 @@
 }
   ]
 }
-
 
