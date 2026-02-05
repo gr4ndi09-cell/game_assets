@@ -527,18 +527,18 @@
             constructor() {
                 this.particlesByLayer = { bg: [], scene: [], main: [], front: [] };
                 this.lights = [];
-                this.zones = []; // ✨ NOVAS ZONAS DE DISTORÇÃO
+                this.zones = [];
             }
             init(stageConfig) {
                 this.particlesByLayer = { bg: [], scene: [], main: [], front: [] };
                 this.lights = [];
-                this.zones = []; // Reset zones
+                this.zones = [];
 
                 if (!stageConfig) { this.addDefaultEmitters(); } 
                 else {
                     const emitters = stageConfig.emitters || [];
                     this.lights = stageConfig.lights || [];
-                    this.zones = stageConfig.zones || []; // Carrega zonas do JSON (se houver)
+                    this.zones = stageConfig.zones || [];
 
                     emitters.forEach(emit => {
                         const layer = emit.layer || 'main';
@@ -558,12 +558,10 @@
                 }
             }
             draw(ctx, layerName) {
-                // Desenha partículas
                 if (this.particlesByLayer[layerName]) {
                     this.particlesByLayer[layerName].forEach(p => p.draw(ctx));
                 }
                 
-                // Desenha luzes
                 this.lights.forEach(l => {
                     const targetLayer = l.layer || 'main';
                     if (targetLayer === layerName) {
@@ -586,33 +584,37 @@
                     }
                 });
 
-                // ✨ DESENHA ZONAS DE EFEITO (Apenas na camada 'front' ou 'main' para simplificar)
+                // ✨ DESENHA ZONAS DE EFEITO (Retangulares e Onduladas)
                 if (layerName === 'front') {
                      const time = Date.now() / 1000;
                      this.zones.forEach(z => {
                          if (z.type === 'darkness') {
-                             // Desenha escuridão
                              const g = ctx.createRadialGradient(z.x + z.w/2, z.y + z.h/2, 0, z.x + z.w/2, z.y + z.h/2, z.w/1.5);
-                             g.addColorStop(0, `rgba(0,0,0,0)`); // Centro claro
-                             g.addColorStop(1, `rgba(0,0,0,${z.intensity})`); // Bordas escuras
+                             g.addColorStop(0, `rgba(0,0,0,0)`);
+                             g.addColorStop(1, `rgba(0,0,0,${z.intensity})`);
                              ctx.fillStyle = g;
                              ctx.fillRect(z.x, z.y, z.w, z.h);
                          } else if (z.type === 'heat' || z.type === 'water') {
-                             // Simulação visual simples de distorção (ondas de cor)
-                             // Distorção real de imagem requereria capturar o canvas, o que é lento aqui.
-                             // Usamos "ondas de calor" visíveis.
                              ctx.save();
-                             ctx.globalCompositeOperation = 'overlay'; // Mistura suave
+                             ctx.beginPath();
+                             ctx.rect(z.x, z.y, z.w, z.h); // Define área retangular
+                             ctx.clip(); // Recorta tudo o que for desenhado fora daqui
+
+                             ctx.globalCompositeOperation = 'overlay'; 
                              ctx.globalAlpha = 0.3;
-                             ctx.fillStyle = z.type === 'water' ? '#aaf' : '#fa0';
+                             ctx.fillStyle = z.type === 'water' ? '#88ccff' : '#ffaa00';
                              
-                             // Desenha várias "ondas" senoidais
-                             for(let i=0; i<5; i++) {
-                                 const offset = Math.sin(time * 2 + i + z.y) * 10;
-                                 const yPos = z.y + (time * 50 + i * 50) % z.h;
-                                 ctx.beginPath();
-                                 ctx.arc(z.x + z.w/2 + offset, yPos, z.w/3, 0, Math.PI*2);
-                                 ctx.fill();
+                             const waveHeight = 15;
+                             const numWaves = Math.ceil(z.h / waveHeight) + 1;
+                             
+                             for(let i=0; i<numWaves; i++) {
+                                 const speed = z.type === 'heat' ? -40 : 20; 
+                                 const yOffset = (time * speed + i * waveHeight) % (z.h + waveHeight);
+                                 let actualY = z.y + z.h - yOffset;
+                                 if(z.type === 'water') actualY = z.y + yOffset - waveHeight;
+
+                                 const xOffset = Math.sin(time * 3 + i * 0.5) * 5;
+                                 ctx.fillRect(z.x + xOffset - 5, actualY, z.w + 10, waveHeight * 0.6);
                              }
                              ctx.restore();
                          }
@@ -1005,16 +1007,7 @@
         
         async function loadStageData(stageUrl) {
             try { const response = await fetch(`${stageUrl}/platforms.json`); if (response.ok) { colliders = await response.json(); generateFruitSpawns(); } else { throw new Error("JSON 404"); } }
-            catch (e) { console.warn("Usando fallback de plataformas."); 
-                // ✨ PLATAFORMAS DE TESTE (Fallback)
-                colliders = [ 
-                    { x: 0, y: 1509, w: 2752, h: 15, id: 16, type: 'rect' }, // Chão
-                    { x: 500, y: 1200, w: 400, h: 20, type: 'rect', isSlippery: true }, // ✨ GELO (Teste)
-                    { x: 1200, y: 1000, w: 400, h: 20, type: 'rect' },
-                    { x: 200, y: 800, w: 300, h: 20, type: 'rect' }
-                ]; 
-                generateFruitSpawns(); 
-            }
+            catch (e) { console.warn("Usando fallback."); colliders = [ { x: 0, y: 252, w: 730, h: 15, type: 'rect' }, { x: 928, y: 246, w: 730, h: 15, type: 'rect' }, { x: 1306, y: 94, w: 316, h: 15, type: 'rect' }, { x: 1206, y: 416, w: 462, h: 15, type: 'rect' }, { x: 146, y: 706, w: 280, h: 15, type: 'rect' }, { x: 336, y: 764, w: 464, h: 15, type: 'rect' }, { x: 534, y: 423, w: 123, h: 15, type: 'rect', isSpring: true, animArea: { x: 524, y: 420, w: 123, h: 124 } }, { x: 1230, y: 686, w: 526, h: 15, type: 'rect' }, { x: 2112, y: 118, w: 124, h: 15, type: 'rect', isSpring: true, animArea: { x: 2105, y: 114, w: 128, h: 89 } }, { x: 2026, y: 304, w: 272, h: 15, type: 'rect' }, { x: 1940, y: 436, w: 424, h: 15, type: 'rect' }, { x: 1832, y: 640, w: 558, h: 15, type: 'rect' }, { x: 2308, y: 256, w: 450, h: 15, type: 'rect' }, { x: 1922, y: 904, w: 122, h: 15, type: 'rect' }, { x: 0, y: 1047, w: 2752, h: 15, type: 'rect' }, { x: 0, y: 1509, w: 2752, h: 15, id: 16, type: 'rect' }, { x: 1000, y: 1444, w: 250, h: 15, type: 'rect' }, { x: 2094, y: 1366, w: 140, h: 15, type: 'rect', isSpring: true, animArea: { x: 2095, y: 1361, w: 145, h: 136 } }, { x: 2162, y: 1176, w: 160, h: 15, type: 'rect' }, { x: 486, y: 537, w: 180, h: 15, type: 'rect' }, { x: 2088, y: 198, w: 168, h: 15, type: 'rect' } ]; generateFruitSpawns(); }
             
             // ✨ CARREGA PARTÍCULAS
             try {
@@ -1110,6 +1103,29 @@
         window.addEventListener('keyup', e => keys[e.key] = false);
         document.querySelectorAll('.touch-btn').forEach(btn => { const key = btn.getAttribute('data-key'); const activate = (e) => { if(e.cancelable) e.preventDefault(); keys[key] = true; btn.classList.add('active'); }; const deactivate = (e) => { if(e.cancelable) e.preventDefault(); keys[key] = false; btn.classList.remove('active'); }; btn.addEventListener('mousedown', activate); btn.addEventListener('mouseup', deactivate); btn.addEventListener('mouseleave', deactivate); btn.addEventListener('touchstart', activate, {passive: false}); btn.addEventListener('touchend', deactivate, {passive: false}); btn.addEventListener('touchcancel', deactivate, {passive: false}); });
         
+        // --- 8. IA (GEMINI) - Definidas globalmente ---
+        async function geminiFetch(prompt, system) {
+            let delay = 1000;
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: system }] }, generationConfig: { responseMimeType: "application/json" } })
+                    });
+                    if (!response.ok) throw new Error();
+                    const data = await response.json(); return JSON.parse(data.candidates[0].content.parts[0].text);
+                } catch (e) { await new Promise(r => setTimeout(r, delay)); delay *= 2; }
+            }
+        }
+        async function generateQuestions() {
+            const theme = document.getElementById('theme-input').value || 'História'; document.getElementById('loader').style.display = 'block';
+            try { const result = await geminiFetch(`Gere 5 perguntas sobre "${theme}". Formato: { "questions": [{ "q": "p", "options": ["o1","o2","o3","o4"], "correct": 0 }] }`, "És um professor sábio."); if (result.questions) { questions = result.questions; showMessage("✨ Desafios carregados!"); } } catch (e) { showMessage("Erro na IA."); } finally { document.getElementById('loader').style.display = 'none'; }
+        }
+        async function explainTopic(question, answer) {
+            const tutorEl = document.getElementById('tutor-explanation'); tutorEl.style.display = 'block'; tutorEl.innerText = "A pensar...";
+            try { const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: `Pergunta: ${question}. Resposta: ${answer}. Explica em 2 frases.` }] }], systemInstruction: { parts: [{ text: "És um tutor amigável." }] } }) }); const data = await r.json(); tutorEl.innerText = data.candidates[0].content.parts[0].text; } catch (e) { tutorEl.innerText = "Continua a lutar!"; }
+        }
+
         canvas.width = CANVAS_WIDTH; canvas.height = CANVAS_HEIGHT;
         
         // Chamada final segura
@@ -1117,5 +1133,3 @@
     </script>
 </body>
 </html>
-
-
