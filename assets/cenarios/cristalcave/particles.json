@@ -129,15 +129,20 @@
   ],
   "zones": [
 {
-"_comentario": "Zona de Calor Real",
+"_comentario": "--- ZONA DE ÁGUA (Parte inferior) ---",
 "layer": "front",
 "x": 0, "y": 1464, "w": 2783, "h": 60,
-"color": "rgba(6, 135, 234, 0.90)",
+"layer": "front",
+"color": "rgba(0, 100, 255, 0.3)",
 "style": "rect",
-"distortion": { "amplitude": 5, "frequency": 0.1, "speed": 5 }
+"distortion": { 
+  "amplitude": 10, 
+  "frequency": 0.05, 
+  "speed": 3
 }
   ]
 }
+
 
 
 
