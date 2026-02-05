@@ -131,13 +131,14 @@
 {
 "_comentario": "Zona de Calor Real",
 "layer": "front",
-"x": 0, "y": 1464, "w": 2784, "h": 60,
-"color": "rgba(23, 7, 243, 0.8)",
+"x": 0, "y": 1464, "w": 2783, "h": 60,
+"color": "rgba(6, 135, 234, 0.90)",
 "style": "rect",
 "distortion": { "amplitude": 5, "frequency": 0.1, "speed": 5 }
 }
   ]
 }
+
 
 
 
