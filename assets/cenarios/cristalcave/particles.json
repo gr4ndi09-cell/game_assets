@@ -134,6 +134,7 @@
 "layer": "front",
 "x": 0, "y": 1464, "w": 2783, "h": 60,
 "color": "rgba(0, 100, 255, 0.3)",
+"background": "rgba(239, 243, 245, 0.86)",
 "style": "rect",
 "distortion": { 
   "amplitude": 10, 
@@ -143,6 +144,7 @@
 }
   ]
 }
+
 
 
 
