@@ -584,42 +584,52 @@
                     }
                 });
 
-                // ✨ DESENHA ZONAS DE EFEITO (Retangulares e Onduladas)
-                if (layerName === 'front') {
-                     const time = Date.now() / 1000;
-                     this.zones.forEach(z => {
-                         if (z.type === 'darkness') {
-                             const g = ctx.createRadialGradient(z.x + z.w/2, z.y + z.h/2, 0, z.x + z.w/2, z.y + z.h/2, z.w/1.5);
-                             g.addColorStop(0, `rgba(0,0,0,0)`);
-                             g.addColorStop(1, `rgba(0,0,0,${z.intensity})`);
-                             ctx.fillStyle = g;
-                             ctx.fillRect(z.x, z.y, z.w, z.h);
-                         } else if (z.type === 'heat' || z.type === 'water') {
-                             ctx.save();
-                             ctx.beginPath();
-                             ctx.rect(z.x, z.y, z.w, z.h); // Define área retangular
-                             ctx.clip(); // Recorta tudo o que for desenhado fora daqui
+                // ✨ DESENHA ZONAS DE EFEITO (Genericamente)
+                const time = Date.now() / 1000;
+                this.zones.forEach(z => {
+                     const targetLayer = z.layer || 'front';
+                     if (targetLayer !== layerName) return;
 
+                     if (z.style === 'radial') {
+                         // Vinheta/Escuridão
+                         const g = ctx.createRadialGradient(z.x + z.w/2, z.y + z.h/2, 0, z.x + z.w/2, z.y + z.h/2, z.w/1.5);
+                         g.addColorStop(0, `rgba(0,0,0,0)`);
+                         g.addColorStop(1, z.color || `rgba(0,0,0,0.8)`);
+                         ctx.fillStyle = g;
+                         ctx.fillRect(z.x, z.y, z.w, z.h);
+                     } else {
+                         // Retângulo com ou sem distorção
+                         ctx.save();
+                         ctx.beginPath();
+                         ctx.rect(z.x, z.y, z.w, z.h);
+                         ctx.clip(); 
+
+                         if (z.distortion) {
                              ctx.globalCompositeOperation = 'overlay'; 
                              ctx.globalAlpha = 0.3;
-                             ctx.fillStyle = z.type === 'water' ? '#88ccff' : '#ffaa00';
+                             ctx.fillStyle = z.color || '#aaf';
                              
+                             const amp = z.distortion.amplitude || 5;
+                             const freq = z.distortion.frequency || 0.1;
+                             const spd = z.distortion.speed || 5;
                              const waveHeight = 15;
                              const numWaves = Math.ceil(z.h / waveHeight) + 1;
                              
                              for(let i=0; i<numWaves; i++) {
-                                 const speed = z.type === 'heat' ? -40 : 20; 
-                                 const yOffset = (time * speed + i * waveHeight) % (z.h + waveHeight);
+                                 const yOffset = (time * spd * 10 + i * waveHeight) % (z.h + waveHeight);
                                  let actualY = z.y + z.h - yOffset;
-                                 if(z.type === 'water') actualY = z.y + yOffset - waveHeight;
-
-                                 const xOffset = Math.sin(time * 3 + i * 0.5) * 5;
-                                 ctx.fillRect(z.x + xOffset - 5, actualY, z.w + 10, waveHeight * 0.6);
+                                 
+                                 const xOffset = Math.sin(time * 3 + i * freq) * amp;
+                                 ctx.fillRect(z.x + xOffset - 5, actualY, z.w + 10, waveHeight * 0.8);
                              }
-                             ctx.restore();
+                         } else {
+                             // Preenchimento simples
+                             ctx.fillStyle = z.color;
+                             ctx.fillRect(z.x, z.y, z.w, z.h);
                          }
-                     });
-                }
+                         ctx.restore();
+                     }
+                });
             }
         }
 
