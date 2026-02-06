@@ -133,8 +133,8 @@
 "_comentario": "--- ZONA DE ÁGUA (Parte inferior) ---",
 "layer": "front",
 "x": 0, "y": 1464, "w": 2783, "h": 60,
-"color": "rgba(0, 100, 255, 0.3)",
-"background": "rgba(239, 243, 245, 0.86)",
+"color": "rgba(8, 117, 243, 0.534)",
+"background": "rgba(239, 243, 245, 0.6)",
 "style": "rect",
 "distortion": { 
   "amplitude": 10, 
@@ -144,6 +144,7 @@
 }
   ]
 }
+
 
 
 
