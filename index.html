@@ -2,7 +2,9 @@
 <html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Didactic Fighter - Gemini Edition</title>
     <style>
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; touch-action: none; color: white; user-select: none; -webkit-user-select: none; }
@@ -73,17 +75,58 @@
         #victory-text { font-size: 40px; color: yellow; text-shadow: 0 0 10px red; font-weight: bold; text-transform: uppercase; margin-bottom: 20px; }
         #tutor-explanation { margin-top: 20px; padding: 15px; background: rgba(0, 255, 255, 0.1); border-left: 4px solid cyan; text-align: left; font-size: 16px; display: none; }
         
-        /* CONTROLES MÓVEIS */
-        #mobile-controls { position: absolute; bottom: 20px; width: 100%; height: 160px; display: none; pointer-events: none; z-index: 50; justify-content: space-between; padding: 0 40px; box-sizing: border-box; opacity: 0; transition: opacity 1s; }
-        @media (max-width: 1024px) { #mobile-controls.visible { display: flex; } }
-        .control-group { display: flex; gap: 15px; pointer-events: auto; align-items: flex-end; }
-        .touch-btn { width: 70px; height: 70px; background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; color: white; font-size: 24px; font-weight: bold; display: flex; justify-content: center; align-items: center; user-select: none; touch-action: manipulation; backdrop-filter: blur(4px); cursor: pointer; }
-        .touch-btn:active, .touch-btn.active { background: rgba(0, 255, 255, 0.4); border-color: cyan; transform: scale(0.95); }
-        .atk-btn { border-radius: 15px; width: 80px; background: rgba(255, 0, 0, 0.2); border-color: rgba(255, 0, 0, 0.4); }
-        .atk-btn:active, .atk-btn.active { background: rgba(255, 0, 0, 0.5); border-color: red; }
-        .shoot-btn { border-radius: 15px; width: 80px; background: rgba(255, 255, 0, 0.2); border-color: rgba(255, 255, 0, 0.4); }
-        .shoot-btn:active, .shoot-btn.active { background: rgba(255, 255, 0, 0.5); border-color: yellow; }
+        /* CONTROLES MÓVEIS (NOVO DESIGN) */
+        #mobile-controls { 
+            position: absolute; bottom: 20px; width: 100%; height: 180px; 
+            display: none; pointer-events: none; z-index: 50; 
+            justify-content: space-between; padding: 0 30px; box-sizing: border-box; 
+            opacity: 0; transition: opacity 1s; 
+        }
+        @media (max-width: 1024px) { #mobile-controls.visible { display: flex; opacity: 1; } }
         
+        /* JOYSTICK ESQUERDO */
+        .joystick-area {
+            width: 150px; height: 150px; position: relative; pointer-events: auto;
+        }
+        .joystick-base {
+            width: 120px; height: 120px; 
+            background: rgba(255, 255, 255, 0.1); 
+            border: 2px solid rgba(255, 255, 255, 0.3); 
+            border-radius: 50%; 
+            position: absolute; bottom: 10px; left: 10px;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .joystick-stick {
+            width: 50px; height: 50px; 
+            background: rgba(0, 255, 255, 0.5); 
+            border-radius: 50%; 
+            box-shadow: 0 0 10px cyan;
+            position: absolute;
+            transform: translate(0, 0); /* Controlado via JS */
+        }
+
+        /* BOTÕES DE AÇÃO (DIREITA) */
+        .actions-area {
+            width: 180px; height: 180px; position: relative; pointer-events: auto;
+        }
+        .touch-btn {
+            width: 60px; height: 60px; 
+            background: rgba(255, 255, 255, 0.15); 
+            border: 2px solid rgba(255, 255, 255, 0.3); 
+            border-radius: 50%; 
+            color: white; font-size: 14px; font-weight: bold; 
+            display: flex; justify-content: center; align-items: center; 
+            user-select: none; touch-action: manipulation; backdrop-filter: blur(4px); cursor: pointer;
+            position: absolute;
+        }
+        .touch-btn:active, .touch-btn.active { background: rgba(0, 255, 255, 0.4); border-color: cyan; transform: scale(0.95); }
+        
+        /* Layout Diamante */
+        .btn-jump { top: 0; left: 60px; background: rgba(0, 255, 0, 0.2); } /* W - Topo */
+        .btn-down { bottom: 0; left: 60px; background: rgba(255, 255, 255, 0.2); } /* S - Baixo */
+        .btn-atk { top: 60px; left: 0; background: rgba(255, 0, 0, 0.2); width: 65px; height: 65px; } /* F - Esquerda */
+        .btn-shoot { top: 60px; right: 0; background: rgba(255, 255, 0, 0.2); width: 65px; height: 65px;} /* G - Direita */
+
         #debug-toggle { position: absolute; bottom: 20px; left: 20px; font-size: 14px; color: #888; pointer-events: auto; z-index: 60; display: flex; align-items: center; gap: 5px; cursor: pointer; }
     </style>
 </head>
@@ -137,16 +180,21 @@
             <button class="gemini-btn" onclick="location.reload()">VOLTAR À SELEÇÃO</button>
         </div>
 
-        <div id="mobile-controls" id="mobile-controls">
-            <div class="control-group">
-                <div class="touch-btn" data-key="a">←</div>
-                <div class="touch-btn" data-key="s">↓</div>
-                <div class="touch-btn" data-key="d">→</div>
+        <!-- CONTROLES MÓVEIS REESTRUTURADOS -->
+        <div id="mobile-controls">
+            <!-- Joystick Esquerdo -->
+            <div class="joystick-area" id="joystick-zone">
+                <div class="joystick-base">
+                    <div class="joystick-stick" id="joystick-stick"></div>
+                </div>
             </div>
-            <div class="control-group">
-                <div class="touch-btn shoot-btn" data-key="g">TIRO</div>
-                <div class="touch-btn atk-btn" data-key="f">SOCO</div>
-                <div class="touch-btn" data-key="w">↑</div>
+
+            <!-- Botões de Ação Direito -->
+            <div class="actions-area">
+                <div class="touch-btn btn-jump" data-key="w">PULAR</div>
+                <div class="touch-btn btn-down" data-key="s">DESCER</div>
+                <div class="touch-btn btn-atk" data-key="f">SOCO</div>
+                <div class="touch-btn btn-shoot" data-key="g">TIRO</div>
             </div>
         </div>
 
@@ -171,7 +219,7 @@
         const MIN_VIEW_WIDTH = 1000, MAX_VIEW_WIDTH = 2752;
         const MAX_VIEW_HEIGHT = MAX_VIEW_WIDTH * ASPECT_RATIO;
         const MIN_VIEW_HEIGHT = MIN_VIEW_WIDTH * ASPECT_RATIO;
-        const GRAVITY = 2500, JUMP_FORCE = 1800, MOVE_SPEED = 600, GROUND_Y = 1515; 
+        const GRAVITY = 2500, JUMP_FORCE = 1600, MOVE_SPEED = 600, GROUND_Y = 1530; 
         const FRAME_WIDTH = 240, FRAME_HEIGHT = 237;
 
         const LOGICAL_STATE = { RUN: 'RUN', IDLE: 'IDLE', MELEE: 'MELEE', JUMP: 'JUMP', SHOOT: 'SHOOT' };
@@ -214,7 +262,8 @@
         let introFinished = false; 
         let gameLoopRunning = false;
         let mysticFruit={active:false,x:0,y:0,radius:25,lastSpawnTime:0,pulse:0,healAmount:40,glints:[],smoke:[]};
-        const fruitSpawnPoints = [{ x: 570, y: 930 }, { x: 2352, y: 225 }, { x: 414, y: 1479 }];
+        
+        let fruitSpawnPoints = []; 
         
         let selectedP1 = CHARACTERS_DB[0];
         let selectedP2 = CHARACTERS_DB[1];
@@ -242,6 +291,16 @@
             msgBox.innerText = text; msgBox.style.display = 'block'; 
             msgBox.style.animation = 'none'; msgBox.offsetHeight; msgBox.style.animation = 'popIn 0.3s ease-out';
             setTimeout(() => { msgBox.style.display = 'none'; }, duration); 
+        }
+
+        // FULL SCREEN HELPER
+        function goFullScreen() {
+            const doc = window.document;
+            const docEl = doc.documentElement;
+            const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+            if (requestFullScreen) {
+                requestFullScreen.call(docEl).catch(err => console.log("Fullscreen negado (interação necessária)"));
+            }
         }
 
         function drawSupernova(ctx, x, y) {
@@ -335,11 +394,8 @@
                 this.baseSize = config.baseSize || 2.0; 
                 this.shape = config.shape || "circle"; 
                 this.alpha = 0;
-                
-                // Propriedades para insetos
                 this.initialX = 0;
                 this.initialY = 0;
-                
                 this.reset();
             }
             reset() {
@@ -403,7 +459,6 @@
                     if (this.alpha < 0) this.alpha = 0; else if (this.alpha > 1) this.alpha = 1;
                 }
 
-                // Lógica de Enxame de Insetos
                 if (this.type === 'insect') {
                     let flee = false;
                     [p1, p2].forEach(p => {
@@ -413,7 +468,7 @@
                         let dist = Math.sqrt(dx*dx + dy*dy);
                         if (dist < 150) { 
                             flee = true;
-                            this.speedX -= (dx / dist) * 800 * dt; // Repulsão forte
+                            this.speedX -= (dx / dist) * 800 * dt; 
                             this.speedY -= (dy / dist) * 800 * dt;
                         }
                     });
@@ -440,7 +495,7 @@
 
                     this.x += this.speedX * dt;
                     this.y += this.speedY * dt;
-                    this.alpha = 0.3 + Math.random() * 0.7; // Piscar
+                    this.alpha = 0.3 + Math.random() * 0.7; 
                     return;
                 }
 
@@ -565,24 +620,17 @@
                     if (targetLayer === layerName) {
                         let f = 1;
                         const time = Date.now();
-                        
-                        if (l.effect === 'pulse') {
-                            f = Math.sin(time / 300) * 0.05 + 1; 
-                        } else if (l.effect === 'blink') {
-                            if (Math.random() < 0.05) f = 0; else f = 1;
-                        } else if (l.effect === 'flicker') {
+                        if (l.effect === 'pulse') f = Math.sin(time / 300) * 0.05 + 1; 
+                        else if (l.effect === 'blink') f = Math.random() < 0.05 ? 0 : 1;
+                        else if (l.effect === 'flicker') {
                             f = 1 + (Math.random() - 0.5) * 0.2; 
                             l.drawX = l.x + (Math.random() - 0.5) * 5;
                             l.drawY = l.y + (Math.random() - 0.5) * 5;
-                        } else {
-                            l.drawX = l.x; l.drawY = l.y;
-                        }
+                        } else { l.drawX = l.x; l.drawY = l.y; }
 
-                        const dx = l.drawX || l.x;
-                        const dy = l.drawY || l.y;
-                        const radius = Math.max(0, l.radius * f);
-
-                        // ✨ NOVO: Background da Luz (Anteparo)
+                        const dx = l.drawX || l.x; const dy = l.drawY || l.y; const radius = Math.max(0, l.radius * f);
+                        
+                        // Background da Luz
                         if (l.background) {
                             ctx.save();
                             ctx.globalCompositeOperation = 'source-over';
@@ -595,22 +643,19 @@
                         }
 
                         const g = ctx.createRadialGradient(dx, dy, 0, dx, dy, radius);
-                        g.addColorStop(0, l.color);
-                        g.addColorStop(1, 'rgba(0,0,0,0)');
-                        ctx.fillStyle = g;
-                        ctx.globalCompositeOperation = 'screen';
+                        g.addColorStop(0, l.color); g.addColorStop(1, 'rgba(0,0,0,0)');
+                        ctx.fillStyle = g; ctx.globalCompositeOperation = 'screen';
                         ctx.beginPath(); ctx.arc(dx, dy, radius, 0, Math.PI * 2); ctx.fill();
                         ctx.globalCompositeOperation = 'source-over';
                     }
                 });
 
-                // ✨ DESENHA ZONAS DE EFEITO (Retangulares e Onduladas)
                 const time = Date.now() / 1000;
                 this.zones.forEach(z => {
                      const targetLayer = z.layer || 'front';
                      if (targetLayer !== layerName) return;
 
-                     // ✨ NOVO: Background da Zona
+                     // Background da Zona
                      if (z.background) {
                          ctx.fillStyle = z.background;
                          ctx.fillRect(z.x, z.y, z.w, z.h);
@@ -644,6 +689,13 @@
                                  let actualY = z.y + z.h - yOffset;
                                  
                                  const xOffset = Math.sin(time * 3 + i * freq) * amp;
+                                 try {
+                                    ctx.drawImage(canvas, 
+                                        z.x, actualY, z.w, waveHeight, // Source (simplificado)
+                                        z.x + xOffset, actualY, z.w, waveHeight // Destino
+                                    );
+                                 } catch(e) {}
+                                 
                                  ctx.fillRect(z.x + xOffset - 5, actualY, z.w + 10, waveHeight * 0.8);
                              }
                          } else {
@@ -1143,7 +1195,91 @@
 
         window.addEventListener('keydown', e => keys[e.key] = true);
         window.addEventListener('keyup', e => keys[e.key] = false);
-        document.querySelectorAll('.touch-btn').forEach(btn => { const key = btn.getAttribute('data-key'); const activate = (e) => { if(e.cancelable) e.preventDefault(); keys[key] = true; btn.classList.add('active'); }; const deactivate = (e) => { if(e.cancelable) e.preventDefault(); keys[key] = false; btn.classList.remove('active'); }; btn.addEventListener('mousedown', activate); btn.addEventListener('mouseup', deactivate); btn.addEventListener('mouseleave', deactivate); btn.addEventListener('touchstart', activate, {passive: false}); btn.addEventListener('touchend', deactivate, {passive: false}); btn.addEventListener('touchcancel', deactivate, {passive: false}); });
+        // ✨ LÓGICA DO JOYSTICK E BOTÕES MÓVEIS REFINADA
+        document.querySelectorAll('.touch-btn').forEach(btn => { 
+            const key = btn.getAttribute('data-key'); 
+            const activate = (e) => { 
+                if(e.cancelable) e.preventDefault(); 
+                keys[key] = true; 
+                btn.classList.add('active'); 
+            }; 
+            const deactivate = (e) => { 
+                if(e.cancelable) e.preventDefault(); 
+                keys[key] = false; 
+                btn.classList.remove('active'); 
+            }; 
+            btn.addEventListener('mousedown', activate); 
+            btn.addEventListener('mouseup', deactivate); 
+            btn.addEventListener('mouseleave', deactivate); 
+            btn.addEventListener('touchstart', activate, {passive: false}); 
+            btn.addEventListener('touchend', deactivate, {passive: false}); 
+            btn.addEventListener('touchcancel', deactivate, {passive: false}); 
+        });
+
+        // LÓGICA DO JOYSTICK (MANCHE)
+        const joystickZone = document.getElementById('joystick-zone');
+        const joystickStick = document.getElementById('joystick-stick');
+        let joystickActive = false;
+        let startX = 0;
+
+        // Centraliza o stick inicialmente
+        const resetJoystick = () => {
+            joystickStick.style.transform = `translate(0px, 0px)`;
+            keys['a'] = false; // Esquerda
+            keys['d'] = false; // Direita
+            joystickActive = false;
+        };
+
+        const handleJoystickMove = (e) => {
+            if (!joystickActive) return;
+            const touch = e.touches[0];
+            const rect = joystickZone.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            
+            // Calcula o deslocamento X relativo ao centro
+            let deltaX = touch.clientX - centerX;
+            
+            // Limita o movimento visual do stick (raio de 35px)
+            const maxDist = 35;
+            if (deltaX > maxDist) deltaX = maxDist;
+            if (deltaX < -maxDist) deltaX = -maxDist;
+            
+            joystickStick.style.transform = `translate(${deltaX}px, 0px)`;
+
+            // Define as teclas virtuais
+            if (deltaX < -10) {
+                keys['a'] = true;
+                keys['d'] = false;
+            } else if (deltaX > 10) {
+                keys['d'] = true;
+                keys['a'] = false;
+            } else {
+                keys['a'] = false;
+                keys['d'] = false;
+            }
+        };
+
+        joystickZone.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            joystickActive = true;
+            handleJoystickMove(e);
+        }, {passive: false});
+
+        joystickZone.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            handleJoystickMove(e);
+        }, {passive: false});
+
+        joystickZone.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            resetJoystick();
+        }, {passive: false});
+
+        joystickZone.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            resetJoystick();
+        }, {passive: false});
+
         
         // --- 8. IA (GEMINI) - Definidas globalmente ---
         async function geminiFetch(prompt, system) {
