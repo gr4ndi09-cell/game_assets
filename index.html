@@ -82,7 +82,11 @@
             justify-content: space-between; padding: 0 30px; box-sizing: border-box; 
             opacity: 0; transition: opacity 1s; 
         }
-        @media (max-width: 1024px) { #mobile-controls.visible { display: flex; opacity: 1; } }
+
+        /* ✨ REGRA CORRIGIDA: Só mostra se ecrã pequeno OU dispositivo de toque */
+        @media (max-width: 1024px), (pointer: coarse) { 
+            #mobile-controls.visible { display: flex; opacity: 1; } 
+        }
         
         /* JOYSTICK ESQUERDO */
         .joystick-area {
@@ -219,7 +223,7 @@
         const MIN_VIEW_WIDTH = 1000, MAX_VIEW_WIDTH = 2752;
         const MAX_VIEW_HEIGHT = MAX_VIEW_WIDTH * ASPECT_RATIO;
         const MIN_VIEW_HEIGHT = MIN_VIEW_WIDTH * ASPECT_RATIO;
-        const GRAVITY = 2500, JUMP_FORCE = 1800, MOVE_SPEED = 600, GROUND_Y = 1530; 
+        const GRAVITY = 2500, JUMP_FORCE = 1600, MOVE_SPEED = 600, GROUND_Y = 1530; 
         const FRAME_WIDTH = 240, FRAME_HEIGHT = 237;
 
         const LOGICAL_STATE = { RUN: 'RUN', IDLE: 'IDLE', MELEE: 'MELEE', JUMP: 'JUMP', SHOOT: 'SHOOT' };
@@ -262,8 +266,7 @@
         let introFinished = false; 
         let gameLoopRunning = false;
         let mysticFruit={active:false,x:0,y:0,radius:25,lastSpawnTime:0,pulse:0,healAmount:40,glints:[],smoke:[]};
-        
-        let fruitSpawnPoints = []; 
+        const fruitSpawnPoints = [{ x: 570, y: 930 }, { x: 2352, y: 225 }, { x: 414, y: 1479 }];
         
         let selectedP1 = CHARACTERS_DB[0];
         let selectedP2 = CHARACTERS_DB[1];
@@ -293,13 +296,13 @@
             setTimeout(() => { msgBox.style.display = 'none'; }, duration); 
         }
 
-        // FULL SCREEN HELPER
+        // ✨ HELPER PARA FULLSCREEN
         function goFullScreen() {
             const doc = window.document;
             const docEl = doc.documentElement;
             const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
             if (requestFullScreen) {
-                requestFullScreen.call(docEl).catch(err => console.log("Fullscreen negado (interação necessária)"));
+                requestFullScreen.call(docEl).catch(err => console.log("Fullscreen negado (necessita interação)."));
             }
         }
 
@@ -394,8 +397,11 @@
                 this.baseSize = config.baseSize || 2.0; 
                 this.shape = config.shape || "circle"; 
                 this.alpha = 0;
+                
+                // Propriedades para insetos
                 this.initialX = 0;
                 this.initialY = 0;
+                
                 this.reset();
             }
             reset() {
@@ -459,6 +465,7 @@
                     if (this.alpha < 0) this.alpha = 0; else if (this.alpha > 1) this.alpha = 1;
                 }
 
+                // Lógica de Enxame de Insetos
                 if (this.type === 'insect') {
                     let flee = false;
                     [p1, p2].forEach(p => {
@@ -468,7 +475,7 @@
                         let dist = Math.sqrt(dx*dx + dy*dy);
                         if (dist < 150) { 
                             flee = true;
-                            this.speedX -= (dx / dist) * 800 * dt; 
+                            this.speedX -= (dx / dist) * 800 * dt; // Repulsão forte
                             this.speedY -= (dy / dist) * 800 * dt;
                         }
                     });
@@ -479,6 +486,7 @@
                         this.speedX += (Math.random() - 0.5) * 300 * dt; 
                         this.speedY += (Math.random() - 0.5) * 300 * dt;
 
+                        // Paredes de contenção elásticas
                         const returnForce = 1000 * dt;
                         if (this.x < this.zone.x) this.speedX += returnForce;
                         else if (this.x > this.zone.x + this.zone.w) this.speedX -= returnForce;
@@ -495,7 +503,7 @@
 
                     this.x += this.speedX * dt;
                     this.y += this.speedY * dt;
-                    this.alpha = 0.3 + Math.random() * 0.7; 
+                    this.alpha = 0.3 + Math.random() * 0.7; // Piscar
                     return;
                 }
 
@@ -650,6 +658,7 @@
                     }
                 });
 
+                // ✨ DESENHA ZONAS DE EFEITO (Retangulares e Onduladas)
                 const time = Date.now() / 1000;
                 this.zones.forEach(z => {
                      const targetLayer = z.layer || 'front';
@@ -1092,16 +1101,7 @@
         
         async function loadStageData(stageUrl) {
             try { const response = await fetch(`${stageUrl}/platforms.json`); if (response.ok) { colliders = await response.json(); generateFruitSpawns(); } else { throw new Error("JSON 404"); } }
-            catch (e) { console.warn("Usando fallback de plataformas."); 
-                // ✨ PLATAFORMAS DE TESTE (Fallback)
-                colliders = [ 
-                    { x: 0, y: 1509, w: 2752, h: 15, id: 16, type: 'rect' }, // Chão
-                    { x: 500, y: 1200, w: 400, h: 20, type: 'rect', isSlippery: true }, // ✨ GELO (Teste)
-                    { x: 1200, y: 1000, w: 400, h: 20, type: 'rect' },
-                    { x: 200, y: 800, w: 300, h: 20, type: 'rect' }
-                ]; 
-                generateFruitSpawns(); 
-            }
+            catch (e) { console.warn("Usando fallback."); colliders = [ { x: 0, y: 252, w: 730, h: 15, type: 'rect' }, { x: 928, y: 246, w: 730, h: 15, type: 'rect' }, { x: 1306, y: 94, w: 316, h: 15, type: 'rect' }, { x: 1206, y: 416, w: 462, h: 15, type: 'rect' }, { x: 146, y: 706, w: 280, h: 15, type: 'rect' }, { x: 336, y: 764, w: 464, h: 15, type: 'rect' }, { x: 534, y: 423, w: 123, h: 15, type: 'rect', isSpring: true, animArea: { x: 524, y: 420, w: 123, h: 124 } }, { x: 1230, y: 686, w: 526, h: 15, type: 'rect' }, { x: 2112, y: 118, w: 124, h: 15, type: 'rect', isSpring: true, animArea: { x: 2105, y: 114, w: 128, h: 89 } }, { x: 2026, y: 304, w: 272, h: 15, type: 'rect' }, { x: 1940, y: 436, w: 424, h: 15, type: 'rect' }, { x: 1832, y: 640, w: 558, h: 15, type: 'rect' }, { x: 2308, y: 256, w: 450, h: 15, type: 'rect' }, { x: 1922, y: 904, w: 122, h: 15, type: 'rect' }, { x: 0, y: 1047, w: 2752, h: 15, type: 'rect' }, { x: 0, y: 1509, w: 2752, h: 15, id: 16, type: 'rect' }, { x: 1000, y: 1444, w: 250, h: 15, type: 'rect' }, { x: 2094, y: 1366, w: 140, h: 15, type: 'rect', isSpring: true, animArea: { x: 2095, y: 1361, w: 145, h: 136 } }, { x: 2162, y: 1176, w: 160, h: 15, type: 'rect' }, { x: 486, y: 537, w: 180, h: 15, type: 'rect' }, { x: 2088, y: 198, w: 168, h: 15, type: 'rect' } ]; generateFruitSpawns(); }
             
             // ✨ CARREGA PARTÍCULAS
             try {
