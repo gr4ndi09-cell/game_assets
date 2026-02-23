@@ -96,9 +96,10 @@
     {
       "_comentario": "--- EFEITOS LOCAIS (VELA 4) ---",
       "type": "upward",
-      "count": 9,
+      "count": 15,
       "color": "rgba(231, 157, 189, 0.9)",
       "layer": "front",
+      "baseSize": 6.0,
       "spawnRate": 5,
       "fadeRate": 0.5,
       "zone": { "x": 2068, "y": 1336, "w": 260, "h": 124 }
@@ -109,6 +110,7 @@
       "count": 15,
       "color": "rgba(231, 157, 189, 0.9)",
       "layer": "front",
+      "baseSize": 6.0,
       "spawnRate": 5,
       "fadeRate": 0.5,
       "zone": { "x": 48, "y": 1360, "w": 236, "h": 132 }
@@ -126,6 +128,7 @@
     { "layer": "front","x": 168, "y": 1420, "radius": 800, "color": "rgba(6, 234, 165, 0.7)","effect": "pulse" }
   ]
   }
+
 
 
 
