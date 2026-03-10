@@ -55,13 +55,15 @@
             padding: 40px 20px; overflow-y: auto;
         }
         .selection-grid { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
-        .select-card { border: 2px solid #444; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; background: #222; padding: 10px; width: 120px; }
+        .select-card { border: 2px solid #444; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; background: #222; padding: 10px; width: 120px; text-align: center;}
         .select-card:hover { border-color: white; transform: scale(1.05); }
         .select-card.selected { border-color: cyan; box-shadow: 0 0 15px cyan; background: #003333; }
         .select-card img { border-radius: 5px; display: block; margin-bottom: 5px; width: 100%; height: auto; }
         .char-img { width: 100px; height: 100px; object-fit: cover; }
         .stage-img { width: 200px; height: 100px; object-fit: cover; }
         .section-title { color: cyan; margin: 15px 0 5px 0; text-transform: uppercase; font-size: 18px; font-weight: bold; }
+        
+        .mode-btn { width: 200px; padding: 15px; font-size: 16px; margin: 0 10px; }
 
         /* OVERLAYS */
         #quiz-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 30, 0.85); border: 4px solid cyan; padding: 40px; display: none; flex-direction: column; align-items: center; width: 70%; max-width: 800px; text-align: center; border-radius: 20px; z-index: 100; backdrop-filter: blur(5px); }
@@ -75,7 +77,7 @@
         #victory-text { font-size: 40px; color: yellow; text-shadow: 0 0 10px red; font-weight: bold; text-transform: uppercase; margin-bottom: 20px; }
         #tutor-explanation { margin-top: 20px; padding: 15px; background: rgba(0, 255, 255, 0.1); border-left: 4px solid cyan; text-align: left; font-size: 16px; display: none; }
         
-        /* CONTROLES MÓVEIS */
+        /* CONTROLES MÓVEIS (NOVO DESIGN) */
         #mobile-controls { 
             position: absolute; bottom: 20px; width: 100%; height: 180px; 
             display: none; pointer-events: none; z-index: 50; 
@@ -83,64 +85,27 @@
             opacity: 0; transition: opacity 1s; 
         }
 
-        /* ✨ REGRA CORRIGIDA: Só mostra se for dispositivo de toque */
         @media (pointer: coarse) { 
             #mobile-controls.visible { display: flex; opacity: 1; } 
         }
         
         /* JOYSTICK ESQUERDO */
-        .joystick-area {
-            width: 150px; height: 150px; position: relative; pointer-events: auto;
-        }
-        .joystick-base {
-            width: 120px; height: 120px; 
-            background: rgba(255, 255, 255, 0.1); 
-            border: 2px solid rgba(255, 255, 255, 0.3); 
-            border-radius: 50%; 
-            position: absolute; bottom: 10px; left: 10px;
-            display: flex; justify-content: center; align-items: center;
-        }
-        .joystick-stick {
-            width: 50px; height: 50px; 
-            background: rgba(0, 255, 255, 0.5); 
-            border-radius: 50%; 
-            box-shadow: 0 0 10px cyan;
-            position: absolute;
-            transform: translate(0, 0); /* Controlado via JS */
-        }
+        .joystick-area { width: 150px; height: 150px; position: relative; pointer-events: auto; }
+        .joystick-base { width: 120px; height: 120px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; position: absolute; bottom: 10px; left: 10px; display: flex; justify-content: center; align-items: center; }
+        .joystick-stick { width: 50px; height: 50px; background: rgba(0, 255, 255, 0.5); border-radius: 50%; box-shadow: 0 0 10px cyan; position: absolute; transform: translate(0, 0); }
 
         /* BOTÕES DE AÇÃO (DIREITA) */
-        .actions-area {
-            width: 180px; height: 180px; position: relative; pointer-events: auto;
-        }
-        .touch-btn {
-            width: 60px; height: 60px; 
-            background: rgba(255, 255, 255, 0.15); 
-            border: 2px solid rgba(255, 255, 255, 0.3); 
-            border-radius: 50%; 
-            color: white; font-size: 14px; font-weight: bold; 
-            display: flex; justify-content: center; align-items: center; 
-            user-select: none; touch-action: manipulation; backdrop-filter: blur(4px); cursor: pointer;
-            position: absolute;
-        }
+        .actions-area { width: 180px; height: 180px; position: relative; pointer-events: auto; }
+        .touch-btn { width: 60px; height: 60px; background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; color: white; font-size: 14px; font-weight: bold; display: flex; justify-content: center; align-items: center; user-select: none; touch-action: manipulation; backdrop-filter: blur(4px); cursor: pointer; position: absolute; }
         .touch-btn:active, .touch-btn.active { background: rgba(0, 255, 255, 0.4); border-color: cyan; transform: scale(0.95); }
-        
-        /* Layout Diamante */
-        .btn-jump { top: 0; left: 60px; background: rgba(0, 255, 0, 0.2); } /* W - Topo */
-        .btn-down { bottom: 0; left: 60px; background: rgba(255, 255, 255, 0.2); } /* S - Baixo */
-        .btn-atk { top: 60px; left: 0; background: rgba(255, 0, 0, 0.2); width: 65px; height: 65px; } /* F - Esquerda */
-        .btn-shoot { top: 60px; right: 0; background: rgba(255, 255, 0, 0.2); width: 65px; height: 65px;} /* G - Direita */
+        .btn-jump { top: 0; left: 60px; background: rgba(0, 255, 0, 0.2); } 
+        .btn-down { bottom: 0; left: 60px; background: rgba(255, 255, 255, 0.2); } 
+        .btn-atk { top: 60px; left: 0; background: rgba(255, 0, 0, 0.2); width: 65px; height: 65px; } 
+        .btn-shoot { top: 60px; right: 0; background: rgba(255, 255, 0, 0.2); width: 65px; height: 65px;} 
 
         #debug-toggle { position: absolute; bottom: 20px; left: 20px; font-size: 14px; color: #888; pointer-events: auto; z-index: 60; display: flex; align-items: center; gap: 5px; cursor: pointer; }
         
-        /* BOTÃO FULLSCREEN MOBILE */
-        #fullscreen-btn {
-            position: absolute; top: 10px; right: 10px; z-index: 200;
-            background: rgba(0,0,0,0.5); border: 1px solid #555;
-            color: white; padding: 5px 10px; border-radius: 5px;
-            font-size: 12px; pointer-events: auto;
-            display: none; /* Só aparece em mobile via CSS */
-        }
+        #fullscreen-btn { position: absolute; top: 10px; right: 10px; z-index: 200; background: rgba(0,0,0,0.5); border: 1px solid #555; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; pointer-events: auto; display: none; }
         @media (pointer: coarse) { #fullscreen-btn { display: block; } }
     </style>
 </head>
@@ -155,20 +120,26 @@
     <!-- TELA DE SELEÇÃO -->
     <div id="selection-screen">
         <h1 style="color:white; margin-bottom: 20px; text-shadow: 0 0 10px cyan;">SELEÇÃO DE BATALHA</h1>
+        
+        <div class="section-title">Modo de Jogo</div>
+        <div class="selection-grid" id="mode-select-container">
+            <div class="select-card selected" id="mode-1p" onclick="setGameMode('1p')">1 JOGADOR<br><small style="color:#aaa">(vs CPU)</small></div>
+            <div class="select-card" id="mode-2p" onclick="setGameMode('2p')">2 JOGADORES<br><small style="color:#aaa">(Local)</small></div>
+        </div>
+
         <div class="section-title">Jogador 1</div>
         <div class="selection-grid" id="p1-select-container"></div>
         <div class="section-title">Jogador 2</div>
         <div class="selection-grid" id="p2-select-container"></div>
         <div class="section-title">Cenário</div>
         <div class="selection-grid" id="stage-select-container"></div>
+        
         <button class="gemini-btn" id="confirm-selection-btn" style="font-size: 20px; padding: 15px 40px; margin-top: 30px; margin-bottom: 50px;">INICIAR COMBATE</button>
     </div>
 
     <div id="game-container">
         <button id="fullscreen-btn">Tela Cheia</button>
-        <!-- VÍDEO DE INTRODUÇÃO -->
         <video id="intro-video-element" playsinline crossOrigin="anonymous"></video>
-        <!-- VÍDEO DE BACKGROUND -->
         <video id="bg-video-element" loop muted autoplay playsinline crossOrigin="anonymous"></video>
 
         <div class="hud" id="hud-layer">
@@ -195,16 +166,12 @@
             <button class="gemini-btn" onclick="location.reload()">VOLTAR À SELEÇÃO</button>
         </div>
 
-        <!-- CONTROLES MÓVEIS REESTRUTURADOS -->
         <div id="mobile-controls">
-            <!-- Joystick Esquerdo -->
             <div class="joystick-area" id="joystick-zone">
                 <div class="joystick-base">
                     <div class="joystick-stick" id="joystick-stick"></div>
                 </div>
             </div>
-
-            <!-- Botões de Ação Direito -->
             <div class="actions-area">
                 <div class="touch-btn btn-jump" data-key="w">PULAR</div>
                 <div class="touch-btn btn-down" data-key="s">DESCER</div>
@@ -231,7 +198,7 @@
         const WORLD_WIDTH = 2752, WORLD_HEIGHT = 1536;
         const CANVAS_WIDTH = 1280, CANVAS_HEIGHT = 720;
         const ASPECT_RATIO = CANVAS_HEIGHT / CANVAS_WIDTH;
-        const MIN_VIEW_WIDTH = 1536, MAX_VIEW_WIDTH = 2752;
+        const MIN_VIEW_WIDTH = 1000, MAX_VIEW_WIDTH = 2752;
         const MAX_VIEW_HEIGHT = MAX_VIEW_WIDTH * ASPECT_RATIO;
         const MIN_VIEW_HEIGHT = MIN_VIEW_WIDTH * ASPECT_RATIO;
         const GRAVITY = 2500, JUMP_FORCE = 1800, MOVE_SPEED = 600, GROUND_Y = 1530; 
@@ -267,6 +234,7 @@
         let keys = {};
         let camera = { x: 0, y: 0, viewWidth: MAX_VIEW_WIDTH, viewHeight: MAX_VIEW_HEIGHT, targetViewWidth: MAX_VIEW_WIDTH };
         let gameState = 'SELECTION'; 
+        let gameMode = '1p'; // '1p' (vs CPU) ou '2p' (Local)
         let questions = [{ q: "Pronto?", options: ["Sim"], correct: 0 }];
         let bullets = [], explosions = [];
         let p1 = null, p2 = null, bossEntity = null; 
@@ -277,9 +245,12 @@
         let introFinished = false; 
         let gameLoopRunning = false;
         let mysticFruit={active:false,x:0,y:0,radius:25,lastSpawnTime:0,pulse:0,healAmount:40,glints:[],smoke:[]};
-        
-        // ✨ ARRAY DINÂMICA DE SPAWN
         let fruitSpawnPoints = []; 
+        
+        // ✨ GESTÃO DE MINIONS
+        let minions = [];
+        let availableMinionIds = []; 
+        let minionSpawnTimer = 0;
         
         let selectedP1 = CHARACTERS_DB[0];
         let selectedP2 = CHARACTERS_DB[1];
@@ -310,16 +281,21 @@
             setTimeout(() => { msgBox.style.display = 'none'; }, duration); 
         }
 
-        // ✨ HELPER PARA FULLSCREEN
+        function setGameMode(mode) {
+            gameMode = mode;
+            document.getElementById('mode-1p').classList.remove('selected');
+            document.getElementById('mode-2p').classList.remove('selected');
+            document.getElementById(`mode-${mode}`).classList.add('selected');
+        }
+
         function goFullScreen() {
             const doc = window.document;
             const docEl = doc.documentElement;
             const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
             if (requestFullScreen) {
-                requestFullScreen.call(docEl).catch(err => console.log("Fullscreen negado (necessita interação)."));
+                requestFullScreen.call(docEl).catch(err => console.log("Fullscreen negado."));
             }
         }
-        
         fullscreenBtn.onclick = goFullScreen;
 
         function drawSupernova(ctx, x, y) {
@@ -345,29 +321,6 @@
             },
             stopBGM() { if (this.bgm) { this.bgm.pause(); this.bgm.currentTime = 0; } }
         };
-
-        // --- 8. IA (GEMINI) - Definidas globalmente ---
-        async function geminiFetch(prompt, system) {
-            let delay = 1000;
-            for (let i = 0; i < 5; i++) {
-                try {
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: system }] }, generationConfig: { responseMimeType: "application/json" } })
-                    });
-                    if (!response.ok) throw new Error();
-                    const data = await response.json(); return JSON.parse(data.candidates[0].content.parts[0].text);
-                } catch (e) { await new Promise(r => setTimeout(r, delay)); delay *= 2; }
-            }
-        }
-        async function generateQuestions() {
-            const theme = document.getElementById('theme-input').value || 'História'; document.getElementById('loader').style.display = 'block';
-            try { const result = await geminiFetch(`Gere 5 perguntas sobre "${theme}". Formato: { "questions": [{ "q": "p", "options": ["o1","o2","o3","o4"], "correct": 0 }] }`, "És um professor sábio."); if (result.questions) { questions = result.questions; showMessage("✨ Desafios carregados!"); } } catch (e) { showMessage("Erro na IA."); } finally { document.getElementById('loader').style.display = 'none'; }
-        }
-        async function explainTopic(question, answer) {
-            const tutorEl = document.getElementById('tutor-explanation'); tutorEl.style.display = 'block'; tutorEl.innerText = "A pensar...";
-            try { const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: `Pergunta: ${question}. Resposta: ${answer}. Explica em 2 frases.` }] }], systemInstruction: { parts: [{ text: "És um tutor amigável." }] } }) }); const data = await r.json(); tutorEl.innerText = data.candidates[0].content.parts[0].text; } catch (e) { tutorEl.innerText = "Continua a lutar!"; }
-        }
 
         // 6. CLASSES DO JOGO
 
@@ -413,11 +366,8 @@
                 this.baseSize = config.baseSize || 2.0; 
                 this.shape = config.shape || "circle"; 
                 this.alpha = 0;
-                
-                // Propriedades para insetos
                 this.initialX = 0;
                 this.initialY = 0;
-                
                 this.reset();
             }
             reset() {
@@ -462,18 +412,12 @@
                 }
             }
             update(dt) {
-                if (this.spawnDelay > 0) {
-                    this.spawnDelay -= dt;
-                    return; 
-                }
-
+                if (this.spawnDelay > 0) { this.spawnDelay -= dt; return; }
                 if (this.fadeRate > 0) {
                     this.alpha -= this.fadeRate * dt;
                     if (this.alpha <= 0) {
                         this.reset();
-                        if (this.spawnRate > 0) {
-                            this.spawnDelay = Math.random() * (10 / this.spawnRate); 
-                        }
+                        if (this.spawnRate > 0) { this.spawnDelay = Math.random() * (10 / this.spawnRate); }
                         return;
                     }
                 } else if (this.type === 'ambient') {
@@ -481,45 +425,28 @@
                     if (this.alpha < 0) this.alpha = 0; else if (this.alpha > 1) this.alpha = 1;
                 }
 
-                // Lógica de Enxame de Insetos
                 if (this.type === 'insect') {
                     let flee = false;
                     [p1, p2].forEach(p => {
                         if (!p) return;
-                        let dx = (p.x + p.w/2) - this.x;
-                        let dy = (p.y + p.h/2) - this.y;
+                        let dx = (p.x + p.w/2) - this.x; let dy = (p.y + p.h/2) - this.y;
                         let dist = Math.sqrt(dx*dx + dy*dy);
                         if (dist < 150) { 
-                            flee = true;
-                            this.speedX -= (dx / dist) * 800 * dt; // Repulsão forte
-                            this.speedY -= (dy / dist) * 800 * dt;
+                            flee = true; this.speedX -= (dx / dist) * 800 * dt; this.speedY -= (dy / dist) * 800 * dt;
                         }
                     });
 
                     if (!flee && this.zone) {
-                        let centerX = this.zone.x + this.zone.w/2;
-                        let centerY = this.zone.y + this.zone.h/2;
-                        this.speedX += (Math.random() - 0.5) * 300 * dt; 
-                        this.speedY += (Math.random() - 0.5) * 300 * dt;
-
-                        // Paredes de contenção elásticas
+                        this.speedX += (Math.random() - 0.5) * 300 * dt; this.speedY += (Math.random() - 0.5) * 300 * dt;
                         const returnForce = 1000 * dt;
-                        if (this.x < this.zone.x) this.speedX += returnForce;
-                        else if (this.x > this.zone.x + this.zone.w) this.speedX -= returnForce;
-                        
-                        if (this.y < this.zone.y) this.speedY += returnForce;
-                        else if (this.y > this.zone.y + this.zone.h) this.speedY -= returnForce;
-
-                        this.speedX *= 0.92;
-                        this.speedY *= 0.92;
+                        if (this.x < this.zone.x) this.speedX += returnForce; else if (this.x > this.zone.x + this.zone.w) this.speedX -= returnForce;
+                        if (this.y < this.zone.y) this.speedY += returnForce; else if (this.y > this.zone.y + this.zone.h) this.speedY -= returnForce;
+                        this.speedX *= 0.92; this.speedY *= 0.92;
                     } else {
-                        this.speedX *= 0.96;
-                        this.speedY *= 0.96;
+                        this.speedX *= 0.96; this.speedY *= 0.96;
                     }
 
-                    this.x += this.speedX * dt;
-                    this.y += this.speedY * dt;
-                    this.alpha = 0.3 + Math.random() * 0.7; // Piscar
+                    this.x += this.speedX * dt; this.y += this.speedY * dt; this.alpha = 0.3 + Math.random() * 0.7; 
                     return;
                 }
 
@@ -527,42 +454,28 @@
                 this.x += this.speedX * dt;
                 this.y += this.speedY * dt;
                 
-                if (this.y >= GROUND_Y && this.type === 'spark') {
-                    this.speedX *= this.friction;
-                }
-
+                if (this.y >= GROUND_Y && this.type === 'spark') { this.speedX *= this.friction; }
                 if (this.y >= GROUND_Y) {
-                    if (this.bounce > 0) {
-                        this.y = GROUND_Y;
-                        this.speedY *= -this.bounce;
-                        if (Math.abs(this.speedY) < 50) this.speedY = 0;
-                    } else if (this.type !== 'spark') {
-                        if (!this.zone && this.y > WORLD_HEIGHT + 50) this.reset();
-                    }
+                    if (this.bounce > 0) { this.y = GROUND_Y; this.speedY *= -this.bounce; if (Math.abs(this.speedY) < 50) this.speedY = 0; } 
+                    else if (this.type !== 'spark') { if (!this.zone && this.y > WORLD_HEIGHT + 50) this.reset(); }
                 }
 
                 if (this.type === 'spark') {
                     [p1, p2].forEach(p => {
-                        if (this.x > p.x && this.x < p.x + p.w && this.y > p.y && this.y < p.y + p.h) {
-                            this.speedX *= -0.8; 
-                            this.speedY *= 0.8;
-                        }
+                        if (!p) return;
+                        if (this.x > p.x && this.x < p.x + p.w && this.y > p.y && this.y < p.y + p.h) { this.speedX *= -0.8; this.speedY *= 0.8; }
                     });
                 }
                 
                 const isOutOfBounds = (this.x < -100 || this.x > WORLD_WIDTH + 100 || this.y < -100 || this.y > WORLD_HEIGHT + 100);
                 const isStopped = (this.type === 'spark' && Math.abs(this.speedX) < 1 && Math.abs(this.speedY) < 1);
-                
                 if ((isOutOfBounds || isStopped) && this.fadeRate <= 0) {
                     this.reset();
-                    if (this.spawnRate > 0) {
-                        this.spawnDelay = Math.random() * (10 / this.spawnRate);
-                    }
+                    if (this.spawnRate > 0) { this.spawnDelay = Math.random() * (10 / this.spawnRate); }
                 }
             }
             draw(ctx) {
                 if (this.spawnDelay > 0) return;
-
                 ctx.save();
                 ctx.globalAlpha = this.type === 'rain' ? 0.6 : Math.max(0, this.alpha);
                 ctx.fillStyle = this.baseColor;
@@ -570,30 +483,14 @@
                 if (this.type === 'rain') {
                     ctx.strokeStyle = this.baseColor; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(this.x - 5, this.y + this.size); ctx.stroke();
                 } else if (this.type === 'spark') {
-                    ctx.globalCompositeOperation = 'screen';
-                    ctx.shadowBlur = 10; ctx.shadowColor = this.baseColor;
-                    ctx.fillRect(this.x, this.y, this.size, this.size);
+                    ctx.globalCompositeOperation = 'screen'; ctx.shadowBlur = 10; ctx.shadowColor = this.baseColor; ctx.fillRect(this.x, this.y, this.size, this.size);
                 } else {
-                    ctx.shadowBlur = 10; ctx.shadowColor = this.baseColor; 
-                    ctx.beginPath();
-                    
-                    if (this.shape === "square") {
-                        ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
-                    } else if (this.shape === "leaf") {
-                        ctx.ellipse(this.x, this.y, this.size, this.size/2, this.alpha * 10, 0, 2 * Math.PI);
-                    } else if (this.shape === "star") {
-                         ctx.moveTo(this.x, this.y - this.size);
-                         ctx.lineTo(this.x + this.size/2, this.y);
-                         ctx.lineTo(this.x, this.y + this.size);
-                         ctx.lineTo(this.x - this.size/2, this.y);
-                    } else if (this.shape === "fish") {
-                         ctx.ellipse(this.x, this.y, this.size, this.size/1.8, 0, 0, Math.PI*2);
-                         ctx.moveTo(this.x - this.size, this.y);
-                         ctx.lineTo(this.x - this.size * 1.6, this.y - this.size/2);
-                         ctx.lineTo(this.x - this.size * 1.6, this.y + this.size/2);
-                    } else {
-                        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); 
-                    }
+                    ctx.shadowBlur = 10; ctx.shadowColor = this.baseColor; ctx.beginPath();
+                    if (this.shape === "square") { ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size); } 
+                    else if (this.shape === "leaf") { ctx.ellipse(this.x, this.y, this.size, this.size/2, this.alpha * 10, 0, 2 * Math.PI); } 
+                    else if (this.shape === "star") { ctx.moveTo(this.x, this.y - this.size); ctx.lineTo(this.x + this.size/2, this.y); ctx.lineTo(this.x, this.y + this.size); ctx.lineTo(this.x - this.size/2, this.y); } 
+                    else if (this.shape === "fish") { ctx.ellipse(this.x, this.y, this.size, this.size/1.8, 0, 0, Math.PI*2); ctx.moveTo(this.x - this.size, this.y); ctx.lineTo(this.x - this.size * 1.6, this.y - this.size/2); ctx.lineTo(this.x - this.size * 1.6, this.y + this.size/2); } 
+                    else { ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); }
                     ctx.fill();
                 }
                 ctx.restore();
@@ -616,7 +513,6 @@
                     const emitters = stageConfig.emitters || [];
                     this.lights = stageConfig.lights || [];
                     this.zones = stageConfig.zones || [];
-
                     emitters.forEach(emit => {
                         const layer = emit.layer || 'main';
                         if (!this.particlesByLayer[layer]) this.particlesByLayer[layer] = [];
@@ -630,112 +526,64 @@
                 this.lights = [{ x: 1400, y: 800, radius: 200, color: 'rgba(255,255,255,0.1)' }];
             }
             update(dt) {
-                for (const layer in this.particlesByLayer) {
-                    this.particlesByLayer[layer].forEach(p => p.update(dt));
-                }
+                for (const layer in this.particlesByLayer) { this.particlesByLayer[layer].forEach(p => p.update(dt)); }
             }
             draw(ctx, layerName) {
-                if (this.particlesByLayer[layerName]) {
-                    this.particlesByLayer[layerName].forEach(p => p.draw(ctx));
-                }
+                if (this.particlesByLayer[layerName]) { this.particlesByLayer[layerName].forEach(p => p.draw(ctx)); }
                 
                 this.lights.forEach(l => {
                     const targetLayer = l.layer || 'main';
                     if (targetLayer === layerName) {
-                        let f = 1;
-                        const time = Date.now();
+                        let f = 1; const time = Date.now();
                         if (l.effect === 'pulse') f = Math.sin(time / 300) * 0.05 + 1; 
                         else if (l.effect === 'blink') f = Math.random() < 0.05 ? 0 : 1;
-                        else if (l.effect === 'flicker') {
-                            f = 1 + (Math.random() - 0.5) * 0.2; 
-                            l.drawX = l.x + (Math.random() - 0.5) * 5;
-                            l.drawY = l.y + (Math.random() - 0.5) * 5;
-                        } else { l.drawX = l.x; l.drawY = l.y; }
+                        else if (l.effect === 'flicker') { f = 1 + (Math.random() - 0.5) * 0.2; l.drawX = l.x + (Math.random() - 0.5) * 5; l.drawY = l.y + (Math.random() - 0.5) * 5; } 
+                        else { l.drawX = l.x; l.drawY = l.y; }
 
                         const dx = l.drawX || l.x; const dy = l.drawY || l.y; const radius = Math.max(0, l.radius * f);
                         
-                        // Background da Luz
                         if (l.background) {
-                            ctx.save();
-                            ctx.globalCompositeOperation = 'source-over';
-                            const bgG = ctx.createRadialGradient(dx, dy, 0, dx, dy, radius);
-                            bgG.addColorStop(0, l.background);
-                            bgG.addColorStop(1, 'rgba(0,0,0,0)');
-                            ctx.fillStyle = bgG;
-                            ctx.beginPath(); ctx.arc(dx, dy, radius, 0, Math.PI * 2); ctx.fill();
-                            ctx.restore();
+                            ctx.save(); ctx.globalCompositeOperation = 'source-over';
+                            const bgG = ctx.createRadialGradient(dx, dy, 0, dx, dy, radius); bgG.addColorStop(0, l.background); bgG.addColorStop(1, 'rgba(0,0,0,0)');
+                            ctx.fillStyle = bgG; ctx.beginPath(); ctx.arc(dx, dy, radius, 0, Math.PI * 2); ctx.fill(); ctx.restore();
                         }
 
-                        const g = ctx.createRadialGradient(dx, dy, 0, dx, dy, radius);
-                        g.addColorStop(0, l.color); g.addColorStop(1, 'rgba(0,0,0,0)');
-                        ctx.fillStyle = g; ctx.globalCompositeOperation = 'screen';
-                        ctx.beginPath(); ctx.arc(dx, dy, radius, 0, Math.PI * 2); ctx.fill();
-                        ctx.globalCompositeOperation = 'source-over';
+                        const g = ctx.createRadialGradient(dx, dy, 0, dx, dy, radius); g.addColorStop(0, l.color); g.addColorStop(1, 'rgba(0,0,0,0)');
+                        ctx.fillStyle = g; ctx.globalCompositeOperation = 'screen'; ctx.beginPath(); ctx.arc(dx, dy, radius, 0, Math.PI * 2); ctx.fill(); ctx.globalCompositeOperation = 'source-over';
                     }
                 });
 
-                // ✨ DESENHA ZONAS DE EFEITO (Retangulares e Onduladas)
                 const time = Date.now() / 1000;
                 this.zones.forEach(z => {
                      const targetLayer = z.layer || 'front';
                      if (targetLayer !== layerName) return;
 
-                     // Background da Zona
-                     if (z.background) {
-                         ctx.fillStyle = z.background;
-                         ctx.fillRect(z.x, z.y, z.w, z.h);
-                     }
+                     if (z.background) { ctx.fillStyle = z.background; ctx.fillRect(z.x, z.y, z.w, z.h); }
 
                      if (z.style === 'radial') {
-                         const g = ctx.createRadialGradient(z.x + z.w/2, z.y + z.h/2, 0, z.x + z.w/2, z.y + z.h/2, z.w/1.5);
-                         g.addColorStop(0, `rgba(0,0,0,0)`);
-                         g.addColorStop(1, z.color || `rgba(0,0,0,0.8)`);
-                         ctx.fillStyle = g;
-                         ctx.fillRect(z.x, z.y, z.w, z.h);
+                         const g = ctx.createRadialGradient(z.x + z.w/2, z.y + z.h/2, 0, z.x + z.w/2, z.y + z.h/2, z.w/1.5); g.addColorStop(0, `rgba(0,0,0,0)`); g.addColorStop(1, z.color || `rgba(0,0,0,0.8)`);
+                         ctx.fillStyle = g; ctx.fillRect(z.x, z.y, z.w, z.h);
                      } else {
-                         ctx.save();
-                         ctx.beginPath();
-                         ctx.rect(z.x, z.y, z.w, z.h); 
-                         ctx.clip(); 
+                         ctx.save(); ctx.beginPath(); ctx.rect(z.x, z.y, z.w, z.h); ctx.clip(); 
 
                          if (z.distortion) {
-                             ctx.globalCompositeOperation = 'overlay'; 
-                             ctx.globalAlpha = 0.3;
-                             ctx.fillStyle = z.color || '#aaf';
-                             
-                             const amp = z.distortion.amplitude || 5;
-                             const freq = z.distortion.frequency || 0.1;
-                             const spd = z.distortion.speed || 5;
-                             const waveHeight = 15;
-                             const numWaves = Math.ceil(z.h / waveHeight) + 1;
-                             
+                             ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = 0.3; ctx.fillStyle = z.color || '#aaf';
+                             const amp = z.distortion.amplitude || 5; const freq = z.distortion.frequency || 0.1; const spd = z.distortion.speed || 5;
+                             const waveHeight = 15; const numWaves = Math.ceil(z.h / waveHeight) + 1;
                              for(let i=0; i<numWaves; i++) {
                                  const yOffset = (time * spd * 10 + i * waveHeight) % (z.h + waveHeight);
                                  let actualY = z.y + z.h - yOffset;
-                                 
                                  const xOffset = Math.sin(time * 3 + i * freq) * amp;
-                                 try {
-                                    ctx.drawImage(canvas, 
-                                        z.x, actualY, z.w, waveHeight, // Source (simplificado)
-                                        z.x + xOffset, actualY, z.w, waveHeight // Destino
-                                    );
-                                 } catch(e) {}
-                                 
+                                 try { ctx.drawImage(canvas, z.x, actualY, z.w, waveHeight, z.x + xOffset, actualY, z.w, waveHeight); } catch(e) {}
                                  ctx.fillRect(z.x + xOffset - 5, actualY, z.w + 10, waveHeight * 0.8);
                              }
                          } else {
-                             ctx.fillStyle = z.color;
-                             ctx.fillRect(z.x, z.y, z.w, z.h);
+                             ctx.fillStyle = z.color; ctx.fillRect(z.x, z.y, z.w, z.h);
                          }
                          ctx.restore();
                      }
                 });
             }
-        }
-
-        // --- FUNÇÃO PARA DESENHAR O AMBIENTE (Corrigido ReferenceError) ---
-        function drawEnvironment() {
-            if (globalParticles) globalParticles.forEach(p => p.draw(ctx));
         }
 
         class BossParallax {
@@ -748,17 +596,31 @@
             draw(ctx) { this.layers.forEach(l => { const img = assets[l.key]; if (isImageOk(img)) { const dx = this.x + l.offset.x - (img.naturalWidth/2); const dy = this.y + l.offset.y - (img.naturalHeight/2); ctx.drawImage(img, dx, dy); } }); }
         }
 
-        class BulletParticle { constructor(x,y,c,s=1){this.x=x;this.y=y;this.vx=(Math.random()-.5)*400*s;this.vy=(Math.random()-.5)*400*s;this.l=1.0;this.d=1.5;this.sz=Math.random()*5+2;this.c=c;} update(dt){this.x+=this.vx*dt;this.y+=this.vy*dt;this.l-=this.d*dt;} draw(c){c.save();c.globalAlpha=Math.max(0,this.l);c.fillStyle=this.c;c.shadowBlur=10;c.shadowColor=this.c;c.beginPath();c.arc(this.x,this.y,Math.max(0,this.sz*this.l),0,Math.PI*2);c.fill();c.restore();} }
+        class BulletParticle { 
+            constructor(x,y,c,s=1){this.x=x;this.y=y;this.vx=(Math.random()-.5)*400*s;this.vy=(Math.random()-.5)*400*s;this.l=1.0;this.d=1.5;this.sz=Math.random()*5+2;this.c=c;} 
+            update(dt){this.x+=this.vx*dt;this.y+=this.vy*dt;this.l-=this.d*dt;} 
+            draw(c){c.save();c.globalAlpha=Math.max(0,this.l);c.fillStyle=this.c;c.shadowBlur=10;c.shadowColor=this.c;c.beginPath();c.arc(this.x,this.y,Math.max(0,this.sz*this.l),0,Math.PI*2);c.fill();c.restore();} 
+        }
         
-        class Explosion { constructor(x,y,c){this.x=x;this.y=y;this.c=c;this.r=0;this.mr=400;this.l=1.0;this.p=Array.from({length:60},()=>new BulletParticle(x,y,c,1.5));this.dd=false;} update(dt){this.r+=800*dt;this.l-=2*dt;this.p.forEach(p=>p.update(dt));this.p=this.p.filter(p=>p.l>0);if(!this.dd&&this.r>150){[p1,p2].forEach(p=>{let dx=(p.x+p.w/2)-this.x;let dy=(p.y+p.h/2)-this.y;if(Math.sqrt(dx*dx+dy*dy)<200)p.takeDamage(30);});this.dd=true;}} draw(c){c.save();const g=c.createRadialGradient(this.x,this.y,0,this.x,this.y,Math.max(0,this.r));g.addColorStop(0,"white");g.addColorStop(0.3,this.c);g.addColorStop(1,"transparent");c.fillStyle=g;c.globalAlpha=Math.max(0,this.l);c.globalCompositeOperation='screen';c.beginPath();c.arc(this.x,this.y,Math.max(0,this.r),0,Math.PI*2);c.fill();this.p.forEach(p=>p.draw(c));c.restore();} }
+        class Explosion { 
+            constructor(x,y,c){this.x=x;this.y=y;this.c=c;this.r=0;this.mr=400;this.l=1.0;this.p=Array.from({length:60},()=>new BulletParticle(x,y,c,1.5));this.dd=false;} 
+            update(dt){
+                this.r+=800*dt;this.l-=2*dt;this.p.forEach(p=>p.update(dt));this.p=this.p.filter(p=>p.l>0);
+                if(!this.dd&&this.r>150){
+                    [p1,p2].forEach(p=>{if(!p)return;let dx=(p.x+p.w/2)-this.x;let dy=(p.y+p.h/2)-this.y;if(Math.sqrt(dx*dx+dy*dy)<200)p.takeDamage(30);});
+                    minions.forEach(m=>{let dx=(m.x+m.w/2)-this.x;let dy=(m.y+m.h/2)-this.y;if(Math.sqrt(dx*dx+dy*dy)<200)m.takeDamage(30);});
+                    this.dd=true;
+                }
+            } 
+            draw(c){
+                c.save();const g=c.createRadialGradient(this.x,this.y,0,this.x,this.y,Math.max(0,this.r));g.addColorStop(0,"white");g.addColorStop(0.3,this.c);g.addColorStop(1,"transparent");c.fillStyle=g;c.globalAlpha=Math.max(0,this.l);c.globalCompositeOperation='screen';c.beginPath();c.arc(this.x,this.y,Math.max(0,this.r),0,Math.PI*2);c.fill();this.p.forEach(p=>p.draw(c));c.restore();
+            } 
+        }
         
         class Projectile { 
-            constructor(x,y,f,d,s,c,ic=false){
-                this.x=x; this.y=y; this.vx=f; 
-                this.damage=d; 
-                this.size=s;   
-                this.c=c; this.active=true; this.ic=ic; this.trail=[]; this.p=[]; this.sp=900+(ic?600:0);
-                audioManager.play(ic?(c==='#ff3e3e'?'p1_charge':'p2_charge'):'shot_common',false,0.4);
+            constructor(x,y,f,d,s,c,ic=false, owner='player'){
+                this.x=x; this.y=y; this.vx=f; this.damage=d; this.size=s; this.c=c; this.active=true; this.ic=ic; this.owner=owner; this.trail=[]; this.p=[]; this.sp=900+(ic?600:0);
+                if(owner==='player') audioManager.play(ic?(c==='#ff3e3e'?'p1_charge':'p2_charge'):'shot_common',false,0.4);
             } 
             update(dt){
                 if(Math.random()<0.5)this.p.push(new BulletParticle(this.x,this.y,this.c,this.ic?0.5:0.2));
@@ -773,6 +635,107 @@
             } 
         }
 
+        class Minion {
+            constructor(x, y, imgId) {
+                this.x = x; this.y = y; this.w = 50; this.h = 80; 
+                this.vx = 0; this.vy = 0;
+                this.speed = 100 + Math.random() * 50;
+                this.imgId = imgId;
+                this.state = 'MOVE'; 
+                this.frameX = 0; this.animTimer = 0;
+                this.facing = 1;
+                this.health = 30;
+                this.onGround = false;
+                this.attackCooldown = 0;
+                this.dF = 0; 
+            }
+            update(dt) {
+                let target = null; let minD = Infinity;
+                [p1, p2].forEach(p => {
+                    if (p && p.health > 0) {
+                        let d = Math.hypot((p.x+p.w/2) - (this.x+this.w/2), (p.y+p.h/2) - (this.y+this.h/2));
+                        if (d < minD) { minD = d; target = p; }
+                    }
+                });
+
+                if (this.state === 'MOVE') {
+                    if (target) {
+                        let distX = (target.x + target.w/2) - (this.x + this.w/2);
+                        this.facing = distX > 0 ? 1 : -1;
+                        if (Math.abs(distX) > 300) { 
+                            this.vx = this.facing * this.speed;
+                        } else {
+                            this.vx = 0;
+                            if (this.attackCooldown <= 0) {
+                                this.state = 'ATTACK';
+                                this.frameX = 0;
+                            }
+                        }
+                    } else { this.vx = 0; }
+                } else if (this.state === 'ATTACK') {
+                    this.vx = 0; 
+                }
+
+                if (this.attackCooldown > 0) this.attackCooldown -= dt;
+                if (this.dF > 0) this.dF -= dt;
+
+                this.vy += GRAVITY * dt * 2;
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+                this.onGround = false;
+                
+                if (this.y + this.h > GROUND_Y) {
+                    this.y = GROUND_Y - this.h;
+                    this.vy = 0;
+                    this.onGround = true;
+                }
+
+                this.animTimer += dt;
+                if (this.animTimer > 0.1) {
+                    this.animTimer = 0;
+                    this.frameX++;
+                    if (this.frameX >= 10) {
+                        if (this.state === 'ATTACK') {
+                            this.state = 'MOVE';
+                            this.attackCooldown = 2.0; 
+                        }
+                        this.frameX = 0;
+                    }
+                    
+                    if (this.state === 'ATTACK' && this.frameX === 5) {
+                        let sx = this.facing === 1 ? this.x + this.w : this.x;
+                        let sy = this.y + (this.h * 0.4);
+                        bullets.push(new Projectile(sx, sy, this.facing, 10, 8, '#ff00ff', false, 'minion'));
+                    }
+                }
+            }
+            takeDamage(a) {
+                this.health -= a; this.dF = 0.2;
+                if (this.health <= 0) this.health = 0;
+            }
+            draw(ctx) {
+                const img = assets[this.imgId];
+                if (!isImageOk(img)) return;
+
+                ctx.save();
+                if (this.dF > 0) { ctx.shadowBlur = 20; ctx.shadowColor = "white"; }
+                
+                let row = this.state === 'ATTACK' ? 1 : 0;
+                let drawW = 120; let drawH = 118;
+                let offX = (drawW - this.w) / 2;
+                let offY = (drawH - this.h);
+
+                if (this.facing === -1) {
+                    ctx.translate(this.x + this.w, this.y);
+                    ctx.scale(-1, 1);
+                    ctx.drawImage(img, this.frameX * 240, row * 237, 240, 237, -offX, -offY, drawW, drawH);
+                } else {
+                    ctx.drawImage(img, this.frameX * 240, row * 237, 240, 237, this.x - offX, this.y - offY, drawW, drawH);
+                }
+                ctx.restore();
+            }
+        }
+
         class Player {
             constructor(x,y,c,ctrl,id,map){
                 this.id=id;this.x=x;this.y=y;this.w=80;this.h=160;this.animMap=map;
@@ -780,40 +743,63 @@
                 this.vx=0;this.vy=0;this.c=c;this.ctrl=ctrl;this.health=100;this.onGround=false;
                 this.facing=(id==='p1')?1:-1;this.charge=0;this.isCharging=false;this.isAttacking=false;
                 this.atkT=0;this.mHD=false;this.state=LOGICAL_STATE.IDLE;this.fX=0;this.aT=0;this.dF=0;
-                this.onIce = false; // ✨ NOVA PROPRIEDADE: Gelo
+                this.onIce = false; 
+                this.isCPU = false; 
+                this.cpuKeys = { up: false, down: false, left: false, right: false, melee: false, shoot: false };
             }
             setAnimation(n){
                 if(this.state!==n){this.state=n;this.fX=0;this.aT=0;if(n===LOGICAL_STATE.MELEE)this.mHD=false;}
             }
+            updateAI(dt, target) {
+                this.cpuKeys = { up: false, down: false, left: false, right: false, melee: false, shoot: false };
+                if (!target || target.health <= 0 || this.health <= 0) return;
+                
+                let distX = (target.x + target.w/2) - (this.x + this.w/2);
+                let absDist = Math.abs(distX);
+                
+                if (absDist > 200) {
+                    this.cpuKeys[distX > 0 ? 'right' : 'left'] = true;
+                } else if (absDist < 120) {
+                    if (Math.random() < 0.08) this.cpuKeys.melee = true; 
+                    if (Math.random() < 0.03) this.cpuKeys[distX > 0 ? 'left' : 'right'] = true; 
+                }
+                
+                if (Math.random() < 0.015 && absDist < 800) this.cpuKeys.shoot = true; 
+                if (Math.random() < 0.02 && this.onGround) this.cpuKeys.up = true; 
+            }
+
             update(dt){
                 if(gameState!=='PLAYING')return;
+                
+                const is1P = (gameMode === '1p' && this.id === 'p1');
+                const activeKeys = this.isCPU ? this.cpuKeys : {
+                    up: keys[this.ctrl.up] || (is1P && keys['ArrowUp']), 
+                    down: keys[this.ctrl.down] || (is1P && keys['ArrowDown']),
+                    left: keys[this.ctrl.left] || (is1P && keys['ArrowLeft']), 
+                    right: keys[this.ctrl.right] || (is1P && keys['ArrowRight']),
+                    melee: keys[this.ctrl.melee] || (is1P && (keys['Enter'] || keys[' '])), 
+                    shoot: keys[this.ctrl.shoot] || (is1P && keys['Shift'])
+                };
+
                 let mov=false;
-                // ✨ LÓGICA DE MOVIMENTO E ATRITO (Gelo vs Chão Normal)
-                if(keys[this.ctrl.left]){
-                    this.vx=-MOVE_SPEED;
-                    this.facing=-1;
-                    mov=true;
+                if(activeKeys.left){
+                    this.vx=-MOVE_SPEED; this.facing=-1; mov=true;
                 }
-                else if(keys[this.ctrl.right]){
-                    this.vx=MOVE_SPEED;
-                    this.facing=1;
-                    mov=true;
+                else if(activeKeys.right){
+                    this.vx=MOVE_SPEED; this.facing=1; mov=true;
                 }
                 else {
-                    // Sem teclas pressionadas
                     if (this.onIce && this.onGround) {
-                        this.vx *= 0.96; // ✨ Escorrega (baixa fricção)
-                        if (Math.abs(this.vx) < 10) this.vx = 0; // Para eventualmente
-                    } else {
-                        this.vx = 0; // Para instantaneamente (chão normal)
-                    }
+                        this.vx *= 0.96; 
+                        if (Math.abs(this.vx) < 10) this.vx = 0; 
+                    } else { this.vx = 0; }
                 }
                 
-                if(keys[this.ctrl.up]&&this.onGround){this.vy=-JUMP_FORCE;this.onGround=false;audioManager.play(this.id==='p1'?'p1_jump':'p2_jump',false,0.5);}
+                if(activeKeys.up && this.onGround){this.vy=-JUMP_FORCE;this.onGround=false;audioManager.play(this.id==='p1'?'p1_jump':'p2_jump',false,0.5);}
                 
-                if(keys[this.ctrl.melee]&&!this.isAttacking){this.isAttacking=true;this.atkT=0.5;this.setAnimation(LOGICAL_STATE.MELEE);}
+                if(activeKeys.melee && !this.isAttacking){this.isAttacking=true;this.atkT=0.5;this.setAnimation(LOGICAL_STATE.MELEE);}
                 
-                if(keys[this.ctrl.shoot]){this.isCharging=true;this.charge=Math.min(100,this.charge+(100*dt));this.setAnimation(LOGICAL_STATE.SHOOT);}
+                if(activeKeys.shoot){this.isCharging=true;this.charge=Math.min(100,this.charge+(100*dt));this.setAnimation(LOGICAL_STATE.SHOOT);}
                 else if(this.isCharging){this.shoot();this.isCharging=false;this.charge=0;}
                 
                 if(!this.isAttacking&&!this.isCharging){
@@ -830,32 +816,26 @@
                 this.y+=this.vy*dt;
                 
                 this.onGround=false;
-                this.onIce = false; // Reset por frame
+                this.onIce = false;
                 
                 if(this.x+this.w<0)this.x=WORLD_WIDTH;else if(this.x>WORLD_WIDTH)this.x=-this.w;
                 if(this.y+this.h>GROUND_Y){this.y=GROUND_Y-this.h;this.vy=0;this.onGround=true;}
                 
-                const isDown=keys[this.ctrl.down];
+                const isDown=activeKeys.down;
                 colliders.forEach(p=>{
                     if(!p.type||p.type==='rect'){
                         if(this.vy>=0&&this.y+this.h>p.y-10&&this.y+this.h<p.y+p.h+40&&this.x+this.w>p.x&&this.x<p.x+p.w){
                             if(p.isSpring){this.vy=-JUMP_FORCE*1.5;this.onGround=false;return;}
                             if(isDown&&p.id!==16)return;
-                            this.y=p.y-this.h;
-                            this.vy=0;
-                            this.onGround=true;
-                            // ✨ DETETA SE A PLATAFORMA É ESCORREGADIA
+                            this.y=p.y-this.h; this.vy=0; this.onGround=true;
                             if (p.isSlippery) this.onIce = true;
                         }
                     }else if(p.type==='slope'){
                         if(this.x+this.w/2>p.x1&&this.x+this.w/2<p.x2){
-                            let t=((this.x+this.w/2)-p.x1)/(p.x2-p.x1);
-                            let ty=p.y1+t*(p.y2-p.y1);
+                            let t=((this.x+this.w/2)-p.x1)/(p.x2-p.x1); let ty=p.y1+t*(p.y2-p.y1);
                             if(this.vy>=0&&this.y+this.h>=ty-20&&this.y+this.h<=ty+30){
                                 if(isDown)return;
-                                this.y=ty-this.h;
-                                this.vy=0;
-                                this.onGround=true;
+                                this.y=ty-this.h; this.vy=0; this.onGround=true;
                                 if (p.isSlippery) this.onIce = true;
                             }
                         }
@@ -877,13 +857,94 @@
                 document.getElementById(`${this.id}-health-fill`).style.width=this.health+'%';
                 document.getElementById(`${this.id}-charge`).style.width=this.charge+'%';
             }
-            checkMeleeHit(){let t=(this.id==='p1')?p2:p1;let r=95;let hX=this.facing===1?this.x+this.w:this.x-r;if(hX+r>t.x&&hX<t.x+t.w&&this.y+this.h>t.y&&this.y<t.y+t.h)t.takeDamage(15);}
-            shoot(){const ic=this.charge>90;const sx=this.facing===1?this.x+this.w:this.x;const sy=this.y+(this.h*0.4);bullets.push(new Projectile(sx,sy,this.facing,ic?40:15,ic?35:12,this.c,ic));}
+            checkMeleeHit(){
+                let t=(this.id==='p1')?p2:p1; let r=95; let hX=this.facing===1?this.x+this.w:this.x-r;
+                if(hX+r>t.x&&hX<t.x+t.w&&this.y+this.h>t.y&&this.y<t.y+t.h) t.takeDamage(15);
+                minions.forEach(m => {
+                    if(hX+r>m.x&&hX<m.x+m.w&&this.y+this.h>m.y&&this.y<m.y+m.h) m.takeDamage(15);
+                });
+            }
+            shoot(){
+                const ic=this.charge>90; const sx=this.facing===1?this.x+this.w:this.x; const sy=this.y+(this.h*0.4);
+                bullets.push(new Projectile(sx,sy,this.facing,ic?40:15,ic?35:12,this.c,ic,'player'));
+            }
             takeDamage(a){this.health-=a;this.dF=0.2;audioManager.play('hit',false,0.6);if(this.health<=0){this.health=0;startDuel(this);}}
-            draw(c){const i=(this.id==='p1')?assets.p1_sprite:assets.p2_sprite;c.save();if(this.isCharging){c.shadowBlur=20;c.shadowColor="yellow";}else if(this.dF>0){c.shadowBlur=30;c.shadowColor="red";}if(isImageOk(i)){const ri=this.animMap[this.state];if(this.facing===-1){c.translate(this.x+this.w,this.y);c.scale(-1,1);c.drawImage(i,this.fX*FRAME_WIDTH,ri*FRAME_HEIGHT,FRAME_WIDTH,FRAME_HEIGHT,-this.spriteOffsetX,-this.spriteOffsetY,FRAME_WIDTH,FRAME_HEIGHT);}else{c.drawImage(i,this.fX*FRAME_WIDTH,ri*FRAME_HEIGHT,FRAME_WIDTH,FRAME_HEIGHT,this.x-this.spriteOffsetX,this.y-this.spriteOffsetY,FRAME_WIDTH,FRAME_HEIGHT);}}else{c.fillStyle=this.c;c.fillRect(this.x,this.y,this.w,this.h);}c.restore();}
+            draw(c){
+                const i=(this.id==='p1')?assets.p1_sprite:assets.p2_sprite;c.save();
+                if(this.isCharging){c.shadowBlur=20;c.shadowColor="yellow";}else if(this.dF>0){c.shadowBlur=30;c.shadowColor="red";}
+                if(isImageOk(i)){const ri=this.animMap[this.state];if(this.facing===-1){c.translate(this.x+this.w,this.y);c.scale(-1,1);c.drawImage(i,this.fX*FRAME_WIDTH,ri*FRAME_HEIGHT,FRAME_WIDTH,FRAME_HEIGHT,-this.spriteOffsetX,-this.spriteOffsetY,FRAME_WIDTH,FRAME_HEIGHT);}else{c.drawImage(i,this.fX*FRAME_WIDTH,ri*FRAME_HEIGHT,FRAME_WIDTH,FRAME_HEIGHT,this.x-this.spriteOffsetX,this.y-this.spriteOffsetY,FRAME_WIDTH,FRAME_HEIGHT);}}else{c.fillStyle=this.c;c.fillRect(this.x,this.y,this.w,this.h);}
+                c.restore();
+            }
         }
 
-        // --- 7. HELPER FUNCTIONS DE JOGO (DEFINIDAS ANTES DO USO) ---
+        // --- 7. HELPER FUNCTIONS DE JOGO ---
+        // ✨ Definir as funções que são chamadas dentro de outras ANTES da sua utilização
+        
+        function generateFruitSpawns() {
+            fruitSpawnPoints.length = 0;
+            colliders.forEach(p => {
+                if (!p.type || p.type === 'rect') {
+                    fruitSpawnPoints.push({
+                        x: p.x + p.w / 2,
+                        y: p.y - 60 
+                    });
+                }
+            });
+            if (fruitSpawnPoints.length === 0) {
+                fruitSpawnPoints.push({ x: WORLD_WIDTH/2, y: 500 });
+            }
+            console.log("Pontos de fruta gerados:", fruitSpawnPoints.length);
+        }
+
+        async function loadStageData(stageUrl) {
+            try { const response = await fetch(`${stageUrl}/platforms.json`); if (response.ok) { colliders = await response.json(); generateFruitSpawns(); } else { throw new Error("JSON 404"); } }
+            catch (e) { console.warn("Usando fallback de plataformas."); 
+                colliders = [ 
+                    { x: 0, y: 1509, w: 2752, h: 15, id: 16, type: 'rect' },
+                    { x: 500, y: 1200, w: 400, h: 20, type: 'rect', isSlippery: true }, 
+                    { x: 1200, y: 1000, w: 400, h: 20, type: 'rect' },
+                    { x: 200, y: 800, w: 300, h: 20, type: 'rect' }
+                ]; 
+                generateFruitSpawns(); 
+            }
+            
+            try {
+                const fxResponse = await fetch(`${stageUrl}/particles.json`);
+                if (fxResponse.ok) {
+                    const fxData = await fxResponse.json();
+                    stageFX = new StageFX();
+                    stageFX.init(fxData);
+                } else { throw new Error("Particles 404"); }
+            } catch (e) {
+                console.warn("Usando partículas padrão.");
+                stageFX = new StageFX();
+                stageFX.init(null);
+            }
+        }
+
+        function updateCamera() {
+            if(!p1 || !p2) return;
+            let p1Center = { x: p1.x + p1.w/2, y: p1.y + p1.h/2 };
+            let p2Center = { x: p2.x + p2.w/2, y: p2.y + p2.h/2 };
+            
+            let minX = Math.min(p1Center.x, p2Center.x); let maxX = Math.max(p1Center.x, p2Center.x);
+            let minY = Math.min(p1Center.y, p2Center.y); let maxY = Math.max(p1Center.y, p2Center.y);
+            
+            const PADDING_X = 600; const PADDING_Y = 400;
+            let targetW = (maxX - minX) + PADDING_X; let targetH = (maxY - minY) + PADDING_Y;
+            if (targetH * (CANVAS_WIDTH / CANVAS_HEIGHT) > targetW) { targetW = targetH * (CANVAS_WIDTH / CANVAS_HEIGHT); }
+
+            camera.targetViewWidth = Math.max(MIN_VIEW_WIDTH, Math.min(MAX_VIEW_WIDTH, targetW));
+            camera.viewWidth += (camera.targetViewWidth - camera.viewWidth) * 0.1;
+            camera.viewHeight = camera.viewWidth * ASPECT_RATIO;
+            
+            let midX = (minX + maxX) / 2; let midY = (minY + maxY) / 2;
+            camera.x = midX - camera.viewWidth / 2; camera.y = midY - camera.viewHeight / 2;
+            
+            if (camera.x < 0) camera.x = 0; if (camera.x + camera.viewWidth > WORLD_WIDTH) camera.x = WORLD_WIDTH - camera.viewWidth;
+            if (camera.y + camera.viewHeight > WORLD_HEIGHT) camera.y = WORLD_HEIGHT - camera.viewHeight; if (camera.y < 0) camera.y = 0;
+        }
+
         function startDuel(loser) {
             if (gameState !== 'PLAYING') return;
             currentLoser = loser;
@@ -930,6 +991,7 @@
             }
             ctx.shadowBlur = 0; ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
         }
+
         function drawVictory() {
             ctx.fillStyle = "black"; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             const winner = currentWinner; const winImg = (winner.id === 'p1') ? assets.p1_win : assets.p2_win;
@@ -941,51 +1003,16 @@
             victoryUI.style.display = 'flex'; victoryText.innerText = `${winner.id.toUpperCase()} VENCEU!`;
         }
 
-        function updateCamera() {
-            if(!p1 || !p2) return;
-            let p1Center = { x: p1.x + p1.w/2, y: p1.y + p1.h/2 };
-            let p2Center = { x: p2.x + p2.w/2, y: p2.y + p2.h/2 };
-            
-            let minX = Math.min(p1Center.x, p2Center.x);
-            let maxX = Math.max(p1Center.x, p2Center.x);
-            let minY = Math.min(p1Center.y, p2Center.y);
-            let maxY = Math.max(p1Center.y, p2Center.y);
-            
-            const PADDING_X = 600;
-            const PADDING_Y = 400;
-
-            let targetW = (maxX - minX) + PADDING_X;
-            let targetH = (maxY - minY) + PADDING_Y;
-            if (targetH * (CANVAS_WIDTH / CANVAS_HEIGHT) > targetW) {
-                targetW = targetH * (CANVAS_WIDTH / CANVAS_HEIGHT);
-            }
-
-            camera.targetViewWidth = Math.max(MIN_VIEW_WIDTH, Math.min(MAX_VIEW_WIDTH, targetW));
-            
-            camera.viewWidth += (camera.targetViewWidth - camera.viewWidth) * 0.1;
-            camera.viewHeight = camera.viewWidth * ASPECT_RATIO;
-            
-            let midX = (minX + maxX) / 2;
-            let midY = (minY + maxY) / 2;
-            
-            camera.x = midX - camera.viewWidth / 2;
-            camera.y = midY - camera.viewHeight / 2;
-            
-            if (camera.x < 0) camera.x = 0;
-            if (camera.x + camera.viewWidth > WORLD_WIDTH) camera.x = WORLD_WIDTH - camera.viewWidth;
-            if (camera.y + camera.viewHeight > WORLD_HEIGHT) camera.y = WORLD_HEIGHT - camera.viewHeight;
-            if (camera.y < 0) camera.y = 0;
-        }
-
         function updateFruit(dt) {
             const now = Date.now();
             if (!mysticFruit.active && (p1.health < 50 || p2.health < 50)) { if (now - mysticFruit.lastSpawnTime > 15000) { const pt = fruitSpawnPoints[Math.floor(Math.random() * fruitSpawnPoints.length)]; mysticFruit.x = pt.x; mysticFruit.y = pt.y; mysticFruit.active = true; mysticFruit.lastSpawnTime = now; mysticFruit.glints = Array.from({ length: 8 }, () => ({ angle: Math.random() * Math.PI * 2, dist: Math.random() * 30, size: Math.random() * 2 + 1 })); showMessage("🍎 Fruta Mística!"); } }
             if (mysticFruit.active) { 
                 mysticFruit.pulse = Math.sin(now / 300) * 5; if (Math.random() < 0.3) { mysticFruit.smoke.push({ x: mysticFruit.x + (Math.random() - 0.5) * 20, y: mysticFruit.y + 10, vx: (Math.random() - 0.5) * 20, vy: -50 - Math.random() * 30, life: 1.0, size: Math.random() * 3 + 1 }); }
                 mysticFruit.smoke.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.life -= 1.0 * dt; }); mysticFruit.smoke = mysticFruit.smoke.filter(p => p.life > 0);
-                [p1, p2].forEach(p => { if (Math.sqrt(Math.pow((p.x+p.w/2)-mysticFruit.x,2) + Math.pow((p.y+p.h/2)-mysticFruit.y,2)) < 80) { p.health = Math.min(100, p.health + 40); mysticFruit.active = false; showMessage(`✨ ${p.id.toUpperCase()} recuperou energia!`); } }); 
+                [p1, p2].forEach(p => { if (p && Math.sqrt(Math.pow((p.x+p.w/2)-mysticFruit.x,2) + Math.pow((p.y+p.h/2)-mysticFruit.y,2)) < 80) { p.health = Math.min(100, p.health + 40); mysticFruit.active = false; showMessage(`✨ ${p.id.toUpperCase()} recuperou energia!`); } }); 
             }
         }
+
         function drawFruit() {
             if (!mysticFruit.active) return;
             const now = Date.now(); ctx.save();
@@ -995,7 +1022,28 @@
             ctx.fillStyle = "white"; mysticFruit.glints.forEach(gl => { const gx = mysticFruit.x + Math.cos(gl.angle + now/500) * (gl.dist + mysticFruit.pulse); const gy = mysticFruit.y + Math.sin(gl.angle + now/500) * (gl.dist + mysticFruit.pulse); ctx.beginPath(); ctx.arc(gx, gy, gl.size * (Math.abs(Math.sin(now/200))), 0, Math.PI*2); ctx.fill(); }); ctx.restore();
         }
 
-        // --- 7. FLUXO DO JOGO E FUNÇÕES "HOISTED" ---
+        function finishIntro() { 
+            if(introFinished) return; introFinished = true;
+            const introVideoEl = document.getElementById('intro-video-element');
+            introVideoEl.style.opacity = 0; 
+            document.getElementById('hud-layer').style.display = 'flex'; document.getElementById('hud-layer').style.opacity = 1; document.getElementById('mobile-controls').style.display = 'flex'; document.getElementById('mobile-controls').style.opacity = 1;
+            audioManager.stopBGM(); audioManager.play('stage_ambience', true, 0.5);
+            setTimeout(() => { introVideoEl.style.display = 'none'; gameState = 'PLAYING'; if (!gameLoopRunning) { gameLoopRunning = true; requestAnimationFrame(gameLoop); } }, 1500); 
+        }
+
+        function introLoop() { 
+            if (gameState !== 'INTRO' || introFinished) return; 
+            const introVideoEl = document.getElementById('intro-video-element');
+            if (!introVideoEl.paused && !introVideoEl.ended) { 
+                if (introVideoEl.duration > 0 && introVideoEl.duration - introVideoEl.currentTime <= 1.5) { 
+                    finishIntro(); return; 
+                } 
+            } else if (introVideoEl.ended || (introVideoEl.paused && introVideoEl.currentTime > 0)) {
+                finishIntro(); return; 
+            }
+            requestAnimationFrame(introLoop); 
+        }
+
         function gameLoop(timestamp) { 
             if (!lastTime) lastTime = timestamp;
             const deltaTime = (timestamp - lastTime) / 1000;
@@ -1005,53 +1053,35 @@
             requestAnimationFrame(gameLoop); 
         }
 
-        // ✨ Definir updateCamera antes de ser chamada
-        function updateCamera() {
-            if(!p1 || !p2) return;
-            let p1Center = { x: p1.x + p1.w/2, y: p1.y + p1.h/2 };
-            let p2Center = { x: p2.x + p2.w/2, y: p2.y + p2.h/2 };
-            
-            let minX = Math.min(p1Center.x, p2Center.x);
-            let maxX = Math.max(p1Center.x, p2Center.x);
-            let minY = Math.min(p1Center.y, p2Center.y);
-            let maxY = Math.max(p1Center.y, p2Center.y);
-            
-            const PADDING_X = 600;
-            const PADDING_Y = 400;
-
-            let targetW = (maxX - minX) + PADDING_X;
-            let targetH = (maxY - minY) + PADDING_Y;
-            if (targetH * (CANVAS_WIDTH / CANVAS_HEIGHT) > targetW) {
-                targetW = targetH * (CANVAS_WIDTH / CANVAS_HEIGHT);
-            }
-
-            camera.targetViewWidth = Math.max(MIN_VIEW_WIDTH, Math.min(MAX_VIEW_WIDTH, targetW));
-            
-            camera.viewWidth += (camera.targetViewWidth - camera.viewWidth) * 0.1;
-            camera.viewHeight = camera.viewWidth * ASPECT_RATIO;
-            
-            let midX = (minX + maxX) / 2;
-            let midY = (minY + maxY) / 2;
-            
-            camera.x = midX - camera.viewWidth / 2;
-            camera.y = midY - camera.viewHeight / 2;
-            
-            if (camera.x < 0) camera.x = 0;
-            if (camera.x + camera.viewWidth > WORLD_WIDTH) camera.x = WORLD_WIDTH - camera.viewWidth;
-            if (camera.y + camera.viewHeight > WORLD_HEIGHT) camera.y = WORLD_HEIGHT - camera.viewHeight;
-            if (camera.y < 0) camera.y = 0;
-        }
-
         function update(dt) {
             if (gameState === 'CINEMATIC') { cinematicTimer -= dt; if (cinematicTimer <= 0) showQuiz(); return; }
             if (gameState === 'PLAYING') {
                 if (stageFX) stageFX.update(dt);
-                // ✨ Partículas Globais (Sempre presentes)
                 globalParticles.forEach(p => p.update(dt));
-                
                 if (bossEntity) bossEntity.update(dt);
+                
+                // IA do Jogador 2
+                if (gameMode === '1p' && p2) {
+                    p2.updateAI(dt, p1);
+                }
+
                 if (p1) p1.update(dt);
                 if (p2) p2.update(dt);
+                
+                // ✨ GERIR MINIONS
+                if (availableMinionIds.length > 0) {
+                    minionSpawnTimer -= dt;
+                    if (minionSpawnTimer <= 0 && minions.length < 5) { // Max 5 minions ativos
+                        let randType = availableMinionIds[Math.floor(Math.random() * availableMinionIds.length)];
+                        // Nasce nos limites da câmera (esq ou dir)
+                        let spawnX = Math.random() < 0.5 ? camera.x - 50 : camera.x + camera.viewWidth + 50;
+                        minions.push(new Minion(spawnX, GROUND_Y - 100, randType));
+                        minionSpawnTimer = 5.0 + Math.random() * 5.0; // Nasce a cada 5~10 segs
+                    }
+                }
+                minions.forEach(m => m.update(dt));
+                minions = minions.filter(m => m.health > 0);
+
                 updateFruit(dt);
                 
                 for(let i=bullets.length-1;i>=0;i--){
@@ -1066,12 +1096,28 @@
                 }
                 bullets.forEach((b,i)=>{
                     b.update(dt);
-                    let t=(b.c===p1.c)?p2:p1;
-                    if(b.x>t.x&&b.x<t.x+t.w&&b.y>t.y&&b.y<t.y+t.h){
-                        t.takeDamage(b.damage); 
-                        b.active=false;
+                    let hit = false;
+                    // Colisão Projétil x Players
+                    [p1, p2].forEach(p => {
+                        if (p && b.x>p.x && b.x<p.x+p.w && b.y>p.y && b.y<p.y+p.h) {
+                            // Não atinge a si mesmo, minions machucam players, players se machucam se forem de cores diferentes
+                            if ((b.owner === 'minion') || (b.owner === 'player' && b.c !== p.c)) {
+                                p.takeDamage(b.damage); 
+                                hit = true;
+                            }
+                        }
+                    });
+                    // Colisão Projétil x Minions
+                    if (!hit && b.owner === 'player') {
+                        minions.forEach(m => {
+                            if (b.x>m.x && b.x<m.x+m.w && b.y>m.y && b.y<m.y+m.h) {
+                                m.takeDamage(b.damage);
+                                hit = true;
+                            }
+                        });
                     }
-                    if(!b.active)bullets.splice(i,1);
+                    if(hit) b.active = false;
+                    if(!b.active) bullets.splice(i,1);
                 });
                 explosions.forEach((e,i)=>{e.update(dt);if(e.life<=0)explosions.splice(i,1);});
             }
@@ -1103,15 +1149,16 @@
                 if (stageFX) stageFX.draw(ctx, 'main');
                 
                 explosions.forEach(ex => ex.draw(ctx));
+                
+                minions.forEach(m => m.draw(ctx)); // ✨ Desenha minions
                 if (p1) p1.draw(ctx); 
                 if (p2) p2.draw(ctx); 
+                
                 bullets.forEach(b => b.draw(ctx));
                 if (isImageOk(assets.stage_fg)) ctx.drawImage(assets.stage_fg, 0, 0, WORLD_WIDTH, WORLD_HEIGHT);
                 drawFruit();
                 
                 if (stageFX) stageFX.draw(ctx, 'front');
-
-                // ✨ DESENHAR PARTÍCULAS GLOBAIS (Fallback)
                 drawEnvironment();
                 
                 if (debugCheck.checked) { 
@@ -1121,108 +1168,58 @@
                         else if (p.type === 'slope') { ctx.beginPath(); ctx.strokeStyle = "rgba(255, 0, 0, 0.5)"; ctx.lineWidth = 5; ctx.moveTo(p.x1, p.y1); ctx.lineTo(p.x2, p.y2); ctx.stroke(); } 
                     }); 
                 }
-            } catch(e) {
-                console.error("Erro no desenho:", e);
-            } finally {
-                ctx.restore(); 
-            }
-        }
-
-        function finishIntro() { 
-            if(introFinished) return; introFinished = true;
-            const introVideoEl = document.getElementById('intro-video-element');
-            introVideoEl.style.opacity = 0; 
-            document.getElementById('hud-layer').style.display = 'flex'; document.getElementById('hud-layer').style.opacity = 1; document.getElementById('mobile-controls').style.display = 'flex'; document.getElementById('mobile-controls').style.opacity = 1;
-            audioManager.stopBGM(); audioManager.play('stage_ambience', true, 0.5);
-            setTimeout(() => { introVideoEl.style.display = 'none'; gameState = 'PLAYING'; if (!gameLoopRunning) { gameLoopRunning = true; requestAnimationFrame(gameLoop); } }, 1500); 
-        }
-
-        function checkLoad(current, total) {
-            if (current >= total) { 
-                loadingScreen.style.display = 'none'; 
-                const introVideoEl = document.getElementById('intro-video-element');
-                introVideoEl.style.display = 'block'; 
-                void introVideoEl.offsetWidth;
-                introVideoEl.style.opacity = 1;
-
-                audioManager.play('stage_intro', false, 0.7);
-                introVideoEl.play().catch(() => finishIntro()); 
-                
-                gameState = 'INTRO'; updateCamera(); requestAnimationFrame(introLoop);
-            }
-        }
-        
-        async function loadStageData(stageUrl) {
-            try { const response = await fetch(`${stageUrl}/platforms.json`); if (response.ok) { colliders = await response.json(); generateFruitSpawns(); } else { throw new Error("JSON 404"); } }
-            catch (e) { console.warn("Usando fallback."); colliders = [ { x: 0, y: 252, w: 730, h: 15, type: 'rect' }, { x: 928, y: 246, w: 730, h: 15, type: 'rect' }, { x: 1306, y: 94, w: 316, h: 15, type: 'rect' }, { x: 1206, y: 416, w: 462, h: 15, type: 'rect' }, { x: 146, y: 706, w: 280, h: 15, type: 'rect' }, { x: 336, y: 764, w: 464, h: 15, type: 'rect' }, { x: 534, y: 423, w: 123, h: 15, type: 'rect', isSpring: true, animArea: { x: 524, y: 420, w: 123, h: 124 } }, { x: 1230, y: 686, w: 526, h: 15, type: 'rect' }, { x: 2112, y: 118, w: 124, h: 15, type: 'rect', isSpring: true, animArea: { x: 2105, y: 114, w: 128, h: 89 } }, { x: 2026, y: 304, w: 272, h: 15, type: 'rect' }, { x: 1940, y: 436, w: 424, h: 15, type: 'rect' }, { x: 1832, y: 640, w: 558, h: 15, type: 'rect' }, { x: 2308, y: 256, w: 450, h: 15, type: 'rect' }, { x: 1922, y: 904, w: 122, h: 15, type: 'rect' }, { x: 0, y: 1047, w: 2752, h: 15, type: 'rect' }, { x: 0, y: 1509, w: 2752, h: 15, id: 16, type: 'rect' }, { x: 1000, y: 1444, w: 250, h: 15, type: 'rect' }, { x: 2094, y: 1366, w: 140, h: 15, type: 'rect', isSpring: true, animArea: { x: 2095, y: 1361, w: 145, h: 136 } }, { x: 2162, y: 1176, w: 160, h: 15, type: 'rect' }, { x: 486, y: 537, w: 180, h: 15, type: 'rect' }, { x: 2088, y: 198, w: 168, h: 15, type: 'rect' } ]; generateFruitSpawns(); }
-            
-            // ✨ CARREGA PARTÍCULAS
-            try {
-                const fxResponse = await fetch(`${stageUrl}/particles.json`);
-                if (fxResponse.ok) {
-                    const fxData = await fxResponse.json();
-                    stageFX = new StageFX();
-                    stageFX.init(fxData);
-                } else { throw new Error("Particles 404"); }
-            } catch (e) {
-                console.warn("Usando partículas padrão.");
-                stageFX = new StageFX();
-                stageFX.init(null);
-            }
-        }
-
-        // ✨ NOVA FUNÇÃO: GERAÇÃO DINÂMICA DE FRUTAS
-        function generateFruitSpawns() {
-            fruitSpawnPoints.length = 0; // Limpa array
-            colliders.forEach(p => {
-                if (!p.type || p.type === 'rect') {
-                    // Adiciona ponto no centro da plataforma, 60px acima
-                    fruitSpawnPoints.push({
-                        x: p.x + p.w / 2,
-                        y: p.y - 60 
-                    });
-                }
-            });
-            // Fallback se não encontrar plataformas
-            if (fruitSpawnPoints.length === 0) {
-                fruitSpawnPoints.push({ x: WORLD_WIDTH/2, y: 500 });
-            }
-            console.log("Pontos de fruta gerados:", fruitSpawnPoints.length);
-        }
-
-        function introLoop() { 
-            if (gameState !== 'INTRO' || introFinished) return; 
-            const introVideoEl = document.getElementById('intro-video-element');
-            // Verifica fim do vídeo
-            if (!introVideoEl.paused && !introVideoEl.ended) { 
-                if (introVideoEl.duration > 0 && introVideoEl.duration - introVideoEl.currentTime <= 1.5) { 
-                    finishIntro(); return; 
-                } 
-            } else if (introVideoEl.ended || (introVideoEl.paused && introVideoEl.currentTime > 0)) {
-                finishIntro(); return; 
-            }
-            requestAnimationFrame(introLoop); 
+            } catch(e) { console.error("Erro no desenho:", e); } finally { ctx.restore(); }
         }
 
         async function initGameWithSelection() {
             await loadStageData(selectedStage.folder);
             p1 = new Player(200, 900, '#ff3e3e', { up: 'w', down: 's', left: 'a', right: 'd', melee: 'f', shoot: 'g' }, 'p1', selectedP1.map);
             p2 = new Player(2400, 900, '#3e8bff', { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', melee: 'Enter', shoot: 'Shift' }, 'p2', selectedP2.map);
+            
+            if(gameMode === '1p') p2.isCPU = true; // ✨ Ativa IA para P2
+
             bossEntity = new BossParallax();
             globalParticles = Array.from({ length: 50 }, () => new AmbientParticle());
             const introVideoEl = document.getElementById('intro-video-element');
             introVideoEl.src = `${selectedStage.folder}/intro.mp4`;
-            introVideoEl.onerror = () => console.warn("Erro ao carregar vídeo intro");
-            const imagesToLoad = { p1_sprite: `${selectedP1.folder}/gameplay.png`, p1_cinematic: `${selectedP1.folder}/cinematic.png`, p1_win: `${selectedP1.folder}/win.png`, p2_sprite: `${selectedP2.folder}/gameplay.png`, p2_cinematic: `${selectedP2.folder}/cinematic.png`, p2_win: `${selectedP2.folder}/win.png`, stage_bg: `${selectedStage.folder}/fundo.png`, stage_scene: `${selectedStage.folder}/cena.png`, stage_fg: `${selectedStage.folder}/frente.png`, boss1: `${selectedStage.folder}/boss1.png`, boss2: `${selectedStage.folder}/boss2.png`, boss3: `${selectedStage.folder}/boss3.png`, boss4: `${selectedStage.folder}/boss4.png` };
-            audioManager.load('shot_common', COMMON_SOUNDS.shot); audioManager.load('hit', COMMON_SOUNDS.hit); audioManager.load('p1_jump', selectedP1.audio.jump); audioManager.load('p1_charge', selectedP1.audio.charge_shot); audioManager.load('p2_jump', selectedP2.audio.jump); audioManager.load('p2_charge', selectedP2.audio.charge_shot); audioManager.load('stage_intro', selectedStage.audio.intro); audioManager.load('stage_ambience', selectedStage.audio.ambience);
+            
+            const imagesToLoad = { 
+                p1_sprite: `${selectedP1.folder}/gameplay.png`, p1_cinematic: `${selectedP1.folder}/cinematic.png`, p1_win: `${selectedP1.folder}/win.png`, 
+                p2_sprite: `${selectedP2.folder}/gameplay.png`, p2_cinematic: `${selectedP2.folder}/cinematic.png`, p2_win: `${selectedP2.folder}/win.png`, 
+                stage_bg: `${selectedStage.folder}/fundo.png`, stage_scene: `${selectedStage.folder}/cena.png`, stage_fg: `${selectedStage.folder}/frente.png`, 
+                boss1: `${selectedStage.folder}/boss1.png`, boss2: `${selectedStage.folder}/boss2.png`, boss3: `${selectedStage.folder}/boss3.png`, boss4: `${selectedStage.folder}/boss4.png`,
+                // ✨ Adicionar Minions à fila (fallback seguro)
+                minion1: `${selectedStage.folder}/minion1.png`, minion2: `${selectedStage.folder}/minion2.png`, minion3: `${selectedStage.folder}/minion3.png`
+            };
+            
+            audioManager.load('shot_common', COMMON_SOUNDS.shot); audioManager.load('hit', COMMON_SOUNDS.hit); 
+            audioManager.load('p1_jump', selectedP1.audio.jump); audioManager.load('p1_charge', selectedP1.audio.charge_shot); 
+            audioManager.load('p2_jump', selectedP2.audio.jump); audioManager.load('p2_charge', selectedP2.audio.charge_shot); 
+            audioManager.load('stage_intro', selectedStage.audio.intro); audioManager.load('stage_ambience', selectedStage.audio.ambience);
+            
             let loadedCount = 0; const total = Object.keys(imagesToLoad).length;
             for (let key in imagesToLoad) {
                 assets[key] = new Image(); assets[key].crossOrigin = "anonymous"; assets[key].src = imagesToLoad[key];
                 assets[key].onload = () => { checkLoad(++loadedCount, total); };
-                assets[key].onerror = () => { loadedCount++; if (key.startsWith('boss')) console.log("Boss opcional."); else console.warn(`Erro: ${key}`); checkLoad(loadedCount, total); };
+                assets[key].onerror = () => { loadedCount++; checkLoad(loadedCount, total); }; // Não trava se faltar minion
             }
         }
 
+        function checkLoad(current, total) {
+            if (current >= total) { 
+                // ✨ Descobre quais minions carregaram com sucesso
+                availableMinionIds = ['minion1', 'minion2', 'minion3'].filter(id => isImageOk(assets[id]));
+                
+                loadingScreen.style.display = 'none'; 
+                const introVideoEl = document.getElementById('intro-video-element');
+                introVideoEl.style.display = 'block'; void introVideoEl.offsetWidth; introVideoEl.style.opacity = 1;
+                audioManager.play('stage_intro', false, 0.7);
+                introVideoEl.play().catch(() => finishIntro()); 
+                gameState = 'INTRO'; updateCamera(); requestAnimationFrame(introLoop);
+            }
+        }
+
+        // TELA DE SELEÇÃO E EVENTOS DOM
         function renderSelectionList(list, containerId, onSelect, currentSelected) {
             const container = document.getElementById(containerId); container.innerHTML = ''; 
             list.forEach(item => {
@@ -1234,7 +1231,6 @@
             });
         }
 
-        // FUNÇÃO DE INICIALIZAÇÃO PRINCIPAL (HOISTED)
         function initSelectionScreen() {
             loadingScreen.style.display = 'none'; selectionScreen.style.display = 'flex';
             renderSelectionList(CHARACTERS_DB, 'p1-select-container', (char) => selectedP1 = char, selectedP1);
@@ -1246,8 +1242,9 @@
             selectionScreen.style.display = 'none'; loadingScreen.style.display = 'flex'; document.getElementById('loading-text').innerText = "A carregar batalha..."; initGameWithSelection();
         };
 
-        window.addEventListener('keydown', e => keys[e.key] = true);
-        window.addEventListener('keyup', e => keys[e.key] = false);
+        window.addEventListener('keydown', e => { let k = e.key; if(k.length===1) k=k.toLowerCase(); keys[k] = true; });
+        window.addEventListener('keyup', e => { let k = e.key; if(k.length===1) k=k.toLowerCase(); keys[k] = false; });
+        
         // ✨ LÓGICA DO JOYSTICK E BOTÕES MÓVEIS REFINADA
         document.querySelectorAll('.touch-btn').forEach(btn => { 
             const key = btn.getAttribute('data-key'); 
