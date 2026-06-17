@@ -137,7 +137,7 @@
     { "layer": "front","x": 2216, "y": 576, "radius": 75, "color": "rgba(255, 140, 0, 1.0)", "effect": "flicker" },
     { "layer": "front","x": 1482, "y": 343, "radius": 75, "color": "rgba(255, 140, 0, 1.0)", "effect": "flicker" },
     { "layer": "front","x": 1482, "y": 343, "radius": 75, "color": "rgba(89, 74, 74, 0.8)", "effect": "pulse" },
-    { "layer": "front","x": 2236, "y": 1114, "radius": 75, "color": "rgba(255, 140, 0, 1.0)", "effect": "flicker" }
+    { "layer": "front","x": 2236, "y": 1114, "radius": 300, "color": "rgba(255, 140, 0, 1.0)", "effect": "flicker" }
   ]
 }
 
