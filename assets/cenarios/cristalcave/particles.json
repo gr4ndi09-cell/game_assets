@@ -117,13 +117,13 @@
     }
     ],
     "lights": [
-    { "layer": "main","x": 657, "y": 138, "radius": 100, "color": "rgba(166, 137, 210, 0.9)","effect": "pulse" },
-    { "layer": "main","x": 2679, "y": 198, "radius": 100, "color": "rgba(70, 227, 13, 0.9)","effect": "pulse" },
-    { "layer": "main","x": 1473, "y": 483, "radius": 100, "color": "rgba(17, 223, 171, 0.9)","effect": "pulse" },
-    { "layer": "main","x": 531, "y": 786, "radius": 100, "color": "rgba(55, 110, 169, 0.9)","effect": "pulse" },
-    { "layer": "main","x": 2508, "y": 765, "radius": 100, "color": "rgba(223, 168, 17, 0.9)","effect": "pulse" },
-    { "layer": "main","x": 2688, "y": 1179, "radius": 100, "color": "rgba(194, 10, 90, 0.9)","effect": "pulse" },
-    { "layer": "main","x": 1476, "y": 1083, "radius": 100, "color": "rgba(17, 223, 171, 0.9)","effect": "pulse" },
+    { "layer": "front","x": 657, "y": 138, "radius": 100, "color": "rgba(166, 137, 210, 0.4)","effect": "pulse" },
+    { "layer": "front","x": 2679, "y": 198, "radius": 100, "color": "rgba(70, 227, 13, 0.4)","effect": "pulse" },
+    { "layer": "front","x": 1473, "y": 483, "radius": 100, "color": "rgba(17, 223, 171, 0.4)","effect": "pulse" },
+    { "layer": "front","x": 531, "y": 786, "radius": 100, "color": "rgba(55, 110, 169, 0.4)","effect": "pulse" },
+    { "layer": "front","x": 2508, "y": 765, "radius": 100, "color": "rgba(223, 168, 17, 0.4)","effect": "pulse" },
+    { "layer": "front","x": 2688, "y": 1179, "radius": 100, "color": "rgba(194, 10, 90, 0.4)","effect": "pulse" },
+    { "layer": "front","x": 1476, "y": 1083, "radius": 100, "color": "rgba(17, 223, 171, 0.4)","effect": "pulse" },
     { "layer": "front","x": 2184, "y": 1400, "radius": 300, "color": "rgba(234, 6, 6, 0.4)","effect": "pulse" },
     { "layer": "front","x": 168, "y": 1420, "radius": 300, "color": "rgba(6, 234, 165, 0.4)","effect": "pulse" }
   ]
