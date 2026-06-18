@@ -132,7 +132,7 @@
     { "layer": "front","x": 456, "y": 1292, "radius": 120, "color": "rgba(255, 200, 50, 0.5)" },
     { "layer": "front","x": 2200, "y": 1100, "radius": 75, "color": "rgba(255, 200, 50, 0.5)","effect": "flicker" },
     { "layer": "front","x": 146, "y": 984, "radius": 75, "color": "rgba(255, 200, 50, 0.5)", "effect": "flicker" },
-    { "layer": "front","x": 1453, "y": 1439, "radius": 75, "color": "rgba(255, 200, 50, 0.5)", "effect": "flicker" },
+    { "layer": "front","x": 1453, "y": 1439, "radius": 300, "color": "rgba(255, 200, 50, 0.5)", "effect": "flicker" },
     { "layer": "front", "x": 1530, "y": 999, "radius": 75, "color": "rgba(255, 200, 50, 0.5)", "effect": "flicker" },
     { "layer": "front","x": 2216, "y": 576, "radius": 75, "color": "rgba(255, 200, 50, 0.5)", "effect": "flicker" },
     { "layer": "front","x": 1482, "y": 343, "radius": 75, "color": "rgba(255, 200, 50, 0.5)", "effect": "flicker" },
