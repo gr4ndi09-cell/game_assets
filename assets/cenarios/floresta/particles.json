@@ -1,4 +1,9 @@
 {
+  "lighting": {
+    "bg": 0.8,
+    "scene": 0.3,
+    "front": 0.3
+  },
   "emitters": [
     {
       "_comentario": "--- EFEITOS LOCAIS (VELA 1) ---",
