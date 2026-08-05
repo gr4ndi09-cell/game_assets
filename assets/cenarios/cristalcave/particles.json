@@ -3,8 +3,8 @@
 {
   "lighting": {
     "bg": 0.8,
-    "scene": 0.1,
-    "front": 0.2
+    "scene": 0.3,
+    "front": 0.3
   },
     "emitters": [
     {
