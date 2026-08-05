@@ -1,7 +1,12 @@
 
 
 {
-  "emitters": [
+  "lighting": {
+    "bg": 0.8,
+    "scene": 0.1,
+    "front": 0.2
+  },
+    "emitters": [
     {
       "_comentario": "--- EFEITOS LOCAIS (VELA 1) ---",
       "type": "upward",
