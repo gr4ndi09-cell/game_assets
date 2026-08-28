@@ -314,7 +314,7 @@
             
             const fogColor = 0x080815; 
             scene3D.background = new THREE.Color(fogColor);
-            // scene3D.fog = new THREE.Fog(fogColor, 400, 1200);
+            // scene3D.fog = new THREE.Fog(fogColor, 400, 1200); // Fog Oculto temporariamente
 
             camera3D = new THREE.OrthographicCamera(0, MAX_VIEW_WIDTH, MAX_VIEW_HEIGHT, 0, -1000, 1000);
             camera3D.position.z = 100;
@@ -1070,7 +1070,7 @@
 
                 let mov=false;
                 if(activeKeys.left){ this.vx=-MOVE_SPEED; this.facing=-1; mov=true; }
-                else if(activeKeys.right){ this.vx=MOVE_SPEED; this.facing=1; mov=true; }
+                else if(activeKeys.right){ this.vx=MOVESPEED; this.facing=1; mov=true; }
                 else { if (this.onIce && this.onGround) { this.vx *= 0.96; if (Math.abs(this.vx) < 10) this.vx = 0; } else { this.vx = 0; } }
                 
                 if(activeKeys.up && this.onGround){this.vy=-JUMP_FORCE;this.onGround=false;audioManager.play(this.id==='p1'?'p1_jump':'p2_jump',false,0.5);}
@@ -1186,7 +1186,8 @@
         async function loadMasterAnimations() {
             return new Promise((resolve, reject) => {
                 const loader = new THREE.GLTFLoader();
-                const masterPath = `${REPO_ROOT}/chars/padrão/padrão.glb`;
+                // 🛑 CORREÇÃO: "padrão" mudado para "padrao" para evitar erros 404 no GitHub!
+                const masterPath = `${REPO_ROOT}/chars/padrao/padrao.glb`;
                 
                 loader.load(masterPath, (gltf) => {
                     const clips = gltf.animations;
