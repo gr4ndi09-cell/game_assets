@@ -7,9 +7,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Didactic Fighter - 2.5D Engine</title>
     
-    <!-- ✨ INCLUSÃO DAS BIBLIOTECAS 3D -->
+    <!-- ✨ INCLUSÃO DAS BIBLIOTECAS 3D E UTILITÁRIOS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
 
     <style>
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Segoe UI', sans-serif; touch-action: none; color: white; user-select: none; -webkit-user-select: none; }
@@ -240,6 +241,9 @@
         let fruitSpawnPoints = []; 
         let minions = [], availableMinionIds = [], minionSpawnTimer = 0;
         
+        // ✨ VARIÁVEL GLOBAL PARA O RIG MESTRE
+        let globalAnimations = {}; 
+
         let selectedP1 = CHARACTERS_DB[0];
         let selectedP2 = CHARACTERS_DB[1];
         let selectedStage = STAGES_DB[0];
@@ -310,14 +314,12 @@
             
             const fogColor = 0x080815; 
             scene3D.background = new THREE.Color(fogColor);
-            
-            // Nevoeiro desativado temporariamente para revelar as texturas no seu esplendor
             // scene3D.fog = new THREE.Fog(fogColor, 400, 1200);
 
             camera3D = new THREE.OrthographicCamera(0, MAX_VIEW_WIDTH, MAX_VIEW_HEIGHT, 0, -1000, 1000);
             camera3D.position.z = 100;
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.20); 
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.85); 
             scene3D.add(ambientLight);
 
             const dirLight = new THREE.DirectionalLight(0xffffff, 0.30);
@@ -330,7 +332,7 @@
             if(window.meshScene) scene3D.remove(window.meshScene);
             if(window.meshFg) scene3D.remove(window.meshFg);
 
-            const buildLayer = (assetKey, zPos, layerName) => {
+            const buildLayer = (assetKey, zPos) => {
                 if (isImageOk(assets[assetKey])) {
                     const tex = new THREE.Texture(assets[assetKey]);
                     tex.generateMipmaps = false; 
@@ -349,15 +351,8 @@
                     }
                     geo.computeVertexNormals();
 
-                    // O motor vai ler a % de emissão que definiste no particles.json
-                    let eIntensity = stageFX && stageFX.lighting ? stageFX.lighting[layerName] : 0.0;
-                    if(eIntensity === undefined) eIntensity = 0.0;
-
                     const mat = new THREE.MeshStandardMaterial({ 
-                        map: tex, transparent: true, alphaTest: 0.1, side: THREE.FrontSide, roughness: 0.8, metalness: 0.1,
-                        emissive: new THREE.Color(0xffffff),
-                        emissiveMap: tex,
-                        emissiveIntensity: eIntensity
+                        map: tex, transparent: true, alphaTest: 0.1, side: THREE.FrontSide, roughness: 0.8, metalness: 0.1
                     });
                     
                     const mesh = new THREE.Mesh(geo, mat);
@@ -368,9 +363,9 @@
                 return null;
             };
 
-            window.meshBg = buildLayer('stage_bg', -500, 'bg'); 
-            window.meshScene = buildLayer('stage_scene', -200, 'scene');
-            window.meshFg = buildLayer('stage_fg', 100, 'front'); 
+            window.meshBg = buildLayer('stage_bg', -500); 
+            window.meshScene = buildLayer('stage_scene', -200);
+            window.meshFg = buildLayer('stage_fg', 100); 
         }
 
         function getRGBColor(colorStr) {
@@ -436,6 +431,7 @@
             return tex;
         }
 
+        // 7. CLASSES DO JOGO
         class AmbientParticle { 
             constructor(z=null){
                 this.z = z;
@@ -595,10 +591,10 @@
                 }
 
                 if (this.light) {
-                    let zDepthLight = 25; 
-                    if (this.layer === 'bg') zDepthLight = -450; 
-                    else if (this.layer === 'scene') zDepthLight = -150; 
-                    else if (this.layer === 'front') zDepthLight = 125; 
+                    let zDepthLight = -150; 
+                    if (this.layer === 'bg') zDepthLight = -600; 
+                    else if (this.layer === 'scene') zDepthLight = -300; 
+                    else if (this.layer === 'front') zDepthLight = 150; 
                     
                     const nx = (this.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
                     const curveZ = Math.pow(nx, 2) * 300;
@@ -607,7 +603,7 @@
                     this.light.intensity = Math.max(0, this.alpha * 1.5);
                 }
             }
-            draw(ctx) {}
+            draw(ctx) { }
             destroy() {
                 if (this.sprite) scene3D.remove(this.sprite);
                 if (this.light) scene3D.remove(this.light);
@@ -615,12 +611,7 @@
         }
 
         class StageFX {
-            constructor() { 
-                this.particlesByLayer = { bg: [], scene: [], main: [], front: [] }; 
-                this.lights = []; 
-                this.zones = []; 
-                this.lighting = { bg: 0.6, scene: 0.1, front: 0.2 }; 
-            }
+            constructor() { this.particlesByLayer = { bg: [], scene: [], main: [], front: [] }; this.lights = []; this.zones = []; }
             init(stageConfig) {
                 if (this.lights) this.lights.forEach(l => { if(l.light3D) scene3D.remove(l.light3D); });
                 for (const layer in this.particlesByLayer) { this.particlesByLayer[layer].forEach(p => p.destroy && p.destroy()); }
@@ -629,8 +620,6 @@
                 
                 if (!stageConfig) { this.addDefaultEmitters(); } 
                 else {
-                    if (stageConfig.lighting) this.lighting = stageConfig.lighting;
-
                     const emitters = stageConfig.emitters || []; this.lights = stageConfig.lights || []; this.zones = stageConfig.zones || [];
                     emitters.forEach(emit => { const layer = emit.layer || 'main'; if (!this.particlesByLayer[layer]) this.particlesByLayer[layer] = []; for(let i=0; i<emit.count; i++) { this.particlesByLayer[layer].push(new Particle(emit)); } });
                 }
@@ -645,10 +634,10 @@
                     const nx = (l.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
                     const curveZ = Math.pow(nx, 2) * 300;
 
-                    let zDepth = 25; 
-                    if(l.layer === 'bg') zDepth = -450; 
-                    else if(l.layer === 'scene') zDepth = -150;
-                    else if(l.layer === 'front') zDepth = 125; 
+                    let zDepth = -150; 
+                    if(l.layer === 'bg') zDepth = -600; 
+                    else if(l.layer === 'scene') zDepth = -300;
+                    else if(l.layer === 'front') zDepth = 150; 
                     
                     l.light3D.position.set(l.x, WORLD_HEIGHT - l.y, zDepth + curveZ);
                     scene3D.add(l.light3D);
@@ -684,10 +673,10 @@
                         const nx = (l.light3D.position.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
                         const curveZ = Math.pow(nx, 2) * 300;
                         
-                        let zDepth = 25; 
-                        if(l.layer === 'bg') zDepth = -450; 
-                        else if(l.layer === 'scene') zDepth = -150;
-                        else if(l.layer === 'front') zDepth = 125; 
+                        let zDepth = -150; 
+                        if(l.layer === 'bg') zDepth = -600; 
+                        else if(l.layer === 'scene') zDepth = -300;
+                        else if(l.layer === 'front') zDepth = 150; 
                         
                         l.light3D.position.z = zDepth + curveZ;
                     }
@@ -956,12 +945,105 @@
                 this.cpuKeys = { up: false, down: false, left: false, right: false, melee: false, shoot: false };
                 this.pConfig = pConfig; 
 
+                // ✨ O GRUPO QUE SEGURA O MODELO 3D
+                this.meshGroup = new THREE.Group();
+                scene3D.add(this.meshGroup);
+
+                // Caixa de Debug e Placeholder (oculta quando o 3D carrega)
                 const geo = new THREE.BoxGeometry(this.w, this.h, 40);
-                const mat = new THREE.MeshLambertMaterial({ color: this.c });
+                const mat = new THREE.MeshLambertMaterial({ color: this.c, transparent: true, opacity: 0.5 });
                 this.mesh = new THREE.Mesh(geo, mat);
-                scene3D.add(this.mesh);
+                this.mesh.position.y = this.h/2;
+                this.meshGroup.add(this.mesh);
+
+                // ✨ VARIÁVEIS DE ANIMAÇÃO 3D
+                this.mixer = null;
+                this.actions = {};
+                this.currentAction = null;
+                this.model3D = null;
             }
-            setAnimation(n){ if(this.state!==n){this.state=n;if(n===LOGICAL_STATE.MELEE)this.mHD=false;} }
+            
+            // ✨ CARREGA E INJETA O MODELO GLB
+            loadModel(folderUrl) {
+                const loader = new THREE.GLTFLoader();
+                const modelPath = `${folderUrl}/${folderUrl.split('/').pop()}.glb`;
+
+                loader.load(modelPath, (gltf) => {
+                    this.meshGroup.remove(this.mesh);
+
+                    this.model3D = THREE.SkeletonUtils.clone(gltf.scene);
+                    
+                    const scaleFactor = 60.0; 
+                    this.model3D.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                    
+                    this.model3D.position.set(this.w/2, 0, 0);
+                    
+                    this.model3D.traverse((child) => {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            if(child.material) {
+                                child.material.roughness = 0.7;
+                                child.material.metalness = 0.1;
+                            }
+                        }
+                    });
+
+                    this.meshGroup.add(this.model3D);
+
+                    this.mixer = new THREE.AnimationMixer(this.model3D);
+                    
+                    for (const [animName, clip] of Object.entries(globalAnimations)) {
+                        const action = this.mixer.clipAction(clip);
+                        
+                        if (['meele', 'cast_3', 'cast_7', 'combo', 'caido'].includes(animName)) {
+                            action.loop = THREE.LoopOnce;
+                            action.clampWhenFinished = true;
+                        }
+                        
+                        this.actions[animName] = action;
+                    }
+
+                    this.playAnimation('idle');
+
+                }, undefined, (error) => {
+                    console.error("Erro ao carregar o modelo do lutador:", modelPath, error);
+                });
+            }
+
+            // ✨ TRANSIÇÃO SUAVE ENTRE ANIMAÇÕES
+            playAnimation(name) {
+                if (!this.mixer || !this.actions[name]) return;
+                
+                const nextAction = this.actions[name];
+                
+                if (this.currentAction === nextAction) return; 
+
+                nextAction.reset(); 
+                nextAction.play();
+                
+                if (this.currentAction) {
+                    this.currentAction.crossFadeTo(nextAction, 0.2, true);
+                }
+
+                this.currentAction = nextAction;
+            }
+
+            setAnimation(n){ 
+                if(this.state!==n){
+                    this.state=n;
+                    if(n===LOGICAL_STATE.MELEE) this.mHD=false;
+                    
+                    // ✨ TRADUÇÃO DOS ESTADOS LÓGICOS PARA OS NOMES DAS TUAS ANIMAÇÕES
+                    if (this.state === LOGICAL_STATE.IDLE) this.playAnimation('idle');
+                    else if (this.state === LOGICAL_STATE.RUN) this.playAnimation('corrida');
+                    else if (this.state === LOGICAL_STATE.JUMP) this.playAnimation('pulo');
+                    else if (this.state === LOGICAL_STATE.MELEE) this.playAnimation('meele');
+                    else if (this.state === LOGICAL_STATE.SHOOT) {
+                        this.playAnimation(this.charge > 90 ? 'cast_3' : 'cast_7');
+                    }
+                } 
+            }
+
             updateAI(dt, target) {
                 this.cpuKeys = { up: false, down: false, left: false, right: false, melee: false, shoot: false };
                 if (!target || target.health <= 0 || this.health <= 0) return;
@@ -1039,15 +1121,28 @@
                 document.getElementById(`${this.id}-health-fill`).style.width=this.health+'%';
                 document.getElementById(`${this.id}-charge`).style.width=this.charge+'%';
 
+                // ✨ MOVIMENTO FÍSICO DO GRUPO 3D DO LUTADOR
                 const nx = (this.x + this.w/2 - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
                 const curveZ = Math.pow(nx, 2) * 300;
 
-                this.mesh.position.set(this.x + this.w/2, WORLD_HEIGHT - (this.y + this.h/2), curveZ);
-                this.mesh.rotation.y = this.facing === 1 ? 0 : Math.PI;
+                this.meshGroup.position.set(this.x, WORLD_HEIGHT - (this.y + this.h), curveZ);
+                
+                // Roda o personagem para a esquerda (-Y) ou direita (+Y)
+                this.meshGroup.rotation.y = this.facing === 1 ? Math.PI/2 : -Math.PI/2;
 
-                if (this.dF > 0) this.mesh.material.emissive.setHex(0xaaaaaa);
-                else if (this.isCharging) this.mesh.material.emissive.setHex(0x555500);
-                else this.mesh.material.emissive.setHex(0x000000);
+                // Efeito de Dano ou Carregamento (Piscar de luz através de todos os meshes do corpo)
+                if (this.model3D) {
+                    this.model3D.traverse((child) => {
+                        if (child.isMesh && child.material) {
+                            if (this.dF > 0) child.material.emissive.setHex(0xaaaaaa);
+                            else if (this.isCharging) child.material.emissive.setHex(0x555500);
+                            else child.material.emissive.setHex(0x000000);
+                        }
+                    });
+                }
+
+                // ✨ ATUALIZA O RELÓGIO DAS ANIMAÇÕES
+                if (this.mixer) this.mixer.update(dt);
             }
             checkMeleeHit(){
                 let t=(this.id==='p1')?p2:p1; let r=95; let hX=this.facing===1?this.x+this.w:this.x-r;
@@ -1080,10 +1175,34 @@
             }
         }
 
+        // --- HELPER FUNCTIONS DE JOGO ---
         function generateFruitSpawns() {
             fruitSpawnPoints.length = 0;
             colliders.forEach(p => { if (!p.type || p.type === 'rect') fruitSpawnPoints.push({ x: p.x + p.w / 2, y: p.y - 60 }); });
             if (fruitSpawnPoints.length === 0) fruitSpawnPoints.push({ x: WORLD_WIDTH/2, y: 500 });
+        }
+
+        // ✨ NOVA FUNÇÃO PARA CARREGAR O CÉREBRO DE ANIMAÇÕES
+        async function loadMasterAnimations() {
+            return new Promise((resolve, reject) => {
+                const loader = new THREE.GLTFLoader();
+                const masterPath = `${REPO_ROOT}/chars/padrão/padrão.glb`;
+                
+                loader.load(masterPath, (gltf) => {
+                    const clips = gltf.animations;
+                    console.log(`[SUCESSO] Esqueleto Mestre Carregado. Encontradas ${clips.length} animações.`);
+                    
+                    // Organiza as animações pelo seu nome dentro de um Dicionário para acesso fácil
+                    clips.forEach(clip => {
+                        globalAnimations[clip.name.toLowerCase()] = clip;
+                    });
+                    
+                    resolve();
+                }, undefined, (error) => {
+                    console.error("[ERRO FATAL] Falha a carregar o Esqueleto Mestre:", error);
+                    resolve(); // Resolvemos à mesma para o jogo arrancar e usar os quadrados como fallback
+                });
+            });
         }
 
         async function loadStageData(stageUrl) {
@@ -1343,6 +1462,11 @@
         async function initGameWithSelection() {
             initThreeJS(); 
 
+            // ✨ Passo 1: OBRIGATÓRIO carregar as animações mestres primeiro!
+            document.getElementById('loading-text').innerText = "A treinar lutadores (Animações)...";
+            await loadMasterAnimations();
+
+            document.getElementById('loading-text').innerText = "A carregar arena...";
             await loadStageData(selectedStage.folder);
 
             let p1Cfg = {}, p2Cfg = {};
@@ -1351,6 +1475,10 @@
 
             p1 = new Player(200, 900, '#ff3e3e', { up: 'w', down: 's', left: 'a', right: 'd', melee: 'f', shoot: 'g' }, 'p1', p1Cfg.projectile || {shape: 'star', trailLength: 5});
             p2 = new Player(2400, 900, '#3e8bff', { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', melee: 'Enter', shoot: 'Shift' }, 'p2', p2Cfg.projectile || {shape: 'cone', trailLength: 8});
+            
+            // ✨ Passo 2: Mandar os lutadores carregar as suas malhas (Meshes) e juntar às animações
+            p1.loadModel(selectedP1.folder);
+            p2.loadModel(selectedP2.folder);
             
             if(gameMode === '1p') p2.isCPU = true;
 
@@ -1444,6 +1572,7 @@
         joystickZone.addEventListener('touchend', (e) => { e.preventDefault(); resetJoystick(); }, {passive: false});
         joystickZone.addEventListener('touchcancel', (e) => { e.preventDefault(); resetJoystick(); }, {passive: false});
 
+        // 8. GEMINI AI
         async function geminiFetch(prompt, system) {
             let delay = 1000;
             for (let i = 0; i < 5; i++) {
@@ -1457,12 +1586,10 @@
                 } catch (e) { await new Promise(r => setTimeout(r, delay)); delay *= 2; }
             }
         }
-        
         async function generateQuestions() {
             const theme = document.getElementById('theme-input').value || 'História'; document.getElementById('loader').style.display = 'block';
             try { const result = await geminiFetch(`Gere 5 perguntas sobre "${theme}". Formato: { "questions": [{ "q": "p", "options": ["o1","o2","o3","o4"], "correct": 0 }] }`, "És um professor sábio."); if (result.questions) { questions = result.questions; showMessage("✨ Desafios carregados!"); } } catch (e) { showMessage("Erro na IA."); } finally { document.getElementById('loader').style.display = 'none'; }
         }
-        
         async function explainTopic(question, answer) {
             const tutorEl = document.getElementById('tutor-explanation'); tutorEl.style.display = 'block'; tutorEl.innerText = "A pensar...";
             try { const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: `Pergunta: ${question}. Resposta: ${answer}. Explica em 2 frases.` }] }], systemInstruction: { parts: [{ text: "És um tutor amigável." }] } }) }); const data = await r.json(); tutorEl.innerText = data.candidates[0].content.parts[0].text; } catch (e) { tutorEl.innerText = "Continua a lutar!"; }
