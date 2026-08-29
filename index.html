@@ -199,8 +199,7 @@
         const apiKey = ""; 
 
         // 1. CONFIGURAÇÃO GERAL
-        // Confirmado o uso da branch "main" conforme pediste
-        const REPO_ROOT = "https://raw.githubusercontent.com/gr4ndi09-cell/game_assets/main/assets";
+        const REPO_ROOT = "https://raw.githubusercontent.com/gr4ndi09-cell/game_assets/master/assets";
         
         const WORLD_WIDTH = 2752, WORLD_HEIGHT = 1536;
         const CANVAS_WIDTH = 1280, CANVAS_HEIGHT = 720;
@@ -244,6 +243,7 @@
         let minions = [], availableMinionIds = [], minionSpawnTimer = 0;
         
         let globalAnimations = {}; 
+        let skyMesh = null; // ✨ MEGA-ESFERA DO CEU
 
         let selectedP1 = CHARACTERS_DB[0];
         let selectedP2 = CHARACTERS_DB[1];
@@ -316,10 +316,11 @@
             const fogColor = 0x080815; 
             scene3D.background = new THREE.Color(fogColor);
 
-            camera3D = new THREE.OrthographicCamera(0, MAX_VIEW_WIDTH, MAX_VIEW_HEIGHT, 0, -1000, 1000);
+            // ✨ Aumentámos a vista (Far Plane) de 1000 para 4000 para conseguir ver a Mega-Esfera do Céu
+            camera3D = new THREE.OrthographicCamera(0, MAX_VIEW_WIDTH, MAX_VIEW_HEIGHT, 0, -4000, 4000);
             camera3D.position.z = 100;
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.20); 
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.85); 
             scene3D.add(ambientLight);
 
             const dirLight = new THREE.DirectionalLight(0xffffff, 0.30);
@@ -331,6 +332,7 @@
             if(window.meshBg) scene3D.remove(window.meshBg);
             if(window.meshScene) scene3D.remove(window.meshScene);
             if(window.meshFg) scene3D.remove(window.meshFg);
+            if(skyMesh) { scene3D.remove(skyMesh); skyMesh = null; } // Limpar o céu antigo
 
             const buildLayer = (assetKey, zPos, emissiveIntensity = 0.0) => {
                 if (isImageOk(assets[assetKey])) {
@@ -372,6 +374,25 @@
             window.meshBg = buildLayer('stage_bg', -500, lightCfg.bg); 
             window.meshScene = buildLayer('stage_scene', -200, lightCfg.scene);
             window.meshFg = buildLayer('stage_fg', 100, lightCfg.front); 
+            
+            // ✨ GERADOR DA MEGA-ESFERA (SKYDOME HDR-Like)
+            if (isImageOk(assets['stage_sky'])) {
+                const skyTex = new THREE.Texture(assets['stage_sky']);
+                skyTex.needsUpdate = true;
+                skyTex.minFilter = THREE.LinearFilter;
+                
+                // Esfera gigante com raio de 1600!
+                const skyGeo = new THREE.SphereGeometry(1600, 32, 32); 
+                const skyMat = new THREE.MeshBasicMaterial({ 
+                    map: skyTex, 
+                    side: THREE.BackSide, // Textura pintada por dentro
+                    color: 0xffffff // Cor pura, ignora as sombras
+                });
+                skyMesh = new THREE.Mesh(skyGeo, skyMat);
+                // Colocada muuuito longe, atrás da parede de bg (-500)
+                skyMesh.position.set(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, -2200); 
+                scene3D.add(skyMesh);
+            }
         }
 
         function getRGBColor(colorStr) {
@@ -436,7 +457,6 @@
             return tex;
         }
 
-        // 7. CLASSES DO JOGO
         class AmbientParticle { 
             constructor(z=null){
                 this.z = z;
@@ -980,7 +1000,7 @@
 
                     this.model3D = THREE.SkeletonUtils.clone(gltf.scene);
                     
-                    const scaleFactor = 90.0; 
+                    const scaleFactor = 60.0; 
                     this.model3D.scale.set(scaleFactor, scaleFactor, scaleFactor);
                     
                     this.model3D.position.set(this.w/2, 0, 0);
@@ -1368,6 +1388,11 @@
                 if (stageFX) stageFX.update(dt);
                 globalParticles.forEach(p => p.update(dt));
                 
+                // ✨ ATUALIZA A ROTAÇÃO DO SKYDOME HDR LENTAMENTE
+                if (skyMesh) {
+                    skyMesh.rotation.y += 0.015 * dt; 
+                }
+                
                 if (gameMode === '1p' && p2) { p2.updateAI(dt, p1); }
                 if (p1) p1.update(dt);
                 if (p2) p2.update(dt);
@@ -1513,6 +1538,7 @@
                 p1_cinematic: `${selectedP1.folder}/cinematic.png`, p1_win: `${selectedP1.folder}/win.png`, 
                 p2_cinematic: `${selectedP2.folder}/cinematic.png`, p2_win: `${selectedP2.folder}/win.png`, 
                 stage_bg: `${selectedStage.folder}/fundo.png`, stage_scene: `${selectedStage.folder}/cena.png`, stage_fg: `${selectedStage.folder}/frente.png`, 
+                stage_sky: `${selectedStage.folder}/ceuhdr.jpg`, // ✨ CARREGA O NOVO CEU (OPCIONAL)
                 minion1: `${selectedStage.folder}/minion1.png`, minion2: `${selectedStage.folder}/minion2.png`, minion3: `${selectedStage.folder}/minion3.png`
             };
             
