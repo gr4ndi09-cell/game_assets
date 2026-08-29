@@ -17,7 +17,7 @@
         
         #game-container { 
             position: absolute; top: 0; left: 0; 
-            width: 100vw; height: 100vh; 
+            width: 100vw; height: 120vh; 
             display: flex; justify-content: center; align-items: center; 
             background: #000;
         }
@@ -980,7 +980,7 @@
 
                     this.model3D = THREE.SkeletonUtils.clone(gltf.scene);
                     
-                    const scaleFactor = 95.0; 
+                    const scaleFactor = 90.0; 
                     this.model3D.scale.set(scaleFactor, scaleFactor, scaleFactor);
                     
                     this.model3D.position.set(this.w/2, 0, 0);
