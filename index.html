@@ -81,16 +81,8 @@
         #victory-text { font-size: 40px; color: yellow; text-shadow: 0 0 10px red; font-weight: bold; text-transform: uppercase; margin-bottom: 20px; }
         #tutor-explanation { margin-top: 20px; padding: 15px; background: rgba(0, 255, 255, 0.1); border-left: 4px solid cyan; text-align: left; font-size: 16px; display: none; }
         
-        #mobile-controls { 
-            position: absolute; bottom: 20px; width: 100%; height: 180px; 
-            display: none; pointer-events: auto; z-index: 50; 
-            justify-content: space-between; padding: 0 30px; box-sizing: border-box; 
-            opacity: 0; transition: opacity 1s; 
-        }
-
-        @media (pointer: coarse) { 
-            #mobile-controls.visible { display: flex; opacity: 1; } 
-        }
+        #mobile-controls { position: absolute; bottom: 20px; width: 100%; height: 180px; display: none; pointer-events: auto; z-index: 50; justify-content: space-between; padding: 0 30px; box-sizing: border-box; opacity: 0; transition: opacity 1s; }
+        @media (pointer: coarse) { #mobile-controls.visible { display: flex; opacity: 1; } }
         
         .joystick-area { width: 150px; height: 150px; position: relative; pointer-events: auto; }
         .joystick-base { width: 120px; height: 120px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; position: absolute; bottom: 10px; left: 10px; display: flex; justify-content: center; align-items: center; }
@@ -105,7 +97,6 @@
         .btn-shoot { top: 60px; right: 0; background: rgba(255, 255, 0, 0.2); width: 65px; height: 65px;} 
 
         #debug-toggle { position: absolute; bottom: 20px; left: 20px; font-size: 14px; color: #888; pointer-events: auto; z-index: 60; display: flex; align-items: center; gap: 5px; cursor: pointer; }
-        
         #fullscreen-btn { position: absolute; top: 10px; right: 10px; z-index: 200; background: rgba(0,0,0,0.5); border: 1px solid #555; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; pointer-events: auto; display: none; cursor: pointer;}
         @media (pointer: coarse) { #fullscreen-btn { display: block; } }
     </style>
@@ -117,23 +108,19 @@
         <p id="loading-text" style="margin-top: 20px; color: cyan;">A conectar ao Servidor...</p>
     </div>
 
-    <!-- TELA DE SELEÇÃO -->
     <div id="selection-screen">
         <h1 style="color:white; margin-bottom: 20px; text-shadow: 0 0 10px cyan;">SELEÇÃO DE BATALHA</h1>
-        
         <div class="section-title">Modo de Jogo</div>
         <div class="selection-grid" id="mode-select-container">
             <div class="select-card selected" id="mode-1p" onclick="setGameMode('1p')">1 JOGADOR<br><small style="color:#aaa">(vs CPU)</small></div>
             <div class="select-card" id="mode-2p" onclick="setGameMode('2p')">2 JOGADORES<br><small style="color:#aaa">(Local)</small></div>
         </div>
-
         <div class="section-title">Jogador 1</div>
         <div class="selection-grid" id="p1-select-container"></div>
         <div class="section-title">Jogador 2</div>
         <div class="selection-grid" id="p2-select-container"></div>
         <div class="section-title">Cenário</div>
         <div class="selection-grid" id="stage-select-container"></div>
-        
         <button class="gemini-btn" id="confirm-selection-btn" style="font-size: 20px; padding: 15px 40px; margin-top: 30px; margin-bottom: 50px;">INICIAR COMBATE</button>
     </div>
 
@@ -161,7 +148,6 @@
         </div>
 
         <div id="message-box"></div>
-
         <div id="victory-ui">
             <div id="victory-text">VITÓRIA!</div>
             <button class="gemini-btn" onclick="location.reload()">VOLTAR À SELEÇÃO</button>
@@ -169,9 +155,7 @@
 
         <div id="mobile-controls">
             <div class="joystick-area" id="joystick-zone">
-                <div class="joystick-base">
-                    <div class="joystick-stick" id="joystick-stick"></div>
-                </div>
+                <div class="joystick-base"><div class="joystick-stick" id="joystick-stick"></div></div>
             </div>
             <div class="actions-area">
                 <div class="touch-btn btn-jump" data-key="w">PULAR</div>
@@ -237,7 +221,6 @@
         let minions = [], availableMinionIds = [], minionSpawnTimer = 0;
         
         let globalAnimations = {}; 
-        let skyMesh = null; // Mega-Esfera do HDR
 
         let selectedP1 = CHARACTERS_DB[0];
         let selectedP2 = CHARACTERS_DB[1];
@@ -309,8 +292,7 @@
             const fogColor = 0x080815; 
             scene3D.background = new THREE.Color(fogColor);
 
-            // AUMENTADO PARA 4000 PARA CONSEGUIRMOS VER O CÉU LONGE
-            camera3D = new THREE.OrthographicCamera(0, MAX_VIEW_WIDTH, MAX_VIEW_HEIGHT, 0, -4000, 4000);
+            camera3D = new THREE.OrthographicCamera(0, MAX_VIEW_WIDTH, MAX_VIEW_HEIGHT, 0, -1000, 1000);
             camera3D.position.z = 100;
 
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.20); 
@@ -325,7 +307,6 @@
             if(window.meshBg) scene3D.remove(window.meshBg);
             if(window.meshScene) scene3D.remove(window.meshScene);
             if(window.meshFg) scene3D.remove(window.meshFg);
-            if(skyMesh) { scene3D.remove(skyMesh); skyMesh = null; }
 
             const buildLayer = (assetKey, zPos, emissiveIntensity = 0.0) => {
                 if (isImageOk(assets[assetKey])) {
@@ -367,29 +348,6 @@
             window.meshBg = buildLayer('stage_bg', -500, lightCfg.bg); 
             window.meshScene = buildLayer('stage_scene', -200, lightCfg.scene);
             window.meshFg = buildLayer('stage_fg', 100, lightCfg.front); 
-            
-            // CONSTRUÇÃO DO SKYDOME HDR GIGANTE
-            if (isImageOk(assets['stage_sky'])) {
-                const skyTex = new THREE.Texture(assets['stage_sky']);
-                skyTex.needsUpdate = true;
-                skyTex.minFilter = THREE.LinearFilter;
-                
-                const skyGeo = new THREE.SphereGeometry(1600, 32, 32); 
-                const skyMat = new THREE.MeshBasicMaterial({ 
-                    map: skyTex, 
-                    side: THREE.BackSide, // Vemos de dentro para fora
-                    color: 0xffffff 
-                });
-                skyMesh = new THREE.Mesh(skyGeo, skyMat);
-                
-                skyMesh.position.set(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, -2200); 
-                
-                // INCLINAÇÃO REALISTA DO CÉU (Gira sobre um eixo diagonal)
-                skyMesh.rotation.x = 0.4;
-                skyMesh.rotation.z = 0.15; 
-                
-                scene3D.add(skyMesh);
-            }
         }
 
         function getRGBColor(colorStr) {
@@ -993,7 +951,7 @@
 
                     this.model3D = THREE.SkeletonUtils.clone(gltf.scene);
                     
-                    const scaleFactor = 95.0; 
+                    const scaleFactor = 100.0; 
                     this.model3D.scale.set(scaleFactor, scaleFactor, scaleFactor);
                     
                     this.model3D.position.set(this.w/2, 0, 0);
@@ -1219,6 +1177,13 @@
                     console.log(`[SUCESSO] Esqueleto Mestre Carregado. Encontradas ${clips.length} animações.`);
                     
                     clips.forEach(clip => {
+                        // ✨ MAGIA DE RETARGETING: Removemos informações de posição/escala do Padrão.
+                        // Assim a malha do Tiger mantém o seu tamanho original e só copia as rotações!
+                        clip.tracks = clip.tracks.filter(track => {
+                            // Ignora todos os dados de '.position' e '.scale'
+                            return track.name.includes('.quaternion'); 
+                        });
+                        
                         globalAnimations[clip.name.toLowerCase()] = clip;
                     });
                     
@@ -1369,10 +1334,6 @@
                 if (stageFX) stageFX.update(dt);
                 globalParticles.forEach(p => p.update(dt));
                 
-                if (skyMesh) {
-                    skyMesh.rotateY(0.010 * dt); 
-                }
-                
                 if (gameMode === '1p' && p2) { p2.updateAI(dt, p1); }
                 if (p1) p1.update(dt);
                 if (p2) p2.update(dt);
@@ -1445,22 +1406,13 @@
             if (gameState === 'CINEMATIC' || gameState === 'QUIZ') { drawCinematic(); return; }
             
             if (window.meshBg) {
-                // Eixo X centralizado (O teu parallax para manter a imagem alinhada)
-                window.meshBg.position.x = WORLD_WIDTH / 2; 
-
-                // Lógica de Parallax Vertical correta (calculando a média de altura)
+                // Efeito Parallax suave de fundo travado no Y
                 let avgY = GROUND_Y;
-                if (p1 && p2) {
-                    avgY = (p1.y + p2.y) / 2;
-                } else if (p1) {
-                    avgY = p1.y;
-                } else if (p2) {
-                    avgY = p2.y;
-                }
-
+                if (p1 && p2) { avgY = (p1.y + p2.y) / 2; } else if (p1) { avgY = p1.y; } else if (p2) { avgY = p2.y; }
                 let yRatio = Math.max(0, Math.min(1, avgY / GROUND_Y));
                 let parallaxStrength = 400; 
                 
+                window.meshBg.position.x = (WORLD_WIDTH / 2) + camera.x * 0.5; 
                 window.meshBg.position.y = (WORLD_HEIGHT / 2) + ((0.5 - yRatio) * parallaxStrength);
             }
 
@@ -1534,7 +1486,6 @@
                 p1_cinematic: `${selectedP1.folder}/cinematic.png`, p1_win: `${selectedP1.folder}/win.png`, 
                 p2_cinematic: `${selectedP2.folder}/cinematic.png`, p2_win: `${selectedP2.folder}/win.png`, 
                 stage_bg: `${selectedStage.folder}/fundo.png`, stage_scene: `${selectedStage.folder}/cena.png`, stage_fg: `${selectedStage.folder}/frente.png`, 
-                stage_sky: `${selectedStage.folder}/ceuhdr.jpg`, 
                 minion1: `${selectedStage.folder}/minion1.png`, minion2: `${selectedStage.folder}/minion2.png`, minion3: `${selectedStage.folder}/minion3.png`
             };
             
@@ -1629,12 +1580,10 @@
                 } catch (e) { await new Promise(r => setTimeout(r, delay)); delay *= 2; }
             }
         }
-        
         async function generateQuestions() {
             const theme = document.getElementById('theme-input').value || 'História'; document.getElementById('loader').style.display = 'block';
             try { const result = await geminiFetch(`Gere 5 perguntas sobre "${theme}". Formato: { "questions": [{ "q": "p", "options": ["o1","o2","o3","o4"], "correct": 0 }] }`, "És um professor sábio."); if (result.questions) { questions = result.questions; showMessage("✨ Desafios carregados!"); } } catch (e) { showMessage("Erro na IA."); } finally { document.getElementById('loader').style.display = 'none'; }
         }
-        
         async function explainTopic(question, answer) {
             const tutorEl = document.getElementById('tutor-explanation'); tutorEl.style.display = 'block'; tutorEl.innerText = "A pensar...";
             try { const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: `Pergunta: ${question}. Resposta: ${answer}. Explica em 2 frases.` }] }], systemInstruction: { parts: [{ text: "És um tutor amigável." }] } }) }); const data = await r.json(); tutorEl.innerText = data.candidates[0].content.parts[0].text; } catch (e) { tutorEl.innerText = "Continua a lutar!"; }
