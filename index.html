@@ -199,7 +199,7 @@
         const apiKey = ""; 
 
         // 1. CONFIGURAÇÃO GERAL
-        const REPO_ROOT = "https://raw.githubusercontent.com/gr4ndi09-cell/game_assets/master/assets";
+        const REPO_ROOT = "https://raw.githubusercontent.com/gr4ndi09-cell/game_assets/main/assets";
         
         const WORLD_WIDTH = 2752, WORLD_HEIGHT = 1536;
         const CANVAS_WIDTH = 1280, CANVAS_HEIGHT = 720;
@@ -316,11 +316,11 @@
             const fogColor = 0x080815; 
             scene3D.background = new THREE.Color(fogColor);
 
-            // ✨ Aumentámos a vista (Far Plane) de 1000 para 4000 para conseguir ver a Mega-Esfera do Céu
+            // ✨ Aumentámos a vista para 4000 para conseguir ver a Mega-Esfera do Céu
             camera3D = new THREE.OrthographicCamera(0, MAX_VIEW_WIDTH, MAX_VIEW_HEIGHT, 0, -4000, 4000);
             camera3D.position.z = 100;
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.85); 
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.20); 
             scene3D.add(ambientLight);
 
             const dirLight = new THREE.DirectionalLight(0xffffff, 0.30);
@@ -332,7 +332,7 @@
             if(window.meshBg) scene3D.remove(window.meshBg);
             if(window.meshScene) scene3D.remove(window.meshScene);
             if(window.meshFg) scene3D.remove(window.meshFg);
-            if(skyMesh) { scene3D.remove(skyMesh); skyMesh = null; } // Limpar o céu antigo
+            if(skyMesh) { scene3D.remove(skyMesh); skyMesh = null; }
 
             const buildLayer = (assetKey, zPos, emissiveIntensity = 0.0) => {
                 if (isImageOk(assets[assetKey])) {
@@ -375,22 +375,26 @@
             window.meshScene = buildLayer('stage_scene', -200, lightCfg.scene);
             window.meshFg = buildLayer('stage_fg', 100, lightCfg.front); 
             
-            // ✨ GERADOR DA MEGA-ESFERA (SKYDOME HDR-Like)
+            // ✨ GERADOR DA MEGA-ESFERA (SKYDOME HDR-Like) COM INCLINAÇÃO
             if (isImageOk(assets['stage_sky'])) {
                 const skyTex = new THREE.Texture(assets['stage_sky']);
                 skyTex.needsUpdate = true;
                 skyTex.minFilter = THREE.LinearFilter;
                 
-                // Esfera gigante com raio de 1600!
                 const skyGeo = new THREE.SphereGeometry(1600, 32, 32); 
                 const skyMat = new THREE.MeshBasicMaterial({ 
                     map: skyTex, 
-                    side: THREE.BackSide, // Textura pintada por dentro
-                    color: 0xffffff // Cor pura, ignora as sombras
+                    side: THREE.BackSide, 
+                    color: 0xffffff 
                 });
                 skyMesh = new THREE.Mesh(skyGeo, skyMat);
-                // Colocada muuuito longe, atrás da parede de bg (-500)
+                
                 skyMesh.position.set(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, -2200); 
+                
+                // ✨ A MAGIA ACONTECE AQUI: Inclinamos o eixo do céu 
+                skyMesh.rotation.x = 0.4; // Inclinação "para a frente"
+                skyMesh.rotation.z = 0.15; // Ligeiro desvio lateral
+                
                 scene3D.add(skyMesh);
             }
         }
@@ -457,6 +461,7 @@
             return tex;
         }
 
+        // 7. CLASSES DO JOGO
         class AmbientParticle { 
             constructor(z=null){
                 this.z = z;
@@ -972,25 +977,21 @@
                 this.cpuKeys = { up: false, down: false, left: false, right: false, melee: false, shoot: false };
                 this.pConfig = pConfig; 
 
-                // ✨ O GRUPO QUE SEGURA O MODELO 3D
                 this.meshGroup = new THREE.Group();
                 scene3D.add(this.meshGroup);
 
-                // Caixa de Debug e Placeholder (oculta quando o 3D carrega)
                 const geo = new THREE.BoxGeometry(this.w, this.h, 40);
                 const mat = new THREE.MeshLambertMaterial({ color: this.c, transparent: true, opacity: 0.5 });
                 this.mesh = new THREE.Mesh(geo, mat);
                 this.mesh.position.y = this.h/2;
                 this.meshGroup.add(this.mesh);
 
-                // ✨ VARIÁVEIS DE ANIMAÇÃO 3D
                 this.mixer = null;
                 this.actions = {};
                 this.currentAction = null;
                 this.model3D = null;
             }
             
-            // ✨ CARREGA E INJETA O MODELO GLB
             loadModel(folderUrl) {
                 const loader = new THREE.GLTFLoader();
                 const modelPath = `${folderUrl}/${folderUrl.split('/').pop()}.glb`;
@@ -1008,11 +1009,9 @@
                     this.model3D.traverse((child) => {
                         if (child.isMesh) {
                             child.castShadow = true;
-                            // ✨ PREVINE O MODELO DE DESAPARECER/CONGELAR AO RODAR
                             child.frustumCulled = false; 
                             
                             if(child.material) {
-                                // ✨ PROTEÇÃO DE MATERIAL (Para não dar erro ao piscar)
                                 let mats = Array.isArray(child.material) ? child.material : [child.material];
                                 mats.forEach(m => {
                                     if (m.isMeshStandardMaterial || m.isMeshLambertMaterial) {
@@ -1046,7 +1045,6 @@
                 });
             }
 
-            // ✨ TRANSIÇÃO SUAVE ENTRE ANIMAÇÕES
             playAnimation(name) {
                 if (!this.mixer || !this.actions[name]) return;
                 
@@ -1054,7 +1052,6 @@
                 
                 if (this.currentAction === nextAction) return; 
 
-                // ✨ RESET TOTAL DA ANIMAÇÃO ANTES DO FADE (Previne travamentos de cálculo)
                 nextAction.reset(); 
                 nextAction.setEffectiveTimeScale(1);
                 nextAction.setEffectiveWeight(1);
@@ -1072,7 +1069,6 @@
                     this.state=n;
                     if(n===LOGICAL_STATE.MELEE) this.mHD=false;
                     
-                    // ✨ TRADUÇÃO DOS ESTADOS LÓGICOS PARA OS NOMES DAS TUAS ANIMAÇÕES
                     if (this.state === LOGICAL_STATE.IDLE) this.playAnimation('idle');
                     else if (this.state === LOGICAL_STATE.RUN) this.playAnimation('corrida');
                     else if (this.state === LOGICAL_STATE.JUMP) this.playAnimation('pulo');
@@ -1160,16 +1156,13 @@
                 document.getElementById(`${this.id}-health-fill`).style.width=this.health+'%';
                 document.getElementById(`${this.id}-charge`).style.width=this.charge+'%';
 
-                // ✨ MOVIMENTO FÍSICO DO GRUPO 3D DO LUTADOR
                 const nx = (this.x + this.w/2 - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
                 const curveZ = Math.pow(nx, 2) * 300;
 
                 this.meshGroup.position.set(this.x, WORLD_HEIGHT - (this.y + this.h), curveZ);
                 
-                // Roda o personagem para a esquerda (-Y) ou direita (+Y)
                 this.meshGroup.rotation.y = this.facing === 1 ? Math.PI/2 : -Math.PI/2;
 
-                // ✨ PROTEÇÃO DE MATERIAL: Piscar com segurança sem causar Crash
                 if (this.model3D) {
                     this.model3D.traverse((child) => {
                         if (child.isMesh && child.material) {
@@ -1185,7 +1178,6 @@
                     });
                 }
 
-                // ✨ ATUALIZA O RELÓGIO DAS ANIMAÇÕES
                 if (this.mixer) this.mixer.update(dt);
             }
             checkMeleeHit(){
@@ -1226,7 +1218,6 @@
             if (fruitSpawnPoints.length === 0) fruitSpawnPoints.push({ x: WORLD_WIDTH/2, y: 500 });
         }
 
-        // ✨ NOVA FUNÇÃO PARA CARREGAR O CÉREBRO DE ANIMAÇÕES
         async function loadMasterAnimations() {
             return new Promise((resolve, reject) => {
                 const loader = new THREE.GLTFLoader();
@@ -1236,7 +1227,6 @@
                     const clips = gltf.animations;
                     console.log(`[SUCESSO] Esqueleto Mestre Carregado. Encontradas ${clips.length} animações.`);
                     
-                    // Organiza as animações pelo seu nome dentro de um Dicionário para acesso fácil
                     clips.forEach(clip => {
                         globalAnimations[clip.name.toLowerCase()] = clip;
                     });
@@ -1244,7 +1234,7 @@
                     resolve();
                 }, undefined, (error) => {
                     console.error("[ERRO FATAL] Falha a carregar o Esqueleto Mestre:", error);
-                    resolve(); // Resolvemos à mesma para o jogo arrancar e usar os quadrados como fallback
+                    resolve(); 
                 });
             });
         }
@@ -1388,9 +1378,9 @@
                 if (stageFX) stageFX.update(dt);
                 globalParticles.forEach(p => p.update(dt));
                 
-                // ✨ ATUALIZA A ROTAÇÃO DO SKYDOME HDR LENTAMENTE
+                // ✨ ATUALIZA A ROTAÇÃO DO SKYDOME HDR LENTAMENTE (Eixo Y local)
                 if (skyMesh) {
-                    skyMesh.rotation.y += 0.015 * dt; 
+                    skyMesh.rotateY(0.010 * dt); 
                 }
                 
                 if (gameMode === '1p' && p2) { p2.updateAI(dt, p1); }
@@ -1538,7 +1528,7 @@
                 p1_cinematic: `${selectedP1.folder}/cinematic.png`, p1_win: `${selectedP1.folder}/win.png`, 
                 p2_cinematic: `${selectedP2.folder}/cinematic.png`, p2_win: `${selectedP2.folder}/win.png`, 
                 stage_bg: `${selectedStage.folder}/fundo.png`, stage_scene: `${selectedStage.folder}/cena.png`, stage_fg: `${selectedStage.folder}/frente.png`, 
-                stage_sky: `${selectedStage.folder}/ceuhdr.jpg`, // ✨ CARREGA O NOVO CEU (OPCIONAL)
+                stage_sky: `${selectedStage.folder}/ceuhdr.jpg`, 
                 minion1: `${selectedStage.folder}/minion1.png`, minion2: `${selectedStage.folder}/minion2.png`, minion3: `${selectedStage.folder}/minion3.png`
             };
             
