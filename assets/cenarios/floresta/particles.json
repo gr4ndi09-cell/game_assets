@@ -5,6 +5,10 @@
     "front": 0.3,
     "sky": 0.4
 },
+  "fog": {
+    "color": "#080815",
+    "density": 0.0015
+  },
   "emitters": [
     {
       "_comentario": "--- EFEITOS LOCAIS (VELA 1) ---",
