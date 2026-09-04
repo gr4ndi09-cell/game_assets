@@ -4,8 +4,10 @@
     "sky": false,
     "parallax": 0,
     "boss": {
-       "active": true,
-       "model": "boss_antigo.glb"
+      "active": true,
+      "scale2D": 800,
+      "position": { "y": 800, "zDepth": "scene" },
+      "behavior": { "type": "tracking", "speed": 100, "bobbing": true }
     }
   },
 {
