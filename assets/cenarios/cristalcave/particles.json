@@ -1,5 +1,13 @@
 
-
+{
+  "environment": {
+    "sky": false,
+    "parallax": 0,
+    "boss": {
+       "active": true,
+       "model": "boss_antigo.glb"
+    }
+  },
 {
   "lighting": {
     "bg": 0.8,
