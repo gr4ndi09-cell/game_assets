@@ -192,7 +192,9 @@
     </div>
 
     <script>
-        const apiKey = ""; 
+        // ATENÇÃO: COLE A SUA CHAVE DA API DA GOOGLE AQUI DENTRO DAS ASPAS!
+        // Sem a chave, o jogo mostra o aviso "Chave da API ausente".
+        const apiKey = "AQ.Ab8RN6I244OX172bLnXj-g7EJV24m5ZpVP7Sw9L_YOf6YdViCw"; 
 
         const REPO_ROOT = "https://raw.githubusercontent.com/gr4ndi09-cell/game_assets/main/assets";
         
@@ -219,6 +221,19 @@
 
         const COMMON_SOUNDS = { shot: `${REPO_ROOT}/sounds/common/shot.mp3`, hit: `${REPO_ROOT}/sounds/common/hit.mp3` };
 
+        // SISTEMA DE ÁUDIO RESTAURADO
+        const audioManager = {
+            sounds: {}, bgm: null,
+            load(key, url) { if(!url) return; const a = new Audio(); a.src = url; a.crossOrigin = "anonymous"; this.sounds[key] = a; },
+            play(key, loop = false, volume = 1.0) {
+                const snd = this.sounds[key]; if (snd) {
+                    if (!loop) { const c = snd.cloneNode(); c.volume = volume; c.play().catch(()=>{}); }
+                    else { snd.loop = true; snd.volume = volume; snd.play().catch(()=>{}); this.bgm = snd; }
+                }
+            },
+            stopBGM() { if (this.bgm) { this.bgm.pause(); this.bgm.currentTime = 0; } }
+        };
+
         let assets = { loaded: false };
         let colliders = []; 
         let keys = {};
@@ -236,7 +251,6 @@
         let fruitSpawnPoints = []; 
         let minions = [], availableMinionIds = [], minionSpawnTimer = 0;
         
-        let globalAnimations = {}; 
         let skyMesh = null; // Mega-Esfera do HDR
 
         let selectedP1 = CHARACTERS_DB[0];
@@ -288,18 +302,6 @@
             ctx.restore();
         }
 
-        const audioManager = {
-            sounds: {}, bgm: null,
-            load(key, url) { if(!url) return; const a = new Audio(); a.src = url; a.crossOrigin = "anonymous"; this.sounds[key] = a; },
-            play(key, loop = false, volume = 1.0) {
-                const snd = this.sounds[key]; if (snd) {
-                    if (!loop) { const c = snd.cloneNode(); c.volume = volume; c.play().catch(()=>{}); }
-                    else { snd.loop = true; snd.volume = volume; snd.play().catch(()=>{}); this.bgm = snd; }
-                }
-            },
-            stopBGM() { if (this.bgm) { this.bgm.pause(); this.bgm.currentTime = 0; } }
-        };
-
         function initThreeJS() {
             renderer3D = new THREE.WebGLRenderer({ canvas: canvas3D, antialias: true, alpha: false });
             renderer3D.setSize(CANVAS_WIDTH, CANVAS_HEIGHT, false); 
@@ -309,7 +311,7 @@
             const fogColor = 0x080815; 
             scene3D.background = new THREE.Color(fogColor);
 
-            // AUMENTADO PARA 4000 PARA CONSEGUIRMOS VER O CÉU LONGE
+            // Câmera 3D configurada para visualizar até a profundidade do céu (-4000)
             camera3D = new THREE.OrthographicCamera(0, MAX_VIEW_WIDTH, MAX_VIEW_HEIGHT, 0, -4000, 4000);
             camera3D.position.z = 100;
 
@@ -368,26 +370,23 @@
             window.meshScene = buildLayer('stage_scene', -200, lightCfg.scene);
             window.meshFg = buildLayer('stage_fg', 100, lightCfg.front); 
             
-            // CONSTRUÇÃO DO SKYDOME HDR GIGANTE
             if (isImageOk(assets['stage_sky'])) {
                 const skyTex = new THREE.Texture(assets['stage_sky']);
                 skyTex.needsUpdate = true;
                 skyTex.minFilter = THREE.LinearFilter;
                 
                 const skyGeo = new THREE.SphereGeometry(1600, 32, 32); 
+                // IMUNIDADE À NÉVOA (fog: false) GARANTE QUE O CÉU NUNCA É OFUSCADO
                 const skyMat = new THREE.MeshBasicMaterial({ 
                     map: skyTex, 
-                    side: THREE.BackSide, // Vemos de dentro para fora
-                    color: 0xffffff 
+                    side: THREE.BackSide, 
+                    color: 0xffffff,
+                    fog: false
                 });
                 skyMesh = new THREE.Mesh(skyGeo, skyMat);
-                
                 skyMesh.position.set(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, -2200); 
-                
-                // INCLINAÇÃO REALISTA DO CÉU (Gira sobre um eixo diagonal)
                 skyMesh.rotation.x = 0.4;
                 skyMesh.rotation.z = 0.15; 
-                
                 scene3D.add(skyMesh);
             }
         }
@@ -461,9 +460,10 @@
                 const rand = Math.random();
                 this.c = rand < 0.05 ? 0x00ff88 : (rand < 0.5 ? 0x00ffff : 0xaa00ff);
                 
+                // AdditiveBlending permite que pareçam luzes SEM o custo absurdo de calcular luzes reais (PointLight). fog: false protege-as.
                 const mat = new THREE.SpriteMaterial({ 
                     map: getParticleTexture('glow'), color: new THREE.Color(this.c), 
-                    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false 
+                    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false
                 });
                 
                 this.sprite = new THREE.Sprite(mat);
@@ -517,13 +517,11 @@
                 let blendMode = THREE.NormalBlending;
                 if (this.isFire || this.type === 'spark' || config.glow || this.type === 'fire') blendMode = THREE.AdditiveBlending;
 
+                // PROTEÇÃO CONTRA A NÉVOA: fog: false garante que faíscas e efeitos de luz não percam o brilho
                 this.spriteMat = new THREE.SpriteMaterial({
                     map: getParticleTexture(texType, this.shape),
                     color: new THREE.Color(getRGBColor(this.baseColor)),
-                    transparent: true,
-                    opacity: 0,
-                    blending: blendMode,
-                    depthWrite: false
+                    transparent: true, opacity: 0, blending: blendMode, depthWrite: false, fog: false
                 });
                 
                 this.sprite = new THREE.Sprite(this.spriteMat);
@@ -640,11 +638,20 @@
 
                 this.particlesByLayer = { bg: [], scene: [], main: [], front: [] }; this.lights = []; this.zones = [];
                 
-                if (!stageConfig) { this.addDefaultEmitters(); } 
-                else {
+                if (!stageConfig) { 
+                    this.addDefaultEmitters(); 
+                    scene3D.fog = null;
+                } else {
                     this.stageLighting = stageConfig.lighting || { bg: 0.8, scene: 0.1, front: 0.2 };
                     const emitters = stageConfig.emitters || []; this.lights = stageConfig.lights || []; this.zones = stageConfig.zones || [];
                     emitters.forEach(emit => { const layer = emit.layer || 'main'; if (!this.particlesByLayer[layer]) this.particlesByLayer[layer] = []; for(let i=0; i<emit.count; i++) { this.particlesByLayer[layer].push(new Particle(emit)); } });
+                    
+                    // CONFIGURAÇÃO DA NÉVOA VOLUMÉTRICA 3D CONFORME JSON DO CENÁRIO
+                    if (stageConfig.fog) { 
+                        scene3D.fog = new THREE.FogExp2(getRGBColor(stageConfig.fog.color), stageConfig.fog.density); 
+                    } else { 
+                        scene3D.fog = null; 
+                    }
                 }
 
                 this.lights.forEach(l => {
@@ -677,6 +684,7 @@
                     { x: 1376, y: 1000, radius: 500, color: "rgba(0, 255, 255, 0.3)", effect: "pulse", layer: "main" },
                     { x: 2300, y: 1300, radius: 400, color: "rgba(255, 100, 0, 0.4)", effect: "flicker", layer: "scene" }
                 ];
+                scene3D.fog = null;
             }
             update(dt) { 
                 for (const layer in this.particlesByLayer) { this.particlesByLayer[layer].forEach(p => p.update(dt)); } 
@@ -774,7 +782,7 @@
                 if(this.light) scene3D.remove(this.light);
             }
         }
-        
+
         class Projectile { 
             constructor(x,y,f,d,s,c,ic=false, owner='player', config={}){
                 this.x=x; this.y=y; this.vx=f; this.damage=d; this.size=s; this.c=c; this.active=true; this.ic=ic; this.owner=owner; this.trail=[]; this.p=[]; this.sp=900+(ic?600:0);
@@ -832,8 +840,9 @@
                     geometries.push(new THREE.IcosahedronGeometry(this.size * 0.8, 1));
                 }
 
-                const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-                const glowMat = new THREE.MeshBasicMaterial({ color: getRGBColor(this.c), transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending });
+                // Protegendo as magias contra ofuscação pelo nevoeiro (fog: false)
+                const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false });
+                const glowMat = new THREE.MeshBasicMaterial({ color: getRGBColor(this.c), transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending, fog: false });
 
                 geometries.forEach(geo => {
                     const core = new THREE.Mesh(geo, coreMat);
@@ -1019,18 +1028,21 @@
 
                     this.mixer = new THREE.AnimationMixer(this.model3D);
                     
-                    for (const [animName, clip] of Object.entries(globalAnimations)) {
-                        const action = this.mixer.clipAction(clip);
-                        
-                        if (['meele', 'cast_3', 'cast_7', 'combo', 'caido'].includes(animName)) {
-                            action.loop = THREE.LoopOnce;
-                            action.clampWhenFinished = true;
-                        }
-                        
-                        this.actions[animName] = action;
+                    if (gltf.animations && gltf.animations.length > 0) {
+                        gltf.animations.forEach((clip) => {
+                            const action = this.mixer.clipAction(clip);
+                            const animName = clip.name.toLowerCase();
+                            
+                            if (['meele', 'cast_3', 'cast_7', 'combo', 'caido'].includes(animName)) {
+                                action.loop = THREE.LoopOnce;
+                                action.clampWhenFinished = true;
+                            }
+                            this.actions[animName] = action;
+                        });
+                        this.playAnimation('idle');
+                    } else {
+                        console.warn(`[${this.id}] Nenhuma animação embutida encontrada no modelo!`);
                     }
-
-                    this.playAnimation('idle');
 
                 }, undefined, (error) => {
                     console.error("Erro ao carregar o modelo do lutador:", modelPath, error);
@@ -1207,27 +1219,6 @@
             fruitSpawnPoints.length = 0;
             colliders.forEach(p => { if (!p.type || p.type === 'rect') fruitSpawnPoints.push({ x: p.x + p.w / 2, y: p.y - 60 }); });
             if (fruitSpawnPoints.length === 0) fruitSpawnPoints.push({ x: WORLD_WIDTH/2, y: 500 });
-        }
-
-        async function loadMasterAnimations() {
-            return new Promise((resolve, reject) => {
-                const loader = new THREE.GLTFLoader();
-                const masterPath = `${REPO_ROOT}/chars/padrao/padrao.glb`;
-                
-                loader.load(masterPath, (gltf) => {
-                    const clips = gltf.animations;
-                    console.log(`[SUCESSO] Esqueleto Mestre Carregado. Encontradas ${clips.length} animações.`);
-                    
-                    clips.forEach(clip => {
-                        globalAnimations[clip.name.toLowerCase()] = clip;
-                    });
-                    
-                    resolve();
-                }, undefined, (error) => {
-                    console.error("[ERRO FATAL] Falha a carregar o Esqueleto Mestre:", error);
-                    resolve(); 
-                });
-            });
         }
 
         async function loadStageData(stageUrl) {
@@ -1445,10 +1436,8 @@
             if (gameState === 'CINEMATIC' || gameState === 'QUIZ') { drawCinematic(); return; }
             
             if (window.meshBg) {
-                // Eixo X centralizado (O teu parallax para manter a imagem alinhada)
                 window.meshBg.position.x = WORLD_WIDTH / 2; 
 
-                // Lógica de Parallax Vertical correta (calculando a média de altura)
                 let avgY = GROUND_Y;
                 if (p1 && p2) {
                     avgY = (p1.y + p2.y) / 2;
@@ -1507,18 +1496,13 @@
         async function initGameWithSelection() {
             initThreeJS(); 
 
-            document.getElementById('loading-text').innerText = "A treinar lutadores (Animações)...";
-            await loadMasterAnimations();
-
             document.getElementById('loading-text').innerText = "A carregar arena...";
             await loadStageData(selectedStage.folder);
 
-            let p1Cfg = {}, p2Cfg = {};
-            try { const r1 = await fetch(`${selectedP1.folder}/config.json`); if(r1.ok) p1Cfg = await r1.json(); } catch(e){}
-            try { const r2 = await fetch(`${selectedP2.folder}/config.json`); if(r2.ok) p2Cfg = await r2.json(); } catch(e){}
-
-            p1 = new Player(200, 900, '#ff3e3e', { up: 'w', down: 's', left: 'a', right: 'd', melee: 'f', shoot: 'g' }, 'p1', p1Cfg.projectile || {shape: 'star', trailLength: 5});
-            p2 = new Player(2400, 900, '#3e8bff', { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', melee: 'Enter', shoot: 'Shift' }, 'p2', p2Cfg.projectile || {shape: 'cone', trailLength: 8});
+            // Removido o fetch do config.json que causava o aviso 404 vermelho na consola.
+            // Os valores originais com formatos e tamanhos diferentes estao fixos agora.
+            p1 = new Player(200, 900, '#ff3e3e', { up: 'w', down: 's', left: 'a', right: 'd', melee: 'f', shoot: 'g' }, 'p1', {shape: 'star', trailLength: 5});
+            p2 = new Player(2400, 900, '#3e8bff', { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', melee: 'Enter', shoot: 'Shift' }, 'p2', {shape: 'cone', trailLength: 8});
             
             p1.loadModel(selectedP1.folder);
             p2.loadModel(selectedP2.folder);
@@ -1616,28 +1600,94 @@
         joystickZone.addEventListener('touchend', (e) => { e.preventDefault(); resetJoystick(); }, {passive: false});
         joystickZone.addEventListener('touchcancel', (e) => { e.preventDefault(); resetJoystick(); }, {passive: false});
 
+        // --- BANCO DE PERGUNTAS OFFLINE (Garante que o jogo funciona SEMPRE para o público) ---
+        const fallbackQuestions = {
+            "Matemática": [
+                { q: "Quanto é 7 x 8?", options: ["54", "56", "62", "48"], correct: 1 },
+                { q: "Qual é a raiz quadrada de 144?", options: ["10", "12", "14", "16"], correct: 1 },
+                { q: "Quanto é 15% de 200?", options: ["15", "30", "45", "20"], correct: 1 }
+            ],
+            "Geral": [
+                { q: "Qual é o maior planeta do Sistema Solar?", options: ["Marte", "Terra", "Júpiter", "Saturno"], correct: 2 },
+                { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Picasso", "Da Vinci", "Michelangelo"], correct: 2 },
+                { q: "Qual é o elemento químico 'O'?", options: ["Ouro", "Ósmio", "Oxigénio", "Ozónio"], correct: 2 }
+            ]
+        };
+
         async function geminiFetch(prompt, system) {
             let delay = 1000;
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 3; i++) {
                 try {
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: system }] }, generationConfig: { responseMimeType: "application/json" } })
                     });
-                    if (!response.ok) throw new Error();
-                    const data = await response.json(); return JSON.parse(data.candidates[0].content.parts[0].text);
-                } catch (e) { await new Promise(r => setTimeout(r, delay)); delay *= 2; }
+                    if (!response.ok) {
+                        const erroApi = await response.text();
+                        console.error("ERRO DA GOOGLE API:", erroApi);
+                        throw new Error("Erro HTTP: " + response.status);
+                    }
+                    const data = await response.json(); 
+                    let textoFinal = data.candidates[0].content.parts[0].text;
+                    
+                    // Limpeza mágica: Remove crases do Markdown que o Gemini às vezes envia
+                    textoFinal = textoFinal.replace(/```json/g, '').replace(/```/g, '').trim();
+                    return JSON.parse(textoFinal);
+                    
+                } catch (e) { 
+                    console.warn(`Tentativa ${i+1} falhou:`, e);
+                    await new Promise(r => setTimeout(r, delay)); delay *= 2; 
+                }
             }
+            throw new Error("Falha total na comunicação com a API");
         }
         
         async function generateQuestions() {
-            const theme = document.getElementById('theme-input').value || 'História'; document.getElementById('loader').style.display = 'block';
-            try { const result = await geminiFetch(`Gere 5 perguntas sobre "${theme}". Formato: { "questions": [{ "q": "p", "options": ["o1","o2","o3","o4"], "correct": 0 }] }`, "És um professor sábio."); if (result.questions) { questions = result.questions; showMessage("✨ Desafios carregados!"); } } catch (e) { showMessage("Erro na IA."); } finally { document.getElementById('loader').style.display = 'none'; }
+            const theme = document.getElementById('theme-input').value || 'História'; 
+            document.getElementById('loader').style.display = 'block';
+            
+            try { 
+                const result = await geminiFetch(`Gere 5 perguntas sobre "${theme}". Formato JSON obrigatório: { "questions": [{ "q": "p", "options": ["o1","o2","o3","o4"], "correct": 0 }] }`, "És um professor sábio. Responde estritamente em JSON."); 
+                if (result && result.questions) { 
+                    questions = result.questions; 
+                    showMessage("✨ Desafios gerados pela IA carregados!"); 
+                } else {
+                    throw new Error("Resposta da IA inválida");
+                }
+            } catch (e) { 
+                console.error("⚠ MODO OFFLINE ATIVADO. Motivo:", e);
+                const category = theme.toLowerCase().includes('mat') ? "Matemática" : "Geral";
+                questions = fallbackQuestions[category] || fallbackQuestions["Geral"];
+                showMessage("⚡ Modo Offline: Desafios clássicos carregados!"); 
+            } finally { 
+                document.getElementById('loader').style.display = 'none'; 
+            }
         }
         
         async function explainTopic(question, answer) {
-            const tutorEl = document.getElementById('tutor-explanation'); tutorEl.style.display = 'block'; tutorEl.innerText = "A pensar...";
-            try { const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: `Pergunta: ${question}. Resposta: ${answer}. Explica em 2 frases.` }] }], systemInstruction: { parts: [{ text: "És um tutor amigável." }] } }) }); const data = await r.json(); tutorEl.innerText = data.candidates[0].content.parts[0].text; } catch (e) { tutorEl.innerText = "Continua a lutar!"; }
+            const tutorEl = document.getElementById('tutor-explanation'); 
+            tutorEl.style.display = 'block'; 
+            tutorEl.innerText = "A pensar...";
+
+            try { 
+                const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ 
+                        contents: [{ parts: [{ text: `A pergunta era: "${question}". A resposta correta é: "${answer}". Explica rapidamente o porquê desta ser a resposta correta em até 2 frases curtas.` }] }], 
+                        systemInstruction: { parts: [{ text: "És um professor sábio num jogo de luta." }] } 
+                    }) 
+                }); 
+                if (!r.ok) {
+                    console.error("ERRO DA GOOGLE API NA EXPLICAÇÃO:", await r.text());
+                    throw new Error("Erro na API HTTP " + r.status);
+                }
+                const data = await r.json(); 
+                tutorEl.innerText = data.candidates[0].content.parts[0].text; 
+            } catch (e) { 
+                console.error("⚠ MODO OFFLINE NA EXPLICAÇÃO. Motivo:", e);
+                tutorEl.innerText = `O tutor diz: Presta mais atenção! A resposta correta era ${answer}.`; 
+            }
         }
 
         canvas2D.width = CANVAS_WIDTH; canvas2D.height = CANVAS_HEIGHT;
