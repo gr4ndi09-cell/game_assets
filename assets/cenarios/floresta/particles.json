@@ -8,7 +8,7 @@
       "position": { "y": 800, "zDepth": "bg" },
       "behavior": { "type": "tracking", "speed": 70, "bobbing": true }
     }
-  }
+  },
 {
   "lighting": {
     "bg": 0.8,
