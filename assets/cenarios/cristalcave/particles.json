@@ -4,8 +4,8 @@
     "parallax": 50,
     "boss": {
       "active": true,
-      "scale2D": 1600,
-      "position": { "y": 950, "zDepth": "boss" },
+      "scale2D": 1800,
+      "position": { "y": 1300, "zDepth": "boss" },
       "behavior": { "type": "tracking", "speed": 50, "bobbing": true }
     }
   },
