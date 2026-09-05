@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Didactic Fighter - 2.5D Engine</title>
+    <title>Didactic Fighter - 2.5D Engine Pro</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -117,7 +117,6 @@
         <p id="loading-text" style="margin-top: 20px; color: cyan;">A conectar ao Servidor...</p>
     </div>
 
-    <!-- TELA DE SELEÇÃO -->
     <div id="selection-screen">
         <h1 style="color:white; margin-bottom: 20px; text-shadow: 0 0 10px cyan;">SELEÇÃO DE BATALHA</h1>
         
@@ -192,9 +191,7 @@
     </div>
 
     <script>
-        // ATENÇÃO: COLE A SUA CHAVE DA API DA GOOGLE AQUI DENTRO DAS ASPAS!
-        // Sem a chave, o jogo mostra o aviso "Chave da API ausente".
-        const apiKey = "AQ.Ab8RN6I244OX172bLnXj-g7EJV24m5ZpVP7Sw9L_YOf6YdViCw"; 
+        const apiKey = "COLOQUE_AQUI_A_SUA_API_KEY"; // Cole aqui a sua chave de API do Google Gemini
 
         const REPO_ROOT = "https://raw.githubusercontent.com/gr4ndi09-cell/game_assets/main/assets";
         
@@ -205,13 +202,19 @@
         const MAX_VIEW_HEIGHT = MAX_VIEW_WIDTH * ASPECT_RATIO;
         const MIN_VIEW_HEIGHT = MIN_VIEW_WIDTH * ASPECT_RATIO;
         const GRAVITY = 2500, JUMP_FORCE = 1800, MOVE_SPEED = 600, GROUND_Y = 1530; 
-        const FRAME_WIDTH = 240, FRAME_HEIGHT = 237;
 
         const LOGICAL_STATE = { RUN: 'RUN', IDLE: 'IDLE', MELEE: 'MELEE', JUMP: 'JUMP', SHOOT: 'SHOOT' };
         
+        // ✨ BANCO DE DADOS (8 PERSONAGENS)
         const CHARACTERS_DB = [
             { id: 'tiger', name: 'Tiger', portrait: `${REPO_ROOT}/chars/tiger/portrait.png`, folder: `${REPO_ROOT}/chars/tiger`, audio: { jump: `${REPO_ROOT}/chars/tiger/audio/jump.mp3`, charge_shot: `${REPO_ROOT}/chars/tiger/audio/charge_shot.mp3` } },
-            { id: 'cruzado', name: 'Cruzado', portrait: `${REPO_ROOT}/chars/cruzado/portrait.png`, folder: `${REPO_ROOT}/chars/cruzado`, audio: { jump: `${REPO_ROOT}/chars/cruzado/audio/jump.mp3`, charge_shot: `${REPO_ROOT}/chars/cruzado/audio/charge_shot.mp3` } }
+            { id: 'cruzado', name: 'Cruzado', portrait: `${REPO_ROOT}/chars/cruzado/portrait.png`, folder: `${REPO_ROOT}/chars/cruzado`, audio: { jump: `${REPO_ROOT}/chars/cruzado/audio/jump.mp3`, charge_shot: `${REPO_ROOT}/chars/cruzado/audio/charge_shot.mp3` } },
+            { id: 'undead', name: 'Undead', portrait: `${REPO_ROOT}/chars/undead/portrait.png`, folder: `${REPO_ROOT}/chars/undead`, audio: { jump: `${REPO_ROOT}/sounds/common/hit.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } },
+            { id: 'goblin', name: 'Goblin', portrait: `${REPO_ROOT}/chars/goblin/portrait.png`, folder: `${REPO_ROOT}/chars/goblin`, audio: { jump: `${REPO_ROOT}/sounds/common/hit.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } },
+            { id: 'golem', name: 'Golem', portrait: `${REPO_ROOT}/chars/golem/portrait.png`, folder: `${REPO_ROOT}/chars/golem`, audio: { jump: `${REPO_ROOT}/sounds/common/hit.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } },
+            { id: 'elven', name: 'Elven', portrait: `${REPO_ROOT}/chars/elven/portrait.png`, folder: `${REPO_ROOT}/chars/elven`, audio: { jump: `${REPO_ROOT}/sounds/common/hit.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } },
+            { id: 'spartan', name: 'Spartan', portrait: `${REPO_ROOT}/chars/spartan/portrait.png`, folder: `${REPO_ROOT}/chars/spartan`, audio: { jump: `${REPO_ROOT}/sounds/common/hit.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } },
+            { id: 'forester', name: 'Forester', portrait: `${REPO_ROOT}/chars/forester/portrait.png`, folder: `${REPO_ROOT}/chars/forester`, audio: { jump: `${REPO_ROOT}/sounds/common/hit.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } }
         ];
 
         const STAGES_DB = [
@@ -220,19 +223,6 @@
         ];
 
         const COMMON_SOUNDS = { shot: `${REPO_ROOT}/sounds/common/shot.mp3`, hit: `${REPO_ROOT}/sounds/common/hit.mp3` };
-
-        // SISTEMA DE ÁUDIO RESTAURADO
-        const audioManager = {
-            sounds: {}, bgm: null,
-            load(key, url) { if(!url) return; const a = new Audio(); a.src = url; a.crossOrigin = "anonymous"; this.sounds[key] = a; },
-            play(key, loop = false, volume = 1.0) {
-                const snd = this.sounds[key]; if (snd) {
-                    if (!loop) { const c = snd.cloneNode(); c.volume = volume; c.play().catch(()=>{}); }
-                    else { snd.loop = true; snd.volume = volume; snd.play().catch(()=>{}); this.bgm = snd; }
-                }
-            },
-            stopBGM() { if (this.bgm) { this.bgm.pause(); this.bgm.currentTime = 0; } }
-        };
 
         let assets = { loaded: false };
         let colliders = []; 
@@ -251,7 +241,10 @@
         let fruitSpawnPoints = []; 
         let minions = [], availableMinionIds = [], minionSpawnTimer = 0;
         
-        let skyMesh = null; // Mega-Esfera do HDR
+        let globalAnimations = {}; 
+        let skyMesh = null; 
+        let stageEnv = { sky: true, parallax: 400, boss: null };
+        let currentBoss = null;
 
         let selectedP1 = CHARACTERS_DB[0];
         let selectedP2 = CHARACTERS_DB[1];
@@ -302,16 +295,25 @@
             ctx.restore();
         }
 
+        const audioManager = {
+            sounds: {}, bgm: null,
+            load(key, url) { if(!url) return; const a = new Audio(); a.src = url; a.crossOrigin = "anonymous"; this.sounds[key] = a; },
+            play(key, loop = false, volume = 1.0) {
+                const snd = this.sounds[key]; if (snd) {
+                    if (!loop) { const c = snd.cloneNode(); c.volume = volume; c.play().catch(()=>{}); }
+                    else { snd.loop = true; snd.volume = volume; snd.play().catch(()=>{}); this.bgm = snd; }
+                }
+            },
+            stopBGM() { if (this.bgm) { this.bgm.pause(); this.bgm.currentTime = 0; } }
+        };
+
         function initThreeJS() {
             renderer3D = new THREE.WebGLRenderer({ canvas: canvas3D, antialias: true, alpha: false });
             renderer3D.setSize(CANVAS_WIDTH, CANVAS_HEIGHT, false); 
             
             scene3D = new THREE.Scene();
-            
-            const fogColor = 0x080815; 
-            scene3D.background = new THREE.Color(fogColor);
+            scene3D.background = new THREE.Color(0x080815);
 
-            // Câmera 3D configurada para visualizar até a profundidade do céu (-4000)
             camera3D = new THREE.OrthographicCamera(0, MAX_VIEW_WIDTH, MAX_VIEW_HEIGHT, 0, -4000, 4000);
             camera3D.position.z = 100;
 
@@ -332,13 +334,10 @@
             const buildLayer = (assetKey, zPos, emissiveIntensity = 0.0) => {
                 if (isImageOk(assets[assetKey])) {
                     const tex = new THREE.Texture(assets[assetKey]);
-                    tex.generateMipmaps = false; 
-                    tex.minFilter = THREE.LinearFilter; 
-                    tex.flipY = true;
-                    tex.needsUpdate = true;
+                    tex.generateMipmaps = false; tex.minFilter = THREE.LinearFilter; 
+                    tex.flipY = true; tex.needsUpdate = true;
                     
                     const geo = new THREE.PlaneGeometry(WORLD_WIDTH, WORLD_HEIGHT, 32, 8);
-                    
                     const pos = geo.attributes.position;
                     for (let i = 0; i < pos.count; i++) {
                         const x = pos.getX(i);
@@ -350,9 +349,7 @@
 
                     const mat = new THREE.MeshStandardMaterial({ 
                         map: tex, transparent: true, alphaTest: 0.1, side: THREE.FrontSide, roughness: 0.8, metalness: 0.1,
-                        emissive: new THREE.Color(0xffffff),
-                        emissiveMap: tex,
-                        emissiveIntensity: emissiveIntensity
+                        emissive: new THREE.Color(0xffffff), emissiveMap: tex, emissiveIntensity: emissiveIntensity
                     });
                     
                     const mesh = new THREE.Mesh(geo, mat);
@@ -370,23 +367,14 @@
             window.meshScene = buildLayer('stage_scene', -200, lightCfg.scene);
             window.meshFg = buildLayer('stage_fg', 100, lightCfg.front); 
             
-            if (isImageOk(assets['stage_sky'])) {
+            if (stageEnv.sky && isImageOk(assets['stage_sky'])) {
                 const skyTex = new THREE.Texture(assets['stage_sky']);
-                skyTex.needsUpdate = true;
-                skyTex.minFilter = THREE.LinearFilter;
-                
+                skyTex.needsUpdate = true; skyTex.minFilter = THREE.LinearFilter;
                 const skyGeo = new THREE.SphereGeometry(1600, 32, 32); 
-                // IMUNIDADE À NÉVOA (fog: false) GARANTE QUE O CÉU NUNCA É OFUSCADO
-                const skyMat = new THREE.MeshBasicMaterial({ 
-                    map: skyTex, 
-                    side: THREE.BackSide, 
-                    color: 0xffffff,
-                    fog: false
-                });
+                const skyMat = new THREE.MeshBasicMaterial({ map: skyTex, side: THREE.BackSide, color: 0xffffff });
                 skyMesh = new THREE.Mesh(skyGeo, skyMat);
                 skyMesh.position.set(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, -2200); 
-                skyMesh.rotation.x = 0.4;
-                skyMesh.rotation.z = 0.15; 
+                skyMesh.rotation.x = 0.4; skyMesh.rotation.z = 0.15; 
                 scene3D.add(skyMesh);
             }
         }
@@ -411,11 +399,8 @@
             
             if (type === 'glow' || type === 'fire' || type === 'spark') {
                 const grd = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-                grd.addColorStop(0, 'rgba(255,255,255,1)');
-                grd.addColorStop(0.3, 'rgba(255,255,255,0.6)');
-                grd.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = grd;
-                ctx.fillRect(0,0,64,64);
+                grd.addColorStop(0, 'rgba(255,255,255,1)'); grd.addColorStop(0.3, 'rgba(255,255,255,0.6)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = grd; ctx.fillRect(0,0,64,64);
             } else if (type === 'smoke') {
                 ctx.fillStyle = 'rgba(255,255,255,0.1)';
                 ctx.beginPath(); ctx.arc(32, 32, 24, 0, Math.PI*2); ctx.fill();
@@ -424,17 +409,12 @@
                 ctx.beginPath(); ctx.arc(24, 44, 16, 0, Math.PI*2); ctx.fill();
                 ctx.beginPath(); ctx.arc(40, 44, 16, 0, Math.PI*2); ctx.fill();
                 const grd = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-                grd.addColorStop(0, 'rgba(255,255,255,0.6)');
-                grd.addColorStop(1, 'rgba(255,255,255,0)');
-                ctx.fillStyle = grd;
-                ctx.fillRect(0,0,64,64);
+                grd.addColorStop(0, 'rgba(255,255,255,0.6)'); grd.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = grd; ctx.fillRect(0,0,64,64);
             } else if (type === 'rain') {
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(30, 0, 4, 64);
+                ctx.fillStyle = '#ffffff'; ctx.fillRect(30, 0, 4, 64);
             } else {
-                ctx.translate(32, 32);
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowBlur = 10; ctx.shadowColor = '#ffffff';
+                ctx.translate(32, 32); ctx.fillStyle = '#ffffff'; ctx.shadowBlur = 10; ctx.shadowColor = '#ffffff';
                 if (shape === 'square') { ctx.fillRect(-16, -16, 32, 32); }
                 else if (shape === 'leaf') { ctx.beginPath(); ctx.ellipse(0, 0, 20, 10, Math.PI/4, 0, 2*Math.PI); ctx.fill(); }
                 else if (shape === 'star') { 
@@ -455,22 +435,13 @@
 
         class AmbientParticle { 
             constructor(z=null){
-                this.z = z;
-                this.orbitObj = new THREE.Group();
-                const rand = Math.random();
-                this.c = rand < 0.05 ? 0x00ff88 : (rand < 0.5 ? 0x00ffff : 0xaa00ff);
-                
-                // AdditiveBlending permite que pareçam luzes SEM o custo absurdo de calcular luzes reais (PointLight). fog: false protege-as.
-                const mat = new THREE.SpriteMaterial({ 
-                    map: getParticleTexture('glow'), color: new THREE.Color(this.c), 
-                    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false
-                });
-                
+                this.z = z; this.orbitObj = new THREE.Group();
+                const rand = Math.random(); this.c = rand < 0.05 ? 0x00ff88 : (rand < 0.5 ? 0x00ffff : 0xaa00ff);
+                const mat = new THREE.SpriteMaterial({ map: getParticleTexture('glow'), color: new THREE.Color(this.c), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
                 this.sprite = new THREE.Sprite(mat);
                 this.sprite.scale.set(8, 8, 1);
                 this.sprite.position.x = 100 + Math.random() * 1000;
                 this.orbitObj.add(this.sprite);
-                
                 const zPos = (Math.random() - 0.5) * 50;
                 this.orbitObj.position.set(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, zPos);
                 this.orbitObj.rotation.set(Math.random() * Math.PI * 2, Math.random() * Math.PI * 2, Math.random() * Math.PI * 2);
@@ -488,26 +459,14 @@
 
         class Particle {
             constructor(config) {
-                this.type = config.type; 
-                this.baseColor = config.color; 
-                this.zone = config.zone || null; 
-                this.gravity = config.gravity || 0; 
-                this.bounce = config.bounce || 0; 
-                this.friction = 0.98; 
-                this.spawnDelay = config.spawnRate ? Math.random() * 2 : 0; 
-                this.spawnRate = config.spawnRate || 0;
-                this.fadeRate = config.fadeRate || 0; 
-                this.baseSize = config.baseSize || 2.0; 
-                this.shape = config.shape || "circle"; 
-                this.layer = config.layer || 'main';
-                this.alpha = 0;
+                this.type = config.type; this.baseColor = config.color; this.zone = config.zone || null; 
+                this.gravity = config.gravity || 0; this.bounce = config.bounce || 0; this.friction = 0.98; 
+                this.spawnDelay = config.spawnRate ? Math.random() * 2 : 0; this.spawnRate = config.spawnRate || 0;
+                this.fadeRate = config.fadeRate || 0; this.baseSize = config.baseSize || 2.0; 
+                this.shape = config.shape || "circle"; this.layer = config.layer || 'main'; this.alpha = 0;
                 
                 const isWarm = this.baseColor.includes('255') || this.baseColor.includes('#ff') || this.baseColor.includes('orange');
-                if (this.type === 'upward') {
-                    this.isFire = isWarm; 
-                } else {
-                    this.isFire = (this.type === 'fire');
-                }
+                this.isFire = (this.type === 'upward') ? isWarm : (this.type === 'fire');
 
                 let texType = 'glow';
                 if (this.type === 'smoke' || (this.type === 'upward' && !this.isFire)) texType = 'smoke';
@@ -517,26 +476,12 @@
                 let blendMode = THREE.NormalBlending;
                 if (this.isFire || this.type === 'spark' || config.glow || this.type === 'fire') blendMode = THREE.AdditiveBlending;
 
-                // PROTEÇÃO CONTRA A NÉVOA: fog: false garante que faíscas e efeitos de luz não percam o brilho
-                this.spriteMat = new THREE.SpriteMaterial({
-                    map: getParticleTexture(texType, this.shape),
-                    color: new THREE.Color(getRGBColor(this.baseColor)),
-                    transparent: true, opacity: 0, blending: blendMode, depthWrite: false, fog: false
-                });
-                
-                this.sprite = new THREE.Sprite(this.spriteMat);
-                scene3D.add(this.sprite);
+                this.spriteMat = new THREE.SpriteMaterial({ map: getParticleTexture(texType, this.shape), color: new THREE.Color(getRGBColor(this.baseColor)), transparent: true, opacity: 0, blending: blendMode, depthWrite: false });
+                this.sprite = new THREE.Sprite(this.spriteMat); scene3D.add(this.sprite);
 
                 this.glow = config.glow || false;
-                if (!this.glow && (this.type === 'spark' || this.isFire)) {
-                    if (Math.random() < 0.15) this.glow = true;
-                }
-                
-                if (this.glow) {
-                    this.light = new THREE.PointLight(getRGBColor(this.baseColor), 1.0, 350);
-                    scene3D.add(this.light);
-                }
-
+                if (!this.glow && (this.type === 'spark' || this.isFire)) if (Math.random() < 0.15) this.glow = true;
+                if (this.glow) { this.light = new THREE.PointLight(getRGBColor(this.baseColor), 1.0, 350); scene3D.add(this.light); }
                 this.reset();
             }
             reset() {
@@ -584,6 +529,7 @@
                 if (this.sprite) {
                     let zDepthSprite = 0; 
                     if (this.layer === 'bg') zDepthSprite = -480;
+                    else if (this.layer === 'boss') zDepthSprite = -300;
                     else if (this.layer === 'scene') zDepthSprite = -180;
                     else if (this.layer === 'front') zDepthSprite = 120;
                     
@@ -591,67 +537,52 @@
                     const curveZ = Math.pow(nx, 2) * 300;
                     
                     this.sprite.position.set(this.x, WORLD_HEIGHT - this.y, zDepthSprite + curveZ);
-
-                    let finalScale = this.size * 5;
-                    let finalOpacity = this.alpha;
-
-                    if (this.isFire || this.type === 'fire') {
-                        finalScale = this.size * 10 * this.alpha; 
-                        finalOpacity = this.alpha;
-                    } else if (this.type === 'smoke' || (this.type === 'upward' && !this.isFire)) {
-                        finalScale = this.size * 15 * (2.0 - this.alpha); 
-                        finalOpacity = this.alpha * 0.4;
-                    } else if (this.type === 'rain') {
-                        finalScale = this.size * 2;
-                        finalOpacity = 0.5;
-                    }
-
-                    this.sprite.scale.set(finalScale, finalScale, 1);
-                    this.spriteMat.opacity = Math.max(0, finalOpacity);
+                    let finalScale = this.size * 5; let finalOpacity = this.alpha;
+                    if (this.isFire || this.type === 'fire') { finalScale = this.size * 10 * this.alpha; finalOpacity = this.alpha; } 
+                    else if (this.type === 'smoke' || (this.type === 'upward' && !this.isFire)) { finalScale = this.size * 15 * (2.0 - this.alpha); finalOpacity = this.alpha * 0.4; } 
+                    else if (this.type === 'rain') { finalScale = this.size * 2; finalOpacity = 0.5; }
+                    this.sprite.scale.set(finalScale, finalScale, 1); this.spriteMat.opacity = Math.max(0, finalOpacity);
                 }
 
                 if (this.light) {
                     let zDepthLight = 25; 
                     if (this.layer === 'bg') zDepthLight = -450; 
+                    else if (this.layer === 'boss') zDepthLight = -280; 
                     else if (this.layer === 'scene') zDepthLight = -150; 
                     else if (this.layer === 'front') zDepthLight = 125; 
                     
                     const nx = (this.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
                     const curveZ = Math.pow(nx, 2) * 300;
-                    
                     this.light.position.set(this.x, WORLD_HEIGHT - this.y, zDepthLight + curveZ);
                     this.light.intensity = Math.max(0, this.alpha * 1.5);
                 }
             }
             draw(ctx) { }
-            destroy() {
-                if (this.sprite) scene3D.remove(this.sprite);
-                if (this.light) scene3D.remove(this.light);
-            }
+            destroy() { if (this.sprite) scene3D.remove(this.sprite); if (this.light) scene3D.remove(this.light); }
         }
 
         class StageFX {
-            constructor() { this.particlesByLayer = { bg: [], scene: [], main: [], front: [] }; this.lights = []; this.zones = []; this.stageLighting = null; }
+            constructor() { this.particlesByLayer = { bg: [], boss: [], scene: [], main: [], front: [] }; this.lights = []; this.zones = []; this.stageLighting = null; }
             init(stageConfig) {
                 if (this.lights) this.lights.forEach(l => { if(l.light3D) scene3D.remove(l.light3D); });
                 for (const layer in this.particlesByLayer) { this.particlesByLayer[layer].forEach(p => p.destroy && p.destroy()); }
 
-                this.particlesByLayer = { bg: [], scene: [], main: [], front: [] }; this.lights = []; this.zones = [];
+                this.particlesByLayer = { bg: [], boss: [], scene: [], main: [], front: [] }; this.lights = []; this.zones = [];
                 
                 if (!stageConfig) { 
                     this.addDefaultEmitters(); 
-                    scene3D.fog = null;
-                } else {
+                    stageEnv = { sky: true, parallax: 400, boss: null };
+                } 
+                else {
                     this.stageLighting = stageConfig.lighting || { bg: 0.8, scene: 0.1, front: 0.2 };
+                    if (stageConfig.environment) {
+                        stageEnv.sky = stageConfig.environment.sky !== false; 
+                        stageEnv.parallax = stageConfig.environment.parallax !== undefined ? stageConfig.environment.parallax : 400;
+                        stageEnv.boss = stageConfig.environment.boss || null;
+                    } else { stageEnv = { sky: true, parallax: 400, boss: null }; }
+
                     const emitters = stageConfig.emitters || []; this.lights = stageConfig.lights || []; this.zones = stageConfig.zones || [];
                     emitters.forEach(emit => { const layer = emit.layer || 'main'; if (!this.particlesByLayer[layer]) this.particlesByLayer[layer] = []; for(let i=0; i<emit.count; i++) { this.particlesByLayer[layer].push(new Particle(emit)); } });
-                    
-                    // CONFIGURAÇÃO DA NÉVOA VOLUMÉTRICA 3D CONFORME JSON DO CENÁRIO
-                    if (stageConfig.fog) { 
-                        scene3D.fog = new THREE.FogExp2(getRGBColor(stageConfig.fog.color), stageConfig.fog.density); 
-                    } else { 
-                        scene3D.fog = null; 
-                    }
                 }
 
                 this.lights.forEach(l => {
@@ -660,35 +591,23 @@
                     let intensity = alphaMatch ? parseFloat(alphaMatch[1]) * 15 : 4.0; 
                     
                     l.light3D = new THREE.PointLight(threeColor, intensity, l.radius * 2.5);
-                    
-                    const nx = (l.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
-                    const curveZ = Math.pow(nx, 2) * 300;
+                    const nx = (l.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2); const curveZ = Math.pow(nx, 2) * 300;
 
                     let zDepth = 25; 
-                    if(l.layer === 'bg') zDepth = -450; 
-                    else if(l.layer === 'scene') zDepth = -150;
-                    else if(l.layer === 'front') zDepth = 125; 
+                    if(l.layer === 'bg') zDepth = -450; else if (l.layer === 'boss') zDepth = -280; else if(l.layer === 'scene') zDepth = -150; else if(l.layer === 'front') zDepth = 125; 
                     
                     l.light3D.position.set(l.x, WORLD_HEIGHT - l.y, zDepth + curveZ);
-                    scene3D.add(l.light3D);
-                    l.baseIntensity = intensity;
+                    scene3D.add(l.light3D); l.baseIntensity = intensity;
                 });
             }
             addDefaultEmitters() {
                 this.stageLighting = { bg: 0.8, scene: 0.1, front: 0.2 };
                 const layer = 'main'; if (!this.particlesByLayer[layer]) this.particlesByLayer[layer] = [];
                 for(let i=0; i<30; i++) { this.particlesByLayer[layer].push(new Particle({ type: 'ambient', color: '#ffaa00' })); }
-                
-                this.lights = [
-                    { x: 500, y: 1300, radius: 400, color: "rgba(255, 100, 0, 0.4)", effect: "flicker", layer: "scene" },
-                    { x: 1376, y: 1000, radius: 500, color: "rgba(0, 255, 255, 0.3)", effect: "pulse", layer: "main" },
-                    { x: 2300, y: 1300, radius: 400, color: "rgba(255, 100, 0, 0.4)", effect: "flicker", layer: "scene" }
-                ];
-                scene3D.fog = null;
+                this.lights = [ { x: 500, y: 1300, radius: 400, color: "rgba(255, 100, 0, 0.4)", effect: "flicker", layer: "scene" } ];
             }
             update(dt) { 
                 for (const layer in this.particlesByLayer) { this.particlesByLayer[layer].forEach(p => p.update(dt)); } 
-                
                 const time = Date.now();
                 this.lights.forEach(l => {
                     let f = 1; 
@@ -698,32 +617,20 @@
                     else { l.drawX = l.x; l.drawY = l.y; }
 
                     if(l.light3D) {
-                        l.light3D.intensity = l.baseIntensity * f;
-                        l.light3D.position.x = l.drawX || l.x;
-                        l.light3D.position.y = WORLD_HEIGHT - (l.drawY || l.y);
-                        
-                        const nx = (l.light3D.position.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
-                        const curveZ = Math.pow(nx, 2) * 300;
-                        
+                        l.light3D.intensity = l.baseIntensity * f; l.light3D.position.x = l.drawX || l.x; l.light3D.position.y = WORLD_HEIGHT - (l.drawY || l.y);
+                        const nx = (l.light3D.position.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2); const curveZ = Math.pow(nx, 2) * 300;
                         let zDepth = 25; 
-                        if(l.layer === 'bg') zDepth = -450; 
-                        else if(l.layer === 'scene') zDepth = -150;
-                        else if(l.layer === 'front') zDepth = 125; 
-                        
+                        if(l.layer === 'bg') zDepth = -450; else if(l.layer === 'boss') zDepth = -280; else if(l.layer === 'scene') zDepth = -150; else if(l.layer === 'front') zDepth = 125; 
                         l.light3D.position.z = zDepth + curveZ;
                     }
                 });
             }
             draw(ctx, layerName) {
                 if (this.particlesByLayer[layerName]) { this.particlesByLayer[layerName].forEach(p => p.draw(ctx)); }
-                
                 const time = Date.now() / 1000;
                 this.zones.forEach(z => {
-                     const targetLayer = z.layer || 'front';
-                     if (targetLayer !== layerName) return;
-
+                     const targetLayer = z.layer || 'front'; if (targetLayer !== layerName) return;
                      if (z.background) { ctx.fillStyle = z.background; ctx.fillRect(z.x, z.y, z.w, z.h); }
-
                      if (z.style === 'radial') {
                          const g = ctx.createRadialGradient(z.x + z.w/2, z.y + z.h/2, 0, z.x + z.w/2, z.y + z.h/2, z.w/1.5); g.addColorStop(0, `rgba(0,0,0,0)`); g.addColorStop(1, z.color || `rgba(0,0,0,0.8)`);
                          ctx.fillStyle = g; ctx.fillRect(z.x, z.y, z.w, z.h);
@@ -734,8 +641,7 @@
                              const amp = z.distortion.amplitude || 5; const freq = z.distortion.frequency || 0.1; const spd = z.distortion.speed || 5;
                              const waveHeight = 15; const numWaves = Math.ceil(z.h / waveHeight) + 1;
                              for(let i=0; i<numWaves; i++) {
-                                 const yOffset = (time * spd * 10 + i * waveHeight) % (z.h + waveHeight);
-                                 let actualY = z.y + z.h - yOffset;
+                                 const yOffset = (time * spd * 10 + i * waveHeight) % (z.h + waveHeight); let actualY = z.y + z.h - yOffset;
                                  const xOffset = Math.sin(time * 3 + i * freq) * amp;
                                  try { ctx.drawImage(canvas2D, z.x, actualY, z.w, waveHeight, z.x + xOffset, actualY, z.w, waveHeight); } catch(e) {}
                                  ctx.fillRect(z.x + xOffset - 5, actualY, z.w + 10, waveHeight * 0.8);
@@ -747,12 +653,175 @@
             }
         }
 
-        class BulletParticle { 
-            constructor(x,y,c,s=1,d=1.5){this.x=x;this.y=y;this.vx=(Math.random()-.5)*400*s;this.vy=(Math.random()-.5)*400*s;this.l=1.0;this.d=d;this.sz=Math.random()*5+2;this.c=c;} 
-            update(dt){this.x+=this.vx*dt;this.y+=this.vy*dt;this.l-=this.d*dt;} 
-            draw(c){c.save();c.globalAlpha=Math.max(0,this.l);c.fillStyle=this.c;c.shadowBlur=10;c.shadowColor=this.c;c.beginPath();c.arc(this.x,this.y,Math.max(0,this.sz*this.l),0,Math.PI*2);c.fill();c.restore();} 
+        class StageBoss2DFallback {
+            constructor(config) {
+                this.config = config || {};
+                this.x = WORLD_WIDTH / 2;
+                
+                // Força a leitura do 'y' como número. Se não existir no JSON, usa 800.
+                this.y = (this.config.position && this.config.position.y !== undefined) ? Number(this.config.position.y) : 800;
+                
+                this.meshGroup = new THREE.Group();
+                scene3D.add(this.meshGroup);
+                this.isBuilt = false;
+
+                this.layers = [
+                    { key: 'boss1', speed: 0.02, zOffset: -30, mesh: null },
+                    { key: 'boss2', speed: 0.05, zOffset: -20, mesh: null },
+                    { key: 'boss3', speed: 0.09, zOffset: -10, mesh: null },
+                    { key: 'boss4', speed: 0.14, zOffset: 0, mesh: null }
+                ];
+
+                let zDepth = -300; 
+                if (this.config.position) {
+                    if (this.config.position.zDepth === 'bg') zDepth = -450;
+                    else if (this.config.position.zDepth === 'boss') zDepth = -300;
+                    else if (this.config.position.zDepth === 'scene') zDepth = -150;
+                }
+                this.baseZ = zDepth;
+            }
+
+            update(dt) {
+                if (!this.isBuilt) {
+                    let allLoaded = true;
+                    this.layers.forEach(l => { if (!isImageOk(assets[l.key])) allLoaded = false; });
+                    
+                    if (allLoaded) {
+                        // Calcula o multiplicador de escala com base na camada principal (boss1)
+                        let baseImg = assets['boss1'];
+                        let baseWidth = (baseImg && baseImg.naturalWidth) ? baseImg.naturalWidth : 800;
+                        let scaleFactor = this.config.scale2D ? (Number(this.config.scale2D) / baseWidth) : 1.0;
+
+                        this.layers.forEach(l => {
+                            const tex = new THREE.Texture(assets[l.key]);
+                            tex.needsUpdate = true; 
+                            tex.flipY = true; 
+                            tex.colorSpace = THREE.SRGBColorSpace;
+                            
+                            const mat = new THREE.MeshBasicMaterial({ 
+                                map: tex, transparent: true, alphaTest: 0.05, side: THREE.DoubleSide, depthWrite: false
+                            });
+                            
+                            // Aplica a proporção calculada de forma justa a todas as peças!
+                            let width = assets[l.key].naturalWidth * scaleFactor;
+                            let height = assets[l.key].naturalHeight * scaleFactor;
+
+                            const geo = new THREE.PlaneGeometry(width, height);
+                            l.mesh = new THREE.Mesh(geo, mat);
+                            l.mesh.position.z = l.zOffset;
+                            
+                            this.meshGroup.add(l.mesh);
+                        });
+                        this.isBuilt = true;
+                    }
+                    return; 
+                }
+
+                if (!p1 || !p2) return;
+                const d1 = Math.hypot(p1.x-this.x, p1.y-this.y); 
+                const d2 = Math.hypot(p2.x-this.x, p2.y-this.y); 
+                const target = (d1 < d2) ? p1 : p2; 
+                
+                const dx = target.x - this.x; 
+                const dy = target.y - this.y; 
+
+                this.layers.forEach(l => {
+                    if (l.mesh) {
+                        const targetX = dx * l.speed;
+                        const targetY = -dy * l.speed;
+                        l.mesh.position.x += (targetX - l.mesh.position.x) * 2 * dt;
+                        l.mesh.position.y += (targetY - l.mesh.position.y) * 2 * dt;
+                    }
+                });
+
+                const nx = (this.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
+                const curveZ = Math.pow(nx, 2) * 300;
+
+                let bob = 0;
+                if (this.config && this.config.behavior && this.config.behavior.bobbing) {
+                    bob = Math.sin(Date.now() / 500) * 30;
+                }
+
+                this.meshGroup.position.set(this.x, WORLD_HEIGHT - (this.y + bob), this.baseZ + curveZ);
+            }
         }
-        
+
+        class StageBoss {
+            constructor(config, folderUrl) {
+                this.config = config;
+                this.x = WORLD_WIDTH / 2;
+                this.y = (config.position && config.position.y !== undefined) ? Number(config.position.y) : 800;
+                
+                this.meshGroup = new THREE.Group();
+                scene3D.add(this.meshGroup);
+
+                const bossModelFile = config.model || 'boss.glb';
+                const loader = new THREE.GLTFLoader();
+                
+                loader.load(`${folderUrl}/${bossModelFile}`, (gltf) => {
+                    this.model3D = THREE.SkeletonUtils.clone(gltf.scene);
+                    const scale = config.scale || 15.0;
+                    this.model3D.scale.set(scale, scale, scale);
+                    this.meshGroup.add(this.model3D);
+                    
+                    this.mixer = new THREE.AnimationMixer(this.model3D);
+                    if(gltf.animations && gltf.animations.length > 0) {
+                        this.mixer.clipAction(gltf.animations[0]).play();
+                    }
+                }, undefined, (e) => {
+                    console.warn(`[Fallback] Boss 3D não encontrado. A carregar Boss 2D!`);
+                    window.currentBoss2D = new StageBoss2DFallback(this.config);
+                    scene3D.remove(this.meshGroup);
+                    this.meshGroup = null;
+                });
+            }
+            update(dt) {
+                if(this.mixer) this.mixer.update(dt);
+                
+                if (this.meshGroup) {
+                    if (this.config.behavior && this.config.behavior.type === 'tracking') {
+                        let targetX = WORLD_WIDTH / 2;
+                        if (p1 && p2) targetX = (p1.x + p2.x) / 2; else if (p1) targetX = p1.x;
+                        let speed = this.config.behavior.speed || 100;
+                        if (this.x < targetX - 50) this.x += speed * dt; else if (this.x > targetX + 50) this.x -= speed * dt;
+                    }
+
+                    let drawY = this.y;
+                    if (this.config.behavior && this.config.behavior.bobbing) drawY += Math.sin(Date.now() / 500) * 30;
+
+                    const nx = (this.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2); const curveZ = Math.pow(nx, 2) * 300;
+                    
+                    let zDepth = -300; 
+                    if (this.config.position && this.config.position.zDepth === 'bg') zDepth = -480;
+                    else if (this.config.position && this.config.position.zDepth === 'boss') zDepth = -300;
+                    else if (this.config.position && this.config.position.zDepth === 'scene') zDepth = -150;
+                    
+                    this.meshGroup.position.set(this.x, WORLD_HEIGHT - drawY, zDepth + curveZ);
+                    this.meshGroup.rotation.y = (this.x > WORLD_WIDTH/2) ? -Math.PI/6 : Math.PI/6;
+                }
+            }
+        }
+
+        class BulletParticle {
+            constructor(x,y,c,s=1, l=1.0){
+                this.x=x;this.y=y;this.vx=(Math.random()-.5)*300*s;this.vy=(Math.random()-.5)*300*s;
+                this.l=l;this.d=2.0;this.sz=Math.random()*2.5+0.5;this.c=c;
+            }
+            update(dt){this.x+=this.vx*dt;this.y+=this.vy*dt;this.l-=this.d*dt;}
+            draw(c){
+                c.save();
+                c.globalAlpha=Math.max(0,this.l);
+                c.globalCompositeOperation='lighter'; 
+                c.fillStyle=this.c;
+                c.shadowBlur=15; 
+                c.shadowColor=this.c;
+                c.beginPath();
+                c.arc(this.x,this.y,Math.max(0,this.sz*this.l),0,Math.PI*2);
+                c.fill();
+                c.restore();
+            }
+        }
+
         class Explosion { 
             constructor(x,y,c){
                 this.x=x;this.y=y;this.c=c;this.r=0;this.mr=400;this.l=1.0;
@@ -778,11 +847,9 @@
             draw(c){
                 c.save();const g=c.createRadialGradient(this.x,this.y,0,this.x,this.y,Math.max(0,this.r));g.addColorStop(0,"white");g.addColorStop(0.3,this.c);g.addColorStop(1,"transparent");c.fillStyle=g;c.globalAlpha=Math.max(0,this.l);c.globalCompositeOperation='screen';c.beginPath();c.arc(this.x,this.y,Math.max(0,this.r),0,Math.PI*2);c.fill();this.p.forEach(p=>p.draw(c));c.restore();
             } 
-            destroy() {
-                if(this.light) scene3D.remove(this.light);
-            }
+            destroy() { if(this.light) scene3D.remove(this.light); }
         }
-
+        
         class Projectile { 
             constructor(x,y,f,d,s,c,ic=false, owner='player', config={}){
                 this.x=x; this.y=y; this.vx=f; this.damage=d; this.size=s; this.c=c; this.active=true; this.ic=ic; this.owner=owner; this.trail=[]; this.p=[]; this.sp=900+(ic?600:0);
@@ -794,121 +861,65 @@
                 this.meshGroup = new THREE.Group();
                 let geometries = [];
                 
-                if (this.shapeType === 'star') {
-                    geometries.push(new THREE.TetrahedronGeometry(this.size, 0));
-                    const g2 = new THREE.TetrahedronGeometry(this.size, 0);
-                    g2.rotateZ(Math.PI);
-                    g2.rotateX(Math.PI/4); 
-                    geometries.push(g2);
-                } else if (this.shapeType === 'cone') {
-                    const g = new THREE.ConeGeometry(this.size * 0.8, this.size * 2.5, 4);
-                    g.rotateZ(f === 1 ? -Math.PI/2 : Math.PI/2);
-                    geometries.push(g);
-                } else if (this.shapeType === 'sphere') {
-                    geometries.push(new THREE.IcosahedronGeometry(this.size * 0.8, 2));
-                } else if (this.shapeType === 'shuriken') {
-                    const geoShuriken = new THREE.OctahedronGeometry(this.size * 1.5, 0);
-                    geoShuriken.scale(1, 1, 0.2); 
-                    geometries.push(geoShuriken);
-                } else if (this.shapeType === 'crescent') {
-                    const moonShape = new THREE.Shape();
-                    moonShape.absarc(0, 0, 10, Math.PI/2, -Math.PI/2, false);
-                    moonShape.absarc(3, 0, 8, -Math.PI/2, Math.PI/2, true);
-                    const extrudeSettingsMoon = { depth: 2, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 1, bevelThickness: 1 };
-                    const geoMoon = new THREE.ExtrudeGeometry( moonShape, extrudeSettingsMoon );
-                    geoMoon.center();
-                    geoMoon.scale(this.size/10, this.size/10, this.size/10);
-                    if(f === -1) geoMoon.rotateY(Math.PI); 
-                    geometries.push(geoMoon);
-                } else if (this.shapeType === 'heart') {
-                    const hx = 0, hy = 0;
-                    const heartShape = new THREE.Shape();
-                    heartShape.moveTo( hx + 5, hy + 5 );
-                    heartShape.bezierCurveTo( hx + 5, hy + 5, hx + 4, hy, hx, hy );
-                    heartShape.bezierCurveTo( hx - 6, hy, hx - 6, hy + 7,hx - 6, hy + 7 );
-                    heartShape.bezierCurveTo( hx - 6, hy + 11, hx - 3, hy + 15.4, hx + 5, hy + 19 );
-                    heartShape.bezierCurveTo( hx + 12, hy + 15.4, hx + 16, hy + 11, hx + 16, hy + 7 );
-                    heartShape.bezierCurveTo( hx + 16, hy + 7, hx + 16, hy, hx + 10, hy );
-                    heartShape.bezierCurveTo( hx + 7, hy, hx + 5, hy + 5, hx + 5, hy + 5 );
-                    const extrudeSettings = { depth: 2, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 1, bevelThickness: 1 };
-                    const geoHeart = new THREE.ExtrudeGeometry( heartShape, extrudeSettings );
-                    geoHeart.center();
-                    geoHeart.scale(this.size/15, this.size/15, this.size/15);
-                    geoHeart.rotateZ(Math.PI);
-                    geometries.push(geoHeart);
-                } else {
-                    geometries.push(new THREE.IcosahedronGeometry(this.size * 0.8, 1));
-                }
+                if (this.shapeType === 'star') { geometries.push(new THREE.TetrahedronGeometry(this.size, 0)); const g2 = new THREE.TetrahedronGeometry(this.size, 0); g2.rotateZ(Math.PI); g2.rotateX(Math.PI/4); geometries.push(g2); } 
+                else if (this.shapeType === 'cone') { const g = new THREE.ConeGeometry(this.size * 0.8, this.size * 2.5, 4); g.rotateZ(f === 1 ? -Math.PI/2 : Math.PI/2); geometries.push(g); } 
+                else if (this.shapeType === 'sphere') { geometries.push(new THREE.IcosahedronGeometry(this.size * 0.8, 2)); } 
+                else if (this.shapeType === 'shuriken') { const geoShuriken = new THREE.OctahedronGeometry(this.size * 1.5, 0); geoShuriken.scale(1, 1, 0.2); geometries.push(geoShuriken); } 
+                else if (this.shapeType === 'crescent') { const moonShape = new THREE.Shape(); moonShape.absarc(0, 0, 10, Math.PI/2, -Math.PI/2, false); moonShape.absarc(3, 0, 8, -Math.PI/2, Math.PI/2, true); const extrudeSettingsMoon = { depth: 2, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 1, bevelThickness: 1 }; const geoMoon = new THREE.ExtrudeGeometry( moonShape, extrudeSettingsMoon ); geoMoon.center(); geoMoon.scale(this.size/10, this.size/10, this.size/10); if(f === -1) geoMoon.rotateY(Math.PI); geometries.push(geoMoon); } 
+                else if (this.shapeType === 'heart') { const hx = 0, hy = 0; const heartShape = new THREE.Shape(); heartShape.moveTo( hx + 5, hy + 5 ); heartShape.bezierCurveTo( hx + 5, hy + 5, hx + 4, hy, hx, hy ); heartShape.bezierCurveTo( hx - 6, hy, hx - 6, hy + 7,hx - 6, hy + 7 ); heartShape.bezierCurveTo( hx - 6, hy + 11, hx - 3, hy + 15.4, hx + 5, hy + 19 ); heartShape.bezierCurveTo( hx + 12, hy + 15.4, hx + 16, hy + 11, hx + 16, hy + 7 ); heartShape.bezierCurveTo( hx + 16, hy + 7, hx + 16, hy, hx + 10, hy ); heartShape.bezierCurveTo( hx + 7, hy, hx + 5, hy + 5, hx + 5, hy + 5 ); const extrudeSettings = { depth: 2, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 1, bevelThickness: 1 }; const geoHeart = new THREE.ExtrudeGeometry( heartShape, extrudeSettings ); geoHeart.center(); geoHeart.scale(this.size/15, this.size/15, this.size/15); geoHeart.rotateZ(Math.PI); geometries.push(geoHeart); } 
+                else { geometries.push(new THREE.IcosahedronGeometry(this.size * 0.8, 1)); }
 
-                // Protegendo as magias contra ofuscação pelo nevoeiro (fog: false)
-                const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff, fog: false });
-                const glowMat = new THREE.MeshBasicMaterial({ color: getRGBColor(this.c), transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending, fog: false });
+                const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                const glowMat = new THREE.MeshBasicMaterial({ color: getRGBColor(this.c), transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending });
 
                 geometries.forEach(geo => {
-                    const core = new THREE.Mesh(geo, coreMat);
-                    this.meshGroup.add(core);
-                    for(let i=1; i<=4; i++) {
-                        const glow = new THREE.Mesh(geo, glowMat);
-                        glow.scale.setScalar(1 + (i * 0.35));
-                        this.meshGroup.add(glow);
-                    }
+                    const core = new THREE.Mesh(geo, coreMat); this.meshGroup.add(core);
+                    for(let i=1; i<=4; i++) { const glow = new THREE.Mesh(geo, glowMat); glow.scale.setScalar(1 + (i * 0.35)); this.meshGroup.add(glow); }
                 });
 
-                const nx = (this.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
-                const curveZ = Math.pow(nx, 2) * 300;
+                const nx = (this.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2); const curveZ = Math.pow(nx, 2) * 300;
 
-                this.light = new THREE.PointLight(this.c, 6.0, 300); 
-                this.light.position.set(0, 0, -100); 
-                this.meshGroup.add(this.light); 
-                
-                this.meshGroup.position.set(this.x, WORLD_HEIGHT - this.y, 0 + curveZ);
-                scene3D.add(this.meshGroup);
+                this.light = new THREE.PointLight(this.c, 6.0, 300); this.light.position.set(0, 0, -100); this.meshGroup.add(this.light); 
+                this.meshGroup.position.set(this.x, WORLD_HEIGHT - this.y, 0 + curveZ); scene3D.add(this.meshGroup);
             } 
             update(dt){
-                if(Math.random()<0.5)this.p.push(new BulletParticle(this.x,this.y,this.c,this.ic?0.5:0.2, 4.0));
+                const pCount = this.ic ? 4 : 2;
+                for(let k=0; k < pCount; k++) {
+                    this.p.push(new BulletParticle(this.x,this.y,this.c,this.ic?0.6:0.3, 1.5));
+                }
                 this.trail.unshift({x:this.x,y:this.y}); if(this.trail.length>this.trailLength)this.trail.pop();
                 this.p.forEach((p,i)=>{p.update(dt);if(p.l<=0)this.p.splice(i,1)});
                 this.x+=this.vx*this.sp*dt; if(this.x<-300||this.x>WORLD_WIDTH+300)this.active=false;
 
                 if (this.meshGroup) {
-                    const nx = (this.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
-                    const curveZ = Math.pow(nx, 2) * 300;
+                    const nx = (this.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2); const curveZ = Math.pow(nx, 2) * 300;
                     this.meshGroup.position.set(this.x, WORLD_HEIGHT - this.y, 0 + curveZ);
 
-                    if (this.shapeType === 'star') {
-                        this.meshGroup.rotation.x += 10 * dt;
-                        this.meshGroup.rotation.y += 10 * dt;
-                    } else if (this.shapeType === 'cone') {
-                        this.meshGroup.rotation.x += 15 * dt; 
-                    } else if (this.shapeType === 'shuriken') {
-                        this.meshGroup.rotation.z += (this.vx > 0 ? -20 : 20) * dt; 
-                    } else if (this.shapeType === 'crescent') {
-                        this.meshGroup.rotation.z += (this.vx > 0 ? -15 : 15) * dt; 
-                    } else if (this.shapeType === 'heart') {
-                        this.meshGroup.rotation.y += 3 * dt; 
-                        const pulse = 1 + Math.sin(Date.now()/150)*0.1;
-                        this.meshGroup.scale.setScalar(pulse);
-                    } else {
-                        this.meshGroup.rotation.z += 5 * dt;
-                        this.meshGroup.rotation.x += 5 * dt;
-                    }
+                    if (this.shapeType === 'star') { this.meshGroup.rotation.x += 10 * dt; this.meshGroup.rotation.y += 10 * dt; } 
+                    else if (this.shapeType === 'cone') { this.meshGroup.rotation.x += 15 * dt; } 
+                    else if (this.shapeType === 'shuriken') { this.meshGroup.rotation.z += (this.vx > 0 ? -20 : 20) * dt; } 
+                    else if (this.shapeType === 'crescent') { this.meshGroup.rotation.z += (this.vx > 0 ? -15 : 15) * dt; } 
+                    else if (this.shapeType === 'heart') { this.meshGroup.rotation.y += 3 * dt; const pulse = 1 + Math.sin(Date.now()/150)*0.1; this.meshGroup.scale.setScalar(pulse); } 
+                    else { this.meshGroup.rotation.z += 5 * dt; this.meshGroup.rotation.x += 5 * dt; }
                 }
             } 
             draw(c){
-                c.save(); this.p.forEach(p=>p.draw(c));
+                c.save(); 
+                c.globalCompositeOperation = 'lighter'; 
+                this.p.forEach(p=>p.draw(c));
                 this.trail.forEach((p, i)=>{
                     const sizePercent = 1 - (i / this.trailLength);
-                    c.globalAlpha = 0.5 * sizePercent;
-                    c.fillStyle = this.c;
+                    c.globalAlpha = 0.5 * sizePercent; 
+                    c.fillStyle = this.c; 
+                    c.shadowBlur = 20; 
+                    c.shadowColor = this.c;
                     c.beginPath();
-                    c.arc(p.x, p.y, this.size * sizePercent * 0.8, 0, Math.PI*2);
+                    c.arc(p.x, p.y, this.size * sizePercent * 0.8, 0, Math.PI*2); 
                     c.fill();
                 });
                 c.restore();
             } 
-            destroy() {
-                if(this.meshGroup) scene3D.remove(this.meshGroup);
-            }
+            destroy() { if(this.meshGroup) scene3D.remove(this.meshGroup); }
         }
 
         class Minion {
@@ -920,8 +931,7 @@
                 
                 const geo = new THREE.BoxGeometry(this.w, this.h, 40);
                 const mat = new THREE.MeshLambertMaterial({ color: 0x8800ff });
-                this.mesh = new THREE.Mesh(geo, mat);
-                scene3D.add(this.mesh);
+                this.mesh = new THREE.Mesh(geo, mat); scene3D.add(this.mesh);
             }
             update(dt) {
                 let target = null; let minD = Infinity;
@@ -941,28 +951,20 @@
                     } else { this.vx = 0; }
                 } else if (this.state === 'ATTACK') { this.vx = 0; }
 
-                if (this.attackCooldown > 0) this.attackCooldown -= dt;
-                if (this.dF > 0) this.dF -= dt;
-
-                this.vy += GRAVITY * dt * 2; this.x += this.vx * dt; this.y += this.vy * dt;
-                this.onGround = false;
+                if (this.attackCooldown > 0) this.attackCooldown -= dt; if (this.dF > 0) this.dF -= dt;
+                this.vy += GRAVITY * dt * 2; this.x += this.vx * dt; this.y += this.vy * dt; this.onGround = false;
                 if (this.y + this.h > GROUND_Y) { this.y = GROUND_Y - this.h; this.vy = 0; this.onGround = true; }
 
                 if (this.state === 'ATTACK' && this.attackCooldown <= 0) {
-                    let sx = this.facing === 1 ? this.x + this.w : this.x;
-                    let sy = this.y + (this.h * 0.4);
+                    let sx = this.facing === 1 ? this.x + this.w : this.x; let sy = this.y + (this.h * 0.4);
                     bullets.push(new Projectile(sx, sy, this.facing, 10, 8, '#ff00ff', false, 'minion'));
-                    this.state = 'MOVE';
-                    this.attackCooldown = 2.0; 
+                    this.state = 'MOVE'; this.attackCooldown = 2.0; 
                 }
 
-                const nx = (this.x + this.w/2 - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
-                const curveZ = Math.pow(nx, 2) * 300;
-
+                const nx = (this.x + this.w/2 - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2); const curveZ = Math.pow(nx, 2) * 300;
                 this.mesh.position.set(this.x + this.w/2, WORLD_HEIGHT - (this.y + this.h/2), curveZ);
                 this.mesh.rotation.y = this.facing === 1 ? 0 : Math.PI;
-                if (this.dF > 0) this.mesh.material.emissive.setHex(0xffffff);
-                else this.mesh.material.emissive.setHex(0x000000);
+                if (this.dF > 0) this.mesh.material.emissive.setHex(0xffffff); else this.mesh.material.emissive.setHex(0x000000);
             }
             takeDamage(a) { this.health -= a; this.dF = 0.2; if (this.health <= 0) { this.health = 0; scene3D.remove(this.mesh); } }
             draw(ctx) { }
@@ -978,108 +980,61 @@
                 this.cpuKeys = { up: false, down: false, left: false, right: false, melee: false, shoot: false };
                 this.pConfig = pConfig; 
 
-                this.meshGroup = new THREE.Group();
-                scene3D.add(this.meshGroup);
+                this.meshGroup = new THREE.Group(); scene3D.add(this.meshGroup);
 
                 const geo = new THREE.BoxGeometry(this.w, this.h, 40);
                 const mat = new THREE.MeshLambertMaterial({ color: this.c, transparent: true, opacity: 0.5 });
-                this.mesh = new THREE.Mesh(geo, mat);
-                this.mesh.position.y = this.h/2;
-                this.meshGroup.add(this.mesh);
+                this.mesh = new THREE.Mesh(geo, mat); this.mesh.position.y = this.h/2; this.meshGroup.add(this.mesh);
 
-                this.mixer = null;
-                this.actions = {};
-                this.currentAction = null;
-                this.model3D = null;
+                this.mixer = null; this.actions = {}; this.currentAction = null; this.model3D = null;
             }
             
             loadModel(folderUrl) {
-                const loader = new THREE.GLTFLoader();
-                const modelPath = `${folderUrl}/${folderUrl.split('/').pop()}.glb`;
-
+                const loader = new THREE.GLTFLoader(); const modelPath = `${folderUrl}/${folderUrl.split('/').pop()}.glb`;
                 loader.load(modelPath, (gltf) => {
-                    this.meshGroup.remove(this.mesh);
-
-                    this.model3D = THREE.SkeletonUtils.clone(gltf.scene);
-                    
-                    const scaleFactor = 95.0; 
-                    this.model3D.scale.set(scaleFactor, scaleFactor, scaleFactor);
-                    
+                    this.meshGroup.remove(this.mesh); this.model3D = THREE.SkeletonUtils.clone(gltf.scene);
+                    const scaleFactor = 95.0; this.model3D.scale.set(scaleFactor, scaleFactor, scaleFactor);
                     this.model3D.position.set(this.w/2, 0, 0);
                     
                     this.model3D.traverse((child) => {
                         if (child.isMesh) {
-                            child.castShadow = true;
-                            child.frustumCulled = false; 
-                            
+                            child.castShadow = true; child.frustumCulled = false; 
                             if(child.material) {
                                 let mats = Array.isArray(child.material) ? child.material : [child.material];
-                                mats.forEach(m => {
-                                    if (m.isMeshStandardMaterial || m.isMeshLambertMaterial) {
-                                        m.roughness = 0.7;
-                                        m.metalness = 0.1;
-                                    }
-                                });
+                                mats.forEach(m => { if (m.isMeshStandardMaterial || m.isMeshLambertMaterial) { m.roughness = 0.7; m.metalness = 0.1; } });
                             }
                         }
                     });
 
-                    this.meshGroup.add(this.model3D);
-
-                    this.mixer = new THREE.AnimationMixer(this.model3D);
-                    
+                    this.meshGroup.add(this.model3D); this.mixer = new THREE.AnimationMixer(this.model3D);
                     if (gltf.animations && gltf.animations.length > 0) {
                         gltf.animations.forEach((clip) => {
-                            const action = this.mixer.clipAction(clip);
-                            const animName = clip.name.toLowerCase();
-                            
-                            if (['meele', 'cast_3', 'cast_7', 'combo', 'caido'].includes(animName)) {
-                                action.loop = THREE.LoopOnce;
-                                action.clampWhenFinished = true;
-                            }
+                            const action = this.mixer.clipAction(clip); const animName = clip.name.toLowerCase();
+                            if (['meele', 'cast_3', 'cast_7', 'combo', 'caido'].includes(animName)) { action.loop = THREE.LoopOnce; action.clampWhenFinished = true; }
                             this.actions[animName] = action;
                         });
                         this.playAnimation('idle');
-                    } else {
-                        console.warn(`[${this.id}] Nenhuma animação embutida encontrada no modelo!`);
                     }
-
-                }, undefined, (error) => {
-                    console.error("Erro ao carregar o modelo do lutador:", modelPath, error);
-                });
+                }, undefined, (error) => { console.error("Erro modelo lutador:", modelPath, error); });
             }
 
             playAnimation(name) {
-                if (!this.mixer || !this.actions[name]) return;
-                
-                const nextAction = this.actions[name];
-                
-                if (this.currentAction === nextAction) return; 
-
-                nextAction.reset(); 
-                nextAction.setEffectiveTimeScale(1);
-                nextAction.setEffectiveWeight(1);
-                nextAction.play();
-                
-                if (this.currentAction) {
-                    this.currentAction.crossFadeTo(nextAction, 0.2, true);
-                }
-
+                if (!this.mixer) return; let nextAction = this.actions[name];
+                if (!nextAction && Object.keys(this.actions).length > 0) { const fallBackName = Object.keys(this.actions)[0]; nextAction = this.actions[fallBackName]; }
+                if (!nextAction || this.currentAction === nextAction) return; 
+                nextAction.reset(); nextAction.setEffectiveTimeScale(1); nextAction.setEffectiveWeight(1); nextAction.play();
+                if (this.currentAction) { this.currentAction.crossFadeTo(nextAction, 0.2, true); }
                 this.currentAction = nextAction;
             }
 
             setAnimation(n){ 
                 if(this.state!==n){
-                    this.state=n;
-                    if(n===LOGICAL_STATE.MELEE) this.mHD=false;
-                    
+                    this.state=n; if(n===LOGICAL_STATE.MELEE) this.mHD=false;
                     if (this.state === LOGICAL_STATE.IDLE) this.playAnimation('idle');
                     else if (this.state === LOGICAL_STATE.RUN) this.playAnimation('corrida');
                     else if (this.state === LOGICAL_STATE.JUMP) this.playAnimation('pulo');
                     else if (this.state === LOGICAL_STATE.MELEE) this.playAnimation('meele');
-                    else if (this.state === LOGICAL_STATE.SHOOT) {
-                        this.playAnimation(this.charge > 90 ? 'cast_3' : 'cast_7');
-                    }
+                    else if (this.state === LOGICAL_STATE.SHOOT) { this.playAnimation(this.charge > 90 ? 'cast_3' : 'cast_7'); }
                 } 
             }
 
@@ -1099,20 +1054,21 @@
                 
                 const is1P = (gameMode === '1p' && this.id === 'p1');
                 const activeKeys = this.isCPU ? this.cpuKeys : {
-                    up: keys[this.ctrl.up] || (is1P && keys['ArrowUp']), 
-                    down: keys[this.ctrl.down] || (is1P && keys['ArrowDown']),
-                    left: keys[this.ctrl.left] || (is1P && keys['ArrowLeft']), 
-                    right: keys[this.ctrl.right] || (is1P && keys['ArrowRight']),
-                    melee: keys[this.ctrl.melee] || (is1P && (keys['Enter'] || keys[' '])), 
-                    shoot: keys[this.ctrl.shoot] || (is1P && keys['Shift'])
+                    up: keys[this.ctrl.up] || (is1P && keys['ArrowUp']), down: keys[this.ctrl.down] || (is1P && keys['ArrowDown']),
+                    left: keys[this.ctrl.left] || (is1P && keys['ArrowLeft']), right: keys[this.ctrl.right] || (is1P && keys['ArrowRight']),
+                    melee: keys[this.ctrl.melee] || (is1P && (keys['Enter'] || keys[' '])), shoot: keys[this.ctrl.shoot] || (is1P && keys['Shift'])
                 };
 
+                // Puxando atributos dinâmicos do JSON
+                const pSpeed = this.pConfig.moveSpeed || MOVE_SPEED;
+                const pJump = this.pConfig.jumpForce || JUMP_FORCE;
+
                 let mov=false;
-                if(activeKeys.left){ this.vx=-MOVE_SPEED; this.facing=-1; mov=true; }
-                else if(activeKeys.right){ this.vx=MOVE_SPEED; this.facing=1; mov=true; }
+                if(activeKeys.left){ this.vx=-pSpeed; this.facing=-1; mov=true; }
+                else if(activeKeys.right){ this.vx=pSpeed; this.facing=1; mov=true; }
                 else { if (this.onIce && this.onGround) { this.vx *= 0.96; if (Math.abs(this.vx) < 10) this.vx = 0; } else { this.vx = 0; } }
                 
-                if(activeKeys.up && this.onGround){this.vy=-JUMP_FORCE;this.onGround=false;audioManager.play(this.id==='p1'?'p1_jump':'p2_jump',false,0.5);}
+                if(activeKeys.up && this.onGround){this.vy=-pJump;this.onGround=false;audioManager.play(this.id==='p1'?'p1_jump':'p2_jump',false,0.5);}
                 if(activeKeys.melee && !this.isAttacking){this.isAttacking=true;this.atkT=0.5;this.setAnimation(LOGICAL_STATE.MELEE);}
                 if(activeKeys.shoot){this.isCharging=true;this.charge=Math.min(100,this.charge+(100*dt));this.setAnimation(LOGICAL_STATE.SHOOT);}
                 else if(this.isCharging){this.shoot();this.isCharging=false;this.charge=0;}
@@ -1123,11 +1079,7 @@
                     else this.setAnimation(LOGICAL_STATE.IDLE);
                 }
                 
-                if(this.atkT>0) { 
-                    this.atkT-=dt; 
-                    if (this.atkT < 0.25 && !this.mHD) { this.checkMeleeHit(); this.mHD=true; }
-                } else this.isAttacking=false;
-                
+                if(this.atkT>0) { this.atkT-=dt; if (this.atkT < 0.25 && !this.mHD) { this.checkMeleeHit(); this.mHD=true; } } else this.isAttacking=false;
                 if(this.dF>0)this.dF-=dt;
                 
                 this.vy+=GRAVITY*dt*2; this.x+=this.vx*dt; this.y+=this.vy*dt;
@@ -1142,16 +1094,13 @@
                         if(this.vy>=0&&this.y+this.h>p.y-10&&this.y+this.h<p.y+p.h+40&&this.x+this.w>p.x&&this.x<p.x+p.w){
                             if(p.isSpring){this.vy=-JUMP_FORCE*1.5;this.onGround=false;return;}
                             if(isDown&&p.id!==16)return;
-                            this.y=p.y-this.h; this.vy=0; this.onGround=true;
-                            if (p.isSlippery) this.onIce = true;
+                            this.y=p.y-this.h; this.vy=0; this.onGround=true; if (p.isSlippery) this.onIce = true;
                         }
                     }else if(p.type==='slope'){
                         if(this.x+this.w/2>p.x1&&this.x+this.w/2<p.x2){
                             let t=((this.x+this.w/2)-p.x1)/(p.x2-p.x1); let ty=p.y1+t*(p.y2-p.y1);
                             if(this.vy>=0&&this.y+this.h>=ty-20&&this.y+this.h<=ty+30){
-                                if(isDown)return;
-                                this.y=ty-this.h; this.vy=0; this.onGround=true;
-                                if (p.isSlippery) this.onIce = true;
+                                if(isDown)return; this.y=ty-this.h; this.vy=0; this.onGround=true; if (p.isSlippery) this.onIce = true;
                             }
                         }
                     }
@@ -1160,9 +1109,7 @@
                 document.getElementById(`${this.id}-health-fill`).style.width=this.health+'%';
                 document.getElementById(`${this.id}-charge`).style.width=this.charge+'%';
 
-                const nx = (this.x + this.w/2 - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
-                const curveZ = Math.pow(nx, 2) * 300;
-
+                const nx = (this.x + this.w/2 - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2); const curveZ = Math.pow(nx, 2) * 300;
                 this.meshGroup.position.set(this.x, WORLD_HEIGHT - (this.y + this.h), curveZ);
                 this.meshGroup.rotation.y = this.facing === 1 ? Math.PI/2 : -Math.PI/2;
 
@@ -1180,7 +1127,6 @@
                         }
                     });
                 }
-
                 if (this.mixer) this.mixer.update(dt);
             }
             
@@ -1190,28 +1136,24 @@
                 minions.forEach(m => { if(hX+r>m.x&&hX<m.x+m.w&&this.y+this.h>m.y&&this.y<m.y+m.h) m.takeDamage(15); });
             }
             shoot(){
-                const activeBullets = bullets.filter(b => b.owner === this.id).length;
-                if (activeBullets >= 4) return;
-
+                const activeBullets = bullets.filter(b => b.owner === this.id).length; if (activeBullets >= 4) return;
                 const ic=this.charge>90; const sx=this.facing===1?this.x+this.w:this.x; const sy=this.y+(this.h*0.4);
                 
-                let projColor = this.c;
-                let baseSize = 25;
+                let projColor = this.c; let baseSize = 25; let speedMult = 1.0;
                 if (this.pConfig && this.pConfig.color) projColor = this.pConfig.color;
                 if (this.pConfig && this.pConfig.size) baseSize = this.pConfig.size;
+                if (this.pConfig && this.pConfig.projSpeed) speedMult = this.pConfig.projSpeed;
 
                 const finalSize = ic ? baseSize * 2 : baseSize; 
+                const finalDamage = ic ? 40 : 15;
+                const finalSpeed = (ic ? 1500 : 900) * speedMult;
 
-                bullets.push(new Projectile(sx,sy,this.facing,ic?40:15, finalSize, projColor, ic, this.id, this.pConfig)); 
+                bullets.push(new Projectile(sx,sy,this.facing,finalDamage, finalSize, projColor, ic, this.id, this.pConfig)); 
+                bullets[bullets.length-1].sp = finalSpeed;
             }
             takeDamage(a){this.health-=a;this.dF=0.2;audioManager.play('hit',false,0.6);if(this.health<=0){this.health=0;startDuel(this);}}
             draw(c){
-                c.save();
-                c.fillStyle = "rgba(0,0,0,0.5)";
-                c.beginPath();
-                c.ellipse(this.x + this.w/2, this.y + this.h, 30, 10, 0, 0, Math.PI*2);
-                c.fill();
-                c.restore();
+                c.save(); c.fillStyle = "rgba(0,0,0,0.5)"; c.beginPath(); c.ellipse(this.x + this.w/2, this.y + this.h, 30, 10, 0, 0, Math.PI*2); c.fill(); c.restore();
             }
         }
 
@@ -1223,10 +1165,7 @@
 
         async function loadStageData(stageUrl) {
             try { const response = await fetch(`${stageUrl}/platforms.json`); if (response.ok) { colliders = await response.json(); generateFruitSpawns(); } else { throw new Error("JSON 404"); } }
-            catch (e) { console.warn("Usando fallback de plataformas."); 
-                colliders = [ { x: 0, y: 1509, w: 2752, h: 15, id: 16, type: 'rect' }, { x: 500, y: 1200, w: 400, h: 20, type: 'rect', isSlippery: true }, { x: 1200, y: 1000, w: 400, h: 20, type: 'rect' }, { x: 200, y: 800, w: 300, h: 20, type: 'rect' } ]; 
-                generateFruitSpawns(); 
-            }
+            catch (e) { console.warn("Usando fallback de plataformas."); colliders = [ { x: 0, y: 1509, w: 2752, h: 15, id: 16, type: 'rect' }, { x: 500, y: 1200, w: 400, h: 20, type: 'rect', isSlippery: true }, { x: 1200, y: 1000, w: 400, h: 20, type: 'rect' }, { x: 200, y: 800, w: 300, h: 20, type: 'rect' } ]; generateFruitSpawns(); }
             try {
                 const fxResponse = await fetch(`${stageUrl}/particles.json`);
                 if (fxResponse.ok) { const fxData = await fxResponse.json(); stageFX = new StageFX(); stageFX.init(fxData); } else { throw new Error("Particles 404"); }
@@ -1235,9 +1174,7 @@
 
         function updateCamera() {
             if(!p1 || !p2) return;
-            let p1Center = { x: p1.x + p1.w/2, y: p1.y + p1.h/2 };
-            let p2Center = { x: p2.x + p2.w/2, y: p2.y + p2.h/2 };
-            
+            let p1Center = { x: p1.x + p1.w/2, y: p1.y + p1.h/2 }; let p2Center = { x: p2.x + p2.w/2, y: p2.y + p2.h/2 };
             let minX = Math.min(p1Center.x, p2Center.x); let maxX = Math.max(p1Center.x, p2Center.x);
             let minY = Math.min(p1Center.y, p2Center.y); let maxY = Math.max(p1Center.y, p2Center.y);
             
@@ -1256,10 +1193,8 @@
             if (camera.y + camera.viewHeight > WORLD_HEIGHT) camera.y = WORLD_HEIGHT - camera.viewHeight; if (camera.y < 0) camera.y = 0;
 
             if (camera3D) {
-                camera3D.left = camera.x;
-                camera3D.right = camera.x + camera.viewWidth;
-                camera3D.top = WORLD_HEIGHT - camera.y;
-                camera3D.bottom = WORLD_HEIGHT - (camera.y + camera.viewHeight);
+                camera3D.left = camera.x; camera3D.right = camera.x + camera.viewWidth;
+                camera3D.top = WORLD_HEIGHT - camera.y; camera3D.bottom = WORLD_HEIGHT - (camera.y + camera.viewHeight);
                 camera3D.updateProjectionMatrix();
             }
         }
@@ -1267,10 +1202,7 @@
         function startDuel(loser) {
             if (gameState !== 'PLAYING') return; currentLoser = loser; currentWinner = (loser === p1) ? p2 : p1;
             gameState = 'CINEMATIC'; cinematicTimer = 3.5; 
-            
-            bullets.forEach(b => b.destroy && b.destroy());
-            explosions.forEach(e => e.destroy && e.destroy());
-            
+            bullets.forEach(b => b.destroy && b.destroy()); explosions.forEach(e => e.destroy && e.destroy());
             bullets = []; explosions = [];
         }
 
@@ -1360,11 +1292,8 @@
                 if (stageFX) stageFX.update(dt);
                 globalParticles.forEach(p => p.update(dt));
                 
-                if (skyMesh) {
-                    skyMesh.rotateY(0.010 * dt); 
-                }
-                
-                if (gameMode === '1p' && p2) { p2.updateAI(dt, p1); }
+                if (skyMesh) skyMesh.rotateY(0.010 * dt); 
+                if (gameMode === '1p' && p2) p2.updateAI(dt, p1);
                 if (p1) p1.update(dt);
                 if (p2) p2.update(dt);
                 
@@ -1380,6 +1309,9 @@
                 minions.forEach(m => m.update(dt));
                 minions = minions.filter(m => m.health > 0);
                 updateFruit(dt);
+
+                if (currentBoss) currentBoss.update(dt);
+                if (window.currentBoss2D) window.currentBoss2D.update(dt);
                 
                 for(let i=bullets.length-1;i>=0;i--){
                     for(let j=i-1;j>=0;j--){
@@ -1396,37 +1328,22 @@
                     
                     [p1, p2].forEach(p => {
                         if (p && p.health > 0 && b.x + b.size > p.x && b.x - b.size < p.x + p.w && b.y + b.size > p.y && b.y - b.size < p.y + p.h) {
-                            if (b.owner !== p.id) { 
-                                p.takeDamage(b.damage); 
-                                hit = true; 
-                            }
+                            if (b.owner !== p.id) { p.takeDamage(b.damage); hit = true; }
                         }
                     });
                     
                     if (!hit && b.owner !== 'minion') {
                         minions.forEach(m => { 
                             if (m.health > 0 && b.x + b.size > m.x && b.x - b.size < m.x + m.w && b.y + b.size > m.y && b.y - b.size < m.y + m.h) { 
-                                m.takeDamage(b.damage); 
-                                hit = true; 
+                                m.takeDamage(b.damage); hit = true; 
                             } 
                         });
                     }
-                    
                     if(hit) b.active = false;
-                    
-                    if(!b.active) {
-                        b.destroy(); 
-                        bullets.splice(i,1);
-                    }
+                    if(!b.active) { b.destroy(); bullets.splice(i,1); }
                 });
                 
-                explosions.forEach((e,i)=>{
-                    e.update(dt);
-                    if(e.life<=0 || e.l <= 0) {
-                        e.destroy(); 
-                        explosions.splice(i,1);
-                    }
-                });
+                explosions.forEach((e,i)=>{ e.update(dt); if(e.life<=0 || e.l <= 0) { e.destroy(); explosions.splice(i,1); } });
             }
             updateCamera();
         }
@@ -1437,27 +1354,16 @@
             
             if (window.meshBg) {
                 window.meshBg.position.x = WORLD_WIDTH / 2; 
-
                 let avgY = GROUND_Y;
-                if (p1 && p2) {
-                    avgY = (p1.y + p2.y) / 2;
-                } else if (p1) {
-                    avgY = p1.y;
-                } else if (p2) {
-                    avgY = p2.y;
-                }
-
+                if (p1 && p2) avgY = (p1.y + p2.y) / 2; else if (p1) avgY = p1.y; else if (p2) avgY = p2.y;
                 let yRatio = Math.max(0, Math.min(1, avgY / GROUND_Y));
-                let parallaxStrength = 400; 
-                
-                window.meshBg.position.y = (WORLD_HEIGHT / 2) + ((0.5 - yRatio) * parallaxStrength);
+                let parallaxStrength = stageEnv.parallax; 
+                window.meshBg.position.y = (WORLD_HEIGHT / 2) + ((yRatio - 0.5) * parallaxStrength);
             }
 
             ctx.clearRect(0, 0, canvas2D.width, canvas2D.height);
             
-            if (renderer3D && scene3D && camera3D) {
-                renderer3D.render(scene3D, camera3D);
-            }
+            if (renderer3D && scene3D && camera3D) renderer3D.render(scene3D, camera3D);
 
             if (gameState === 'INTRO') return;
             
@@ -1468,11 +1374,11 @@
                 ctx.translate(-camera.x, -camera.y);
                 
                 if (stageFX) stageFX.draw(ctx, 'bg');
+                if (stageFX) stageFX.draw(ctx, 'boss');
                 if (stageFX) stageFX.draw(ctx, 'scene');
                 if (stageFX) stageFX.draw(ctx, 'main');
                 
                 explosions.forEach(ex => ex.draw(ctx));
-                
                 minions.forEach(m => m.draw(ctx)); 
                 if (p1) p1.draw(ctx); 
                 if (p2) p2.draw(ctx); 
@@ -1481,7 +1387,6 @@
                 drawFruit();
                 
                 if (stageFX) stageFX.draw(ctx, 'front');
-                if (globalParticles) globalParticles.forEach(p => p.draw(ctx));
                 
                 if (debugCheck.checked) { 
                     ctx.fillStyle = "rgba(255, 255, 0, 0.2)"; 
@@ -1495,22 +1400,24 @@
 
         async function initGameWithSelection() {
             initThreeJS(); 
-
             document.getElementById('loading-text').innerText = "A carregar arena...";
             await loadStageData(selectedStage.folder);
 
-            // Removido o fetch do config.json que causava o aviso 404 vermelho na consola.
-            // Os valores originais com formatos e tamanhos diferentes estao fixos agora.
-            p1 = new Player(200, 900, '#ff3e3e', { up: 'w', down: 's', left: 'a', right: 'd', melee: 'f', shoot: 'g' }, 'p1', {shape: 'star', trailLength: 5});
-            p2 = new Player(2400, 900, '#3e8bff', { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', melee: 'Enter', shoot: 'Shift' }, 'p2', {shape: 'cone', trailLength: 8});
+            let p1Cfg = {}, p2Cfg = {};
+            try { const r1 = await fetch(`${selectedP1.folder}/config.json`); if(r1.ok) p1Cfg = await r1.json(); } catch(e){}
+            try { const r2 = await fetch(`${selectedP2.folder}/config.json`); if(r2.ok) p2Cfg = await r2.json(); } catch(e){}
+
+            p1 = new Player(200, 900, '#ff3e3e', { up: 'w', down: 's', left: 'a', right: 'd', melee: 'f', shoot: 'g' }, 'p1', p1Cfg.projectile || {shape: 'star', trailLength: 5});
+            p2 = new Player(2400, 900, '#3e8bff', { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', melee: 'Enter', shoot: 'Shift' }, 'p2', p2Cfg.projectile || {shape: 'cone', trailLength: 8});
             
-            p1.loadModel(selectedP1.folder);
-            p2.loadModel(selectedP2.folder);
-            
+            p1.pConfig = p1Cfg; p2.pConfig = p2Cfg;
+            p1.loadModel(selectedP1.folder); p2.loadModel(selectedP2.folder);
             if(gameMode === '1p') p2.isCPU = true;
 
+            if (stageEnv.boss && stageEnv.boss.active) { currentBoss = new StageBoss(stageEnv.boss, selectedStage.folder); } 
+            else { currentBoss = null; window.currentBoss2D = null; }
+
             globalParticles = Array.from({ length: 50 }, () => new AmbientParticle());
-            
             const introVideoEl = document.getElementById('intro-video-element');
             introVideoEl.src = `${selectedStage.folder}/intro.mp4`;
             
@@ -1519,6 +1426,7 @@
                 p2_cinematic: `${selectedP2.folder}/cinematic.png`, p2_win: `${selectedP2.folder}/win.png`, 
                 stage_bg: `${selectedStage.folder}/fundo.png`, stage_scene: `${selectedStage.folder}/cena.png`, stage_fg: `${selectedStage.folder}/frente.png`, 
                 stage_sky: `${selectedStage.folder}/ceuhdr.jpg`, 
+                boss1: `${selectedStage.folder}/boss1.png`, boss2: `${selectedStage.folder}/boss2.png`, boss3: `${selectedStage.folder}/boss3.png`, boss4: `${selectedStage.folder}/boss4.png`,
                 minion1: `${selectedStage.folder}/minion1.png`, minion2: `${selectedStage.folder}/minion2.png`, minion3: `${selectedStage.folder}/minion3.png`
             };
             
@@ -1538,9 +1446,7 @@
         function checkLoad(current, total) {
             if (current >= total) { 
                 availableMinionIds = ['minion1', 'minion2', 'minion3'].filter(id => isImageOk(assets[id]));
-                
                 build3DBackgrounds(); 
-
                 loadingScreen.style.display = 'none'; 
                 const introVideoEl = document.getElementById('intro-video-element');
                 introVideoEl.style.display = 'block'; void introVideoEl.offsetWidth; introVideoEl.style.opacity = 1;
@@ -1600,18 +1506,9 @@
         joystickZone.addEventListener('touchend', (e) => { e.preventDefault(); resetJoystick(); }, {passive: false});
         joystickZone.addEventListener('touchcancel', (e) => { e.preventDefault(); resetJoystick(); }, {passive: false});
 
-        // --- BANCO DE PERGUNTAS OFFLINE (Garante que o jogo funciona SEMPRE para o público) ---
         const fallbackQuestions = {
-            "Matemática": [
-                { q: "Quanto é 7 x 8?", options: ["54", "56", "62", "48"], correct: 1 },
-                { q: "Qual é a raiz quadrada de 144?", options: ["10", "12", "14", "16"], correct: 1 },
-                { q: "Quanto é 15% de 200?", options: ["15", "30", "45", "20"], correct: 1 }
-            ],
-            "Geral": [
-                { q: "Qual é o maior planeta do Sistema Solar?", options: ["Marte", "Terra", "Júpiter", "Saturno"], correct: 2 },
-                { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Picasso", "Da Vinci", "Michelangelo"], correct: 2 },
-                { q: "Qual é o elemento químico 'O'?", options: ["Ouro", "Ósmio", "Oxigénio", "Ozónio"], correct: 2 }
-            ]
+            "Matemática": [ { q: "Quanto é 7 x 8?", options: ["54", "56", "62", "48"], correct: 1 }, { q: "Qual é a raiz quadrada de 144?", options: ["10", "12", "14", "16"], correct: 1 }, { q: "Quanto é 15% de 200?", options: ["15", "30", "45", "20"], correct: 1 } ],
+            "Geral": [ { q: "Qual é o maior planeta do Sistema Solar?", options: ["Marte", "Terra", "Júpiter", "Saturno"], correct: 2 }, { q: "Quem pintou a Mona Lisa?", options: ["Van Gogh", "Picasso", "Da Vinci", "Michelangelo"], correct: 2 }, { q: "Qual é o elemento químico 'O'?", options: ["Ouro", "Ósmio", "Oxigénio", "Ozónio"], correct: 2 } ]
         };
 
         async function geminiFetch(prompt, system) {
@@ -1622,72 +1519,35 @@
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: system }] }, generationConfig: { responseMimeType: "application/json" } })
                     });
-                    if (!response.ok) {
-                        const erroApi = await response.text();
-                        console.error("ERRO DA GOOGLE API:", erroApi);
-                        throw new Error("Erro HTTP: " + response.status);
-                    }
-                    const data = await response.json(); 
-                    let textoFinal = data.candidates[0].content.parts[0].text;
-                    
-                    // Limpeza mágica: Remove crases do Markdown que o Gemini às vezes envia
-                    textoFinal = textoFinal.replace(/```json/g, '').replace(/```/g, '').trim();
-                    return JSON.parse(textoFinal);
-                    
-                } catch (e) { 
-                    console.warn(`Tentativa ${i+1} falhou:`, e);
-                    await new Promise(r => setTimeout(r, delay)); delay *= 2; 
-                }
+                    if (!response.ok) throw new Error("Erro HTTP: " + response.status);
+                    const data = await response.json(); let textoFinal = data.candidates[0].content.parts[0].text;
+                    return JSON.parse(textoFinal.replace(/```json/g, '').replace(/```/g, '').trim());
+                } catch (e) { await new Promise(r => setTimeout(r, delay)); delay *= 2; }
             }
             throw new Error("Falha total na comunicação com a API");
         }
         
         async function generateQuestions() {
-            const theme = document.getElementById('theme-input').value || 'História'; 
-            document.getElementById('loader').style.display = 'block';
-            
+            const theme = document.getElementById('theme-input').value || 'História'; document.getElementById('loader').style.display = 'block';
             try { 
                 const result = await geminiFetch(`Gere 5 perguntas sobre "${theme}". Formato JSON obrigatório: { "questions": [{ "q": "p", "options": ["o1","o2","o3","o4"], "correct": 0 }] }`, "És um professor sábio. Responde estritamente em JSON."); 
-                if (result && result.questions) { 
-                    questions = result.questions; 
-                    showMessage("✨ Desafios gerados pela IA carregados!"); 
-                } else {
-                    throw new Error("Resposta da IA inválida");
-                }
+                if (result && result.questions) { questions = result.questions; showMessage("✨ Desafios gerados pela IA carregados!"); } else throw new Error();
             } catch (e) { 
-                console.error("⚠ MODO OFFLINE ATIVADO. Motivo:", e);
-                const category = theme.toLowerCase().includes('mat') ? "Matemática" : "Geral";
-                questions = fallbackQuestions[category] || fallbackQuestions["Geral"];
+                const category = theme.toLowerCase().includes('mat') ? "Matemática" : "Geral"; questions = fallbackQuestions[category] || fallbackQuestions["Geral"];
                 showMessage("⚡ Modo Offline: Desafios clássicos carregados!"); 
-            } finally { 
-                document.getElementById('loader').style.display = 'none'; 
-            }
+            } finally { document.getElementById('loader').style.display = 'none'; }
         }
         
         async function explainTopic(question, answer) {
-            const tutorEl = document.getElementById('tutor-explanation'); 
-            tutorEl.style.display = 'block'; 
-            tutorEl.innerText = "A pensar...";
-
+            const tutorEl = document.getElementById('tutor-explanation'); tutorEl.style.display = 'block'; tutorEl.innerText = "A pensar...";
             try { 
                 const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ 
-                        contents: [{ parts: [{ text: `A pergunta era: "${question}". A resposta correta é: "${answer}". Explica rapidamente o porquê desta ser a resposta correta em até 2 frases curtas.` }] }], 
-                        systemInstruction: { parts: [{ text: "És um professor sábio num jogo de luta." }] } 
-                    }) 
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ contents: [{ parts: [{ text: `A pergunta era: "${question}". A resposta correta é: "${answer}". Explica rapidamente o porquê desta ser a resposta correta em até 2 frases curtas.` }] }], systemInstruction: { parts: [{ text: "És um professor sábio num jogo de luta." }] } }) 
                 }); 
-                if (!r.ok) {
-                    console.error("ERRO DA GOOGLE API NA EXPLICAÇÃO:", await r.text());
-                    throw new Error("Erro na API HTTP " + r.status);
-                }
-                const data = await r.json(); 
-                tutorEl.innerText = data.candidates[0].content.parts[0].text; 
-            } catch (e) { 
-                console.error("⚠ MODO OFFLINE NA EXPLICAÇÃO. Motivo:", e);
-                tutorEl.innerText = `O tutor diz: Presta mais atenção! A resposta correta era ${answer}.`; 
-            }
+                if (!r.ok) throw new Error();
+                const data = await r.json(); tutorEl.innerText = data.candidates[0].content.parts[0].text; 
+            } catch (e) { tutorEl.innerText = `O tutor diz: Presta mais atenção! A resposta correta era ${answer}.`; }
         }
 
         canvas2D.width = CANVAS_WIDTH; canvas2D.height = CANVAS_HEIGHT;
