@@ -5,8 +5,8 @@
     "boss": {
       "active": true,
       "scale2D": 1600,
-      "position": { "y": 800, "zDepth": "bg" },
-      "behavior": { "type": "tracking", "speed": 70, "bobbing": true }
+      "position": { "y": 950, "zDepth": "boss" },
+      "behavior": { "type": "tracking", "speed": 50, "bobbing": true }
     }
   },
   "lighting": {
