@@ -1,7 +1,7 @@
 {
   "environment": {
     "sky": false,
-    "parallax": 0,
+    "parallax": 50,
     "boss": {
       "active": true,
       "scale2D": 1600,
