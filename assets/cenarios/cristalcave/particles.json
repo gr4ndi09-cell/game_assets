@@ -4,9 +4,9 @@
     "parallax": 0,
     "boss": {
       "active": true,
-      "scale2D": 800,
-      "position": { "y": 800, "zDepth": "scene" },
-      "behavior": { "type": "tracking", "speed": 100, "bobbing": true }
+      "scale2D": 1600,
+      "position": { "y": 800, "zDepth": "bg" },
+      "behavior": { "type": "tracking", "speed": 70, "bobbing": true }
     }
   },
   "lighting": {
