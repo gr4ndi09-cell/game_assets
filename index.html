@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Didactic Fighter - 2.5D Engine Pro</title>
+    <title>Didactic Fighter - Engine Pro 2.5D</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -191,7 +191,7 @@
     </div>
 
     <script>
-        const apiKey = "COLOQUE_AQUI_A_SUA_API_KEY"; // Cole aqui a sua chave de API do Google Gemini
+        const apiKey = ""; 
 
         const REPO_ROOT = "https://raw.githubusercontent.com/gr4ndi09-cell/game_assets/main/assets";
         
@@ -205,7 +205,6 @@
 
         const LOGICAL_STATE = { RUN: 'RUN', IDLE: 'IDLE', MELEE: 'MELEE', JUMP: 'JUMP', SHOOT: 'SHOOT' };
         
-        // ✨ BANCO DE DADOS (8 PERSONAGENS)
         const CHARACTERS_DB = [
             { id: 'tiger', name: 'Tiger', portrait: `${REPO_ROOT}/chars/tiger/portrait.png`, folder: `${REPO_ROOT}/chars/tiger`, audio: { jump: `${REPO_ROOT}/chars/tiger/audio/jump.mp3`, charge_shot: `${REPO_ROOT}/chars/tiger/audio/charge_shot.mp3` } },
             { id: 'cruzado', name: 'Cruzado', portrait: `${REPO_ROOT}/chars/cruzado/portrait.png`, folder: `${REPO_ROOT}/chars/cruzado`, audio: { jump: `${REPO_ROOT}/chars/cruzado/audio/jump.mp3`, charge_shot: `${REPO_ROOT}/chars/cruzado/audio/charge_shot.mp3` } },
@@ -241,7 +240,6 @@
         let fruitSpawnPoints = []; 
         let minions = [], availableMinionIds = [], minionSpawnTimer = 0;
         
-        let globalAnimations = {}; 
         let skyMesh = null; 
         let stageEnv = { sky: true, parallax: 400, boss: null };
         let currentBoss = null;
@@ -657,10 +655,7 @@
             constructor(config) {
                 this.config = config || {};
                 this.x = WORLD_WIDTH / 2;
-                
-                // Força a leitura do 'y' como número. Se não existir no JSON, usa 800.
                 this.y = (this.config.position && this.config.position.y !== undefined) ? Number(this.config.position.y) : 800;
-                
                 this.meshGroup = new THREE.Group();
                 scene3D.add(this.meshGroup);
                 this.isBuilt = false;
@@ -687,29 +682,22 @@
                     this.layers.forEach(l => { if (!isImageOk(assets[l.key])) allLoaded = false; });
                     
                     if (allLoaded) {
-                        // Calcula o multiplicador de escala com base na camada principal (boss1)
                         let baseImg = assets['boss1'];
-                        let baseWidth = (baseImg && baseImg.naturalWidth) ? baseImg.naturalWidth : 800;
+                        let baseWidth = baseImg.naturalWidth;
                         let scaleFactor = this.config.scale2D ? (Number(this.config.scale2D) / baseWidth) : 1.0;
 
                         this.layers.forEach(l => {
                             const tex = new THREE.Texture(assets[l.key]);
-                            tex.needsUpdate = true; 
-                            tex.flipY = true; 
-                            tex.colorSpace = THREE.SRGBColorSpace;
+                            tex.needsUpdate = true; tex.colorSpace = THREE.SRGBColorSpace; tex.flipY = false;
                             
-                            const mat = new THREE.MeshBasicMaterial({ 
-                                map: tex, transparent: true, alphaTest: 0.05, side: THREE.DoubleSide, depthWrite: false
-                            });
+                            const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.05, side: THREE.DoubleSide, depthWrite: false });
                             
-                            // Aplica a proporção calculada de forma justa a todas as peças!
                             let width = assets[l.key].naturalWidth * scaleFactor;
                             let height = assets[l.key].naturalHeight * scaleFactor;
 
                             const geo = new THREE.PlaneGeometry(width, height);
                             l.mesh = new THREE.Mesh(geo, mat);
                             l.mesh.position.z = l.zOffset;
-                            
                             this.meshGroup.add(l.mesh);
                         });
                         this.isBuilt = true;
@@ -823,9 +811,21 @@
         }
 
         class Explosion { 
-            constructor(x,y,c){
-                this.x=x;this.y=y;this.c=c;this.r=0;this.mr=400;this.l=1.0;
-                this.p=Array.from({length:60},()=>new BulletParticle(x,y,c,1.5));this.dd=false;
+            constructor(x,y,c, maxRadius = 150){
+                this.x=x;this.y=y;this.c=c;this.r=0;this.mr=maxRadius;this.l=1.0;
+                this.p=Array.from({length:60},()=>new BulletParticle(x,y,c,2.0));
+                
+                // NOVOS ESTILHAÇOS FÍSICOS! (Shrapnel)
+                this.chunks = Array.from({length: 12}, () => ({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 1200, // Voam aleatoriamente para os lados
+                    vy: -(Math.random() * 800 + 200), // Disparam com força para cima
+                    s: Math.random() * 6 + 3,
+                    a: 1.0,
+                    c: Math.random() > 0.4 ? "white" : c // O núcleo é tão quente que brilha a branco
+                }));
+
+                this.dd=false;
                 
                 const nx = (this.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
                 const curveZ = Math.pow(nx, 2) * 300;
@@ -835,19 +835,179 @@
                 scene3D.add(this.light);
             } 
             update(dt){
-                this.r+=800*dt;this.l-=2*dt;this.p.forEach(p=>p.update(dt));this.p=this.p.filter(p=>p.l>0);
+                this.r+=800*dt;this.l-=2*dt;
+                this.p.forEach(p=>p.update(dt));this.p=this.p.filter(p=>p.l>0);
+                
+                // Atualiza a gravidade e o voo dos estilhaços
+                this.chunks.forEach(ch => {
+                    ch.vy += GRAVITY * dt; 
+                    ch.x += ch.vx * dt;
+                    ch.y += ch.vy * dt;
+                    ch.a -= 1.5 * dt; // Esmaecem enquanto caem
+                });
+                this.chunks = this.chunks.filter(c => c.a > 0);
+
                 if(this.light) this.light.intensity = Math.max(0, this.l * 10.0);
 
-                if(!this.dd&&this.r>150){
-                    [p1,p2].forEach(p=>{if(!p)return;let dx=(p.x+p.w/2)-this.x;let dy=(p.y+p.h/2)-this.y;if(Math.sqrt(dx*dx+dy*dy)<200)p.takeDamage(30);});
-                    minions.forEach(m=>{let dx=(m.x+m.w/2)-this.x;let dy=(m.y+m.h/2)-this.y;if(Math.sqrt(dx*dx+dy*dy)<200)m.takeDamage(30);});
+                // Apenas aplica dano em área se a explosão for das grandes (raio > 50)
+                if(!this.dd && this.r > this.mr && this.mr > 50){
+                    [p1,p2].forEach(p=>{if(!p)return;let dx=(p.x+p.w/2)-this.x;let dy=(p.y+p.h/2)-this.y;if(Math.sqrt(dx*dx+dy*dy)<this.mr+50)p.takeDamage(30);});
+                    minions.forEach(m=>{let dx=(m.x+m.w/2)-this.x;let dy=(m.y+m.h/2)-this.y;if(Math.sqrt(dx*dx+dy*dy)<this.mr+50)m.takeDamage(30);});
                     this.dd=true;
                 }
             } 
             draw(c){
-                c.save();const g=c.createRadialGradient(this.x,this.y,0,this.x,this.y,Math.max(0,this.r));g.addColorStop(0,"white");g.addColorStop(0.3,this.c);g.addColorStop(1,"transparent");c.fillStyle=g;c.globalAlpha=Math.max(0,this.l);c.globalCompositeOperation='screen';c.beginPath();c.arc(this.x,this.y,Math.max(0,this.r),0,Math.PI*2);c.fill();this.p.forEach(p=>p.draw(c));c.restore();
+                c.save();
+                const g=c.createRadialGradient(this.x,this.y,0,this.x,this.y,Math.max(0,this.r));
+                g.addColorStop(0,"white");g.addColorStop(0.3,this.c);g.addColorStop(1,"transparent");
+                c.fillStyle=g;c.globalAlpha=Math.max(0,this.l);c.globalCompositeOperation='screen';
+                c.beginPath();c.arc(this.x,this.y,Math.max(0,this.r),0,Math.PI*2);c.fill();
+                
+                this.p.forEach(p=>p.draw(c));
+                
+                // Desenha a chuva de estilhaços
+                c.globalCompositeOperation='lighter';
+                this.chunks.forEach(ch => {
+                    c.globalAlpha = Math.max(0, ch.a);
+                    c.fillStyle = ch.c;
+                    c.shadowBlur = 15;
+                    c.shadowColor = this.c;
+                    c.fillRect(ch.x - ch.s/2, ch.y - ch.s/2, ch.s, ch.s); // Quadrados pontiagudos
+                });
+                
+                c.restore();
             } 
             destroy() { if(this.light) scene3D.remove(this.light); }
+        }
+
+        class ArcProjectile {
+            constructor(x, y, facing, config, owner = 'minion') {
+                this.x = x; this.y = y; this.facing = facing;
+                this.owner = owner; 
+                this.c = config.projColor || config.color || '#ff0000';
+                this.size = config.projSize || config.size || 15;
+                this.type = config.projType || config.type || 'bouncing'; 
+                this.shapeType = config.projShape || 'sphere'; 
+                this.damage = config.damage || 15;
+                this.explosionRadius = config.explosionRadius || 100;
+                
+                this.vx = facing * 400; 
+                this.vy = -(config.arcForce || 800); 
+                this.bouncesLeft = this.type === 'explosive' ? 1 : 3;
+                
+                this.active = true;
+                this.p = []; this.trail = [];
+                this.alpha = 1.0;
+
+                // CONSTRUÇÃO DO MODELO 3D (Formato)
+                this.meshGroup = new THREE.Group();
+                let geometries = [];
+                
+                if (this.shapeType === 'star') { geometries.push(new THREE.TetrahedronGeometry(this.size, 0)); const g2 = new THREE.TetrahedronGeometry(this.size, 0); g2.rotateZ(Math.PI); g2.rotateX(Math.PI/4); geometries.push(g2); } 
+                else if (this.shapeType === 'cone') { const g = new THREE.ConeGeometry(this.size * 0.8, this.size * 2.5, 4); g.rotateZ(this.facing === 1 ? -Math.PI/2 : Math.PI/2); geometries.push(g); } 
+                else if (this.shapeType === 'sphere') { geometries.push(new THREE.IcosahedronGeometry(this.size * 0.8, 2)); } 
+                else if (this.shapeType === 'shuriken') { const geoShuriken = new THREE.OctahedronGeometry(this.size * 1.5, 0); geoShuriken.scale(1, 1, 0.2); geometries.push(geoShuriken); } 
+                else if (this.shapeType === 'crescent') { const moonShape = new THREE.Shape(); moonShape.absarc(0, 0, 10, Math.PI/2, -Math.PI/2, false); moonShape.absarc(3, 0, 8, -Math.PI/2, Math.PI/2, true); const extrudeSettingsMoon = { depth: 2, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 1, bevelThickness: 1 }; const geoMoon = new THREE.ExtrudeGeometry( moonShape, extrudeSettingsMoon ); geoMoon.center(); geoMoon.scale(this.size/10, this.size/10, this.size/10); if(this.facing === -1) geoMoon.rotateY(Math.PI); geometries.push(geoMoon); } 
+                else if (this.shapeType === 'heart') { const hx = 0, hy = 0; const heartShape = new THREE.Shape(); heartShape.moveTo( hx + 5, hy + 5 ); heartShape.bezierCurveTo( hx + 5, hy + 5, hx + 4, hy, hx, hy ); heartShape.bezierCurveTo( hx - 6, hy, hx - 6, hy + 7,hx - 6, hy + 7 ); heartShape.bezierCurveTo( hx - 6, hy + 11, hx - 3, hy + 15.4, hx + 5, hy + 19 ); heartShape.bezierCurveTo( hx + 12, hy + 15.4, hx + 16, hy + 11, hx + 16, hy + 7 ); heartShape.bezierCurveTo( hx + 16, hy + 7, hx + 16, hy, hx + 10, hy ); heartShape.bezierCurveTo( hx + 7, hy, hx + 5, hy + 5, hx + 5, hy + 5 ); const extrudeSettings = { depth: 2, bevelEnabled: true, bevelSegments: 2, steps: 1, bevelSize: 1, bevelThickness: 1 }; const geoHeart = new THREE.ExtrudeGeometry( heartShape, extrudeSettings ); geoHeart.center(); geoHeart.scale(this.size/15, this.size/15, this.size/15); geoHeart.rotateZ(Math.PI); geometries.push(geoHeart); } 
+                else { geometries.push(new THREE.IcosahedronGeometry(this.size * 0.8, 1)); }
+
+                const coreMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                const glowMat = new THREE.MeshBasicMaterial({ color: getRGBColor(this.c), transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending });
+
+                geometries.forEach(geo => {
+                    const core = new THREE.Mesh(geo, coreMat); this.meshGroup.add(core);
+                    for(let i=1; i<=4; i++) { const glow = new THREE.Mesh(geo, glowMat); glow.scale.setScalar(1 + (i * 0.35)); this.meshGroup.add(glow); }
+                });
+
+                const nx = (this.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2); const curveZ = Math.pow(nx, 2) * 300;
+                this.light = new THREE.PointLight(this.c, 6.0, 300); this.light.position.set(0, 0, -100); this.meshGroup.add(this.light); 
+                this.meshGroup.position.set(this.x, WORLD_HEIGHT - this.y, 0 + curveZ); 
+                scene3D.add(this.meshGroup);
+            }
+            update(dt) {
+                for(let k=0; k < 2; k++) { this.p.push(new BulletParticle(this.x,this.y,this.c,0.4, 1.0)); }
+                this.trail.unshift({x:this.x,y:this.y}); if(this.trail.length>5)this.trail.pop();
+                this.p.forEach((p,i)=>{p.update(dt);if(p.l<=0)this.p.splice(i,1)});
+
+                if (this.bouncesLeft <= 0 && this.type === 'bouncing') {
+                    this.alpha -= 2 * dt;
+                    if (this.alpha <= 0) this.active = false;
+                }
+
+                this.vy += GRAVITY * dt;
+                this.x += this.vx * dt;
+                this.y += this.vy * dt;
+
+                let hitFloor = false; let floorY = GROUND_Y;
+                if (this.y + this.size > GROUND_Y) {
+                    hitFloor = true; floorY = GROUND_Y;
+                } else {
+                    colliders.forEach(c => {
+                        if (!c.type || c.type === 'rect') {
+                            if (this.vy > 0 && this.y + this.size > c.y && this.y - this.size < c.y + 30 && this.x > c.x && this.x < c.x + c.w) {
+                                hitFloor = true; floorY = c.y;
+                            }
+                        }
+                    });
+                }
+
+                if (hitFloor) {
+                    this.y = floorY - this.size;
+                    this.vy = -this.vy * 0.5; 
+                    this.vx *= 0.8; 
+                    if (Math.abs(this.vy) < 100) this.vy = 0;
+                    
+                    this.bouncesLeft--;
+                    
+                    if (this.bouncesLeft <= 0) {
+                        let rad = this.type === 'explosive' ? this.explosionRadius : 40;
+                        explosions.push(new Explosion(this.x, this.y, this.c, rad));
+                        this.active = false;
+                    }
+                }
+                
+                if (this.x < -100 || this.x > WORLD_WIDTH + 100) this.active = false;
+
+                // ATUALIZAÇÃO 3D (Posição e Rotação)
+                if (this.meshGroup) {
+                    const nx = (this.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2); const curveZ = Math.pow(nx, 2) * 300;
+                    this.meshGroup.position.set(this.x, WORLD_HEIGHT - this.y, 0 + curveZ);
+
+                    // Animação de acordo com a forma escolhida no minion.json
+                    if (this.shapeType === 'star') { this.meshGroup.rotation.x += 10 * dt; this.meshGroup.rotation.y += 10 * dt; } 
+                    else if (this.shapeType === 'cone') { this.meshGroup.rotation.x += 15 * dt; } 
+                    else if (this.shapeType === 'shuriken') { this.meshGroup.rotation.z += (this.vx > 0 ? -20 : 20) * dt; } 
+                    else if (this.shapeType === 'crescent') { this.meshGroup.rotation.z += (this.vx > 0 ? -15 : 15) * dt; } 
+                    else if (this.shapeType === 'heart') { this.meshGroup.rotation.y += 3 * dt; const pulse = 1 + Math.sin(Date.now()/150)*0.1; this.meshGroup.scale.setScalar(pulse); } 
+                    else { this.meshGroup.rotation.z += 5 * dt; this.meshGroup.rotation.x += 5 * dt; }
+
+                    if (this.type === 'bouncing' && this.bouncesLeft <= 0) {
+                        this.meshGroup.scale.setScalar(Math.max(0, this.alpha));
+                    }
+                }
+            }
+            draw(c) {
+                c.save(); 
+                c.globalAlpha = Math.max(0, this.alpha);
+                c.globalCompositeOperation = 'lighter'; 
+                
+                this.p.forEach(p=>p.draw(c));
+                
+                this.trail.forEach((p, i)=>{
+                    const sizePercent = 1 - (i / 5);
+                    c.globalAlpha = 0.5 * sizePercent * this.alpha; 
+                    c.fillStyle = this.c; 
+                    c.shadowBlur = 20; 
+                    c.shadowColor = this.c;
+                    c.beginPath();
+                    c.arc(p.x, p.y, this.size * sizePercent * 0.8, 0, Math.PI*2); 
+                    c.fill();
+                });
+                // Removi a "bolinha branca" 2D fixa que existia aqui,
+                // porque o modelo 3D mágico agora trata disso perfeitamente!
+                c.restore();
+            }
+            destroy() { if (this.meshGroup) scene3D.remove(this.meshGroup); }
         }
         
         class Projectile { 
@@ -922,18 +1082,124 @@
             destroy() { if(this.meshGroup) scene3D.remove(this.meshGroup); }
         }
 
+        function check3DHit(atacante, empties, dano, isPassive) {
+            let hit = false;
+            let posAtaque = new THREE.Vector3();
+            let posOsso = new THREE.Vector3();
+            let alvos = [p1, p2, ...minions].filter(a => a && a !== atacante && a.health > 0);
+
+            for (let ponto of empties) {
+                ponto.getWorldPosition(posAtaque);
+                
+                for (let alvo of alvos) {
+                    if (alvo.ossosPassivos && alvo.ossosPassivos.length > 0) {
+                        for (let osso of alvo.ossosPassivos) {
+                            osso.getWorldPosition(posOsso);
+                            if (posAtaque.distanceTo(posOsso) < 50) { 
+                                alvo.takeDamage(dano);
+                                hit = true; break;
+                            }
+                        }
+                    } else {
+                        let nx = (alvo.x + alvo.w/2 - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2);
+                        let curveZ = Math.pow(nx, 2) * 300;
+                        let alvo3DX = alvo.x + alvo.w/2; let alvo3DY = WORLD_HEIGHT - (alvo.y + alvo.h/2);
+                        posOsso.set(alvo3DX, alvo3DY, curveZ);
+                        
+                        if (posAtaque.distanceTo(posOsso) < 80) { alvo.takeDamage(dano); hit = true; }
+                    }
+                    if (hit) break;
+                }
+                if (hit) break;
+            }
+            return hit;
+        }
+
         class Minion {
-            constructor(x, y, imgId) {
+            constructor(x, y, typeId) {
                 this.x = x; this.y = y; this.w = 50; this.h = 80; 
-                this.vx = 0; this.vy = 0; this.speed = 100 + Math.random() * 50;
+                this.vx = 0; this.vy = 0; 
                 this.state = 'MOVE'; this.facing = 1; this.health = 30;
                 this.onGround = false; this.attackCooldown = 0; this.dF = 0; 
+                this.typeId = typeId;
+                
+                this.attackAnimTimer = 0; 
+                
+                this.ossosPassivos = [];
+                this.pontosDanoAtivo = [];
+                this.pontosDanoPassivo = [];
+                this.passiveHitTimer = 0;
+                
+                this.meshGroup = new THREE.Group(); scene3D.add(this.meshGroup);
                 
                 const geo = new THREE.BoxGeometry(this.w, this.h, 40);
-                const mat = new THREE.MeshLambertMaterial({ color: 0x8800ff });
-                this.mesh = new THREE.Mesh(geo, mat); scene3D.add(this.mesh);
+                const mat = new THREE.MeshLambertMaterial({ color: 0x8800ff, transparent: true, opacity: 0.5 });
+                this.mesh = new THREE.Mesh(geo, mat); this.mesh.position.y = this.h/2; this.meshGroup.add(this.mesh);
+                
+                this.mixer = null; this.model3D = null; this.actions = {}; this.currentAction = null;
+                this.mConfig = { speed: 120, size: 40, projType: 'bouncing', projColor: '#00ff00', projShape: 'sphere', arcForce: 600, explosionRadius: 100 };
+                
+                this.loadConfig();
+                this.loadModel();
+            }
+            async loadConfig() {
+                try {
+                    const resp = await fetch(`${selectedStage.folder}/${this.typeId}.json`);
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        this.mConfig = { ...this.mConfig, ...data };
+                    }
+                } catch(e) {}
+            }
+            loadModel() {
+                const loader = new THREE.GLTFLoader();
+                const modelPath = `${selectedStage.folder}/${this.typeId}.glb`;
+                loader.load(modelPath, (gltf) => {
+                    this.meshGroup.remove(this.mesh);
+                    this.model3D = THREE.SkeletonUtils.clone(gltf.scene);
+                    const scaleFactor = this.mConfig.size || 40.0; 
+                    this.model3D.scale.set(scaleFactor, scaleFactor, scaleFactor);
+                    this.model3D.position.set(this.w/2, 0, 0);
+                    
+                    this.model3D.traverse((child) => {
+                        if (child.isMesh) child.castShadow = true;
+                        if (child.isBone) this.ossosPassivos.push(child);
+                        let name = child.name.toLowerCase();
+                        if (name.startsWith('dano_ativo')) this.pontosDanoAtivo.push(child);
+                        if (name.startsWith('dano_passivo')) this.pontosDanoPassivo.push(child);
+                    });
+
+                    this.meshGroup.add(this.model3D);
+                    this.mixer = new THREE.AnimationMixer(this.model3D);
+                    
+                    if (gltf.animations) {
+                        gltf.animations.forEach(clip => {
+                            let name = clip.name.toLowerCase();
+                            if (name.includes('andar') || name.includes('walk')) this.actions['andar'] = this.mixer.clipAction(clip);
+                            if (name.includes('idle') || name.includes('parado') || name.includes('descanso')) this.actions['idle'] = this.mixer.clipAction(clip);
+                            if (name.includes('disparo') || name.includes('shoot') || name.includes('attack')) {
+                                let act = this.mixer.clipAction(clip);
+                                act.loop = THREE.LoopOnce; act.clampWhenFinished = true;
+                                this.actions['disparo'] = act;
+                            }
+                        });
+                        
+                        if(this.actions['idle']) { this.currentAction = this.actions['idle']; this.currentAction.play(); }
+                        else if(this.actions['andar']) { this.currentAction = this.actions['andar']; this.currentAction.play(); }
+                        else if (gltf.animations.length > 0) { this.currentAction = this.mixer.clipAction(gltf.animations[0]); this.currentAction.play(); }
+                    }
+                }, undefined, (err) => {});
+            }
+            playAnimation(name) {
+                if(!this.mixer || !this.actions[name] || this.currentAction === this.actions[name]) return;
+                let next = this.actions[name];
+                next.reset().setEffectiveTimeScale(1).setEffectiveWeight(1).play();
+                if(this.currentAction) this.currentAction.crossFadeTo(next, 0.2, true);
+                this.currentAction = next;
             }
             update(dt) {
+                if (this.mixer) this.mixer.update(dt);
+                
                 let target = null; let minD = Infinity;
                 [p1, p2].forEach(p => {
                     if (p && p.health > 0) {
@@ -946,27 +1212,106 @@
                     if (target) {
                         let distX = (target.x + target.w/2) - (this.x + this.w/2);
                         this.facing = distX > 0 ? 1 : -1;
-                        if (Math.abs(distX) > 300) { this.vx = this.facing * this.speed; } 
-                        else { this.vx = 0; if (this.attackCooldown <= 0) { this.state = 'ATTACK'; } }
-                    } else { this.vx = 0; }
-                } else if (this.state === 'ATTACK') { this.vx = 0; }
+                        let distAbs = Math.abs(distX);
+                        
+                        if (this.attackCooldown <= 0 && minD <= 600) { 
+                            this.state = 'ATTACK';
+                            this.vx = 0;
+                            this.attackAnimTimer = 0.8;
+                            this.playAnimation('disparo');
+                            
+                            // Nasce um pouco mais à frente para evitar self-hit visual, e regista 'minion'
+                            let sx = this.facing === 1 ? this.x + this.w + 10 : this.x - 10; let sy = this.y + (this.h * 0.2);
+                            bullets.push(new ArcProjectile(sx, sy, this.facing, this.mConfig, 'minion'));
+                            this.attackCooldown = 3.0 + Math.random(); 
+                        } else {
+                            if (distAbs > 150) { 
+                                this.vx = this.facing * this.mConfig.speed; 
+                            } else { 
+                                this.vx = 0; 
+                            }
+
+                            if (this.onGround && this.vx !== 0) {
+                                let nextXCenter = this.x + this.w/2 + (this.vx > 0 ? this.w/2 + 5 : -this.w/2 - 5);
+                                let hasFloor = false;
+                                if (GROUND_Y - (this.y + this.h) < 10) hasFloor = true; 
+                                colliders.forEach(c => {
+                                    if (c.type === 'rect' || !c.type) {
+                                        if (nextXCenter > c.x && nextXCenter < c.x + c.w && Math.abs(c.y - (this.y + this.h)) < 20) {
+                                            hasFloor = true;
+                                        }
+                                    } else if (c.type === 'slope') {
+                                        if (nextXCenter > c.x1 && nextXCenter < c.x2) {
+                                            let t = (nextXCenter - c.x1)/(c.x2 - c.x1); let ty = c.y1 + t*(c.y2 - c.y1);
+                                            if (Math.abs(ty - (this.y + this.h)) < 40) hasFloor = true;
+                                        }
+                                    }
+                                });
+                                if (!hasFloor) this.vx = 0; 
+                            }
+
+                            if (this.vx !== 0) this.playAnimation('andar');
+                            else this.playAnimation('idle');
+                        }
+                    } else { 
+                        this.vx = 0; 
+                        this.playAnimation('idle');
+                    }
+                }
+
+                if (this.state === 'ATTACK') {
+                    this.vx = 0;
+                    this.attackAnimTimer -= dt;
+                    if (this.attackAnimTimer <= 0) {
+                        this.state = 'MOVE';
+                        this.playAnimation('idle');
+                    }
+                }
 
                 if (this.attackCooldown > 0) this.attackCooldown -= dt; if (this.dF > 0) this.dF -= dt;
+                
                 this.vy += GRAVITY * dt * 2; this.x += this.vx * dt; this.y += this.vy * dt; this.onGround = false;
                 if (this.y + this.h > GROUND_Y) { this.y = GROUND_Y - this.h; this.vy = 0; this.onGround = true; }
 
-                if (this.state === 'ATTACK' && this.attackCooldown <= 0) {
-                    let sx = this.facing === 1 ? this.x + this.w : this.x; let sy = this.y + (this.h * 0.4);
-                    bullets.push(new Projectile(sx, sy, this.facing, 10, 8, '#ff00ff', false, 'minion'));
-                    this.state = 'MOVE'; this.attackCooldown = 2.0; 
+                // Margem Vertical Gigante (+100) para evitar atravessar chão a alta velocidade
+                colliders.forEach(c => {
+                    if (!c.type || c.type === 'rect') {
+                        if (this.vy >= 0 && this.y + this.h > c.y - 10 && this.y + this.h < c.y + c.h + 100 && this.x + this.w > c.x && this.x < c.x + c.w) {
+                            this.y = c.y - this.h; this.vy = 0; this.onGround = true;
+                        }
+                    } else if (c.type === 'slope') {
+                        if (this.x + this.w/2 > c.x1 && this.x + this.w/2 < c.x2) {
+                            let t = ((this.x + this.w/2) - c.x1) / (c.x2 - c.x1); let ty = c.y1 + t * (c.y2 - c.y1);
+                            if (this.vy >= 0 && this.y + this.h >= ty - 20 && this.y + this.h <= ty + 100) {
+                                this.y = ty - this.h; this.vy = 0; this.onGround = true;
+                            }
+                        }
+                    }
+                });
+
+                if (this.passiveHitTimer > 0) this.passiveHitTimer -= dt;
+                if (this.pontosDanoPassivo.length > 0 && this.passiveHitTimer <= 0) {
+                    if (check3DHit(this, this.pontosDanoPassivo, 5, true)) { this.passiveHitTimer = 1.0; }
                 }
 
                 const nx = (this.x + this.w/2 - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2); const curveZ = Math.pow(nx, 2) * 300;
-                this.mesh.position.set(this.x + this.w/2, WORLD_HEIGHT - (this.y + this.h/2), curveZ);
-                this.mesh.rotation.y = this.facing === 1 ? 0 : Math.PI;
-                if (this.dF > 0) this.mesh.material.emissive.setHex(0xffffff); else this.mesh.material.emissive.setHex(0x000000);
+                this.meshGroup.position.set(this.x, WORLD_HEIGHT - (this.y + this.h), curveZ);
+                this.meshGroup.rotation.y = this.facing === 1 ? Math.PI/2 : -Math.PI/2;
+                
+                if (this.model3D) {
+                    this.model3D.traverse((child) => {
+                        if (child.isMesh && child.material) {
+                            let mats = Array.isArray(child.material) ? child.material : [child.material];
+                            mats.forEach(m => {
+                                if (m.emissive) {
+                                    if (this.dF > 0) m.emissive.setHex(0xffffff); else m.emissive.setHex(0x000000);
+                                }
+                            });
+                        }
+                    });
+                }
             }
-            takeDamage(a) { this.health -= a; this.dF = 0.2; if (this.health <= 0) { this.health = 0; scene3D.remove(this.mesh); } }
+            takeDamage(a) { this.health -= a; this.dF = 0.2; if (this.health <= 0) { this.health = 0; scene3D.remove(this.meshGroup); } }
             draw(ctx) { }
         }
 
@@ -979,6 +1324,11 @@
                 this.onIce = false; this.isCPU = false; 
                 this.cpuKeys = { up: false, down: false, left: false, right: false, melee: false, shoot: false };
                 this.pConfig = pConfig; 
+
+                this.ossosPassivos = [];
+                this.pontosDanoAtivo = [];
+                this.pontosDanoPassivo = [];
+                this.passiveHitTimer = 0;
 
                 this.meshGroup = new THREE.Group(); scene3D.add(this.meshGroup);
 
@@ -1004,6 +1354,10 @@
                                 mats.forEach(m => { if (m.isMeshStandardMaterial || m.isMeshLambertMaterial) { m.roughness = 0.7; m.metalness = 0.1; } });
                             }
                         }
+                        if (child.isBone) this.ossosPassivos.push(child);
+                        let name = child.name.toLowerCase();
+                        if (name.startsWith('dano_ativo')) this.pontosDanoAtivo.push(child);
+                        if (name.startsWith('dano_passivo')) this.pontosDanoPassivo.push(child);
                     });
 
                     this.meshGroup.add(this.model3D); this.mixer = new THREE.AnimationMixer(this.model3D);
@@ -1015,7 +1369,7 @@
                         });
                         this.playAnimation('idle');
                     }
-                }, undefined, (error) => { console.error("Erro modelo lutador:", modelPath, error); });
+                }, undefined, (error) => {});
             }
 
             playAnimation(name) {
@@ -1059,7 +1413,6 @@
                     melee: keys[this.ctrl.melee] || (is1P && (keys['Enter'] || keys[' '])), shoot: keys[this.ctrl.shoot] || (is1P && keys['Shift'])
                 };
 
-                // Puxando atributos dinâmicos do JSON
                 const pSpeed = this.pConfig.moveSpeed || MOVE_SPEED;
                 const pJump = this.pConfig.jumpForce || JUMP_FORCE;
 
@@ -1082,6 +1435,11 @@
                 if(this.atkT>0) { this.atkT-=dt; if (this.atkT < 0.25 && !this.mHD) { this.checkMeleeHit(); this.mHD=true; } } else this.isAttacking=false;
                 if(this.dF>0)this.dF-=dt;
                 
+                if (this.passiveHitTimer > 0) this.passiveHitTimer -= dt;
+                if (this.pontosDanoPassivo.length > 0 && this.passiveHitTimer <= 0) {
+                    if (check3DHit(this, this.pontosDanoPassivo, 5, true)) { this.passiveHitTimer = 1.0; }
+                }
+
                 this.vy+=GRAVITY*dt*2; this.x+=this.vx*dt; this.y+=this.vy*dt;
                 this.onGround=false; this.onIce = false;
                 
@@ -1089,9 +1447,11 @@
                 if(this.y+this.h>GROUND_Y){this.y=GROUND_Y-this.h;this.vy=0;this.onGround=true;}
                 
                 const isDown=activeKeys.down;
+                
+                // Margem Vertical Aumentada (+100)
                 colliders.forEach(p=>{
                     if(!p.type||p.type==='rect'){
-                        if(this.vy>=0&&this.y+this.h>p.y-10&&this.y+this.h<p.y+p.h+40&&this.x+this.w>p.x&&this.x<p.x+p.w){
+                        if(this.vy>=0&&this.y+this.h>p.y-10&&this.y+this.h<p.y+p.h+100&&this.x+this.w>p.x&&this.x<p.x+p.w){
                             if(p.isSpring){this.vy=-JUMP_FORCE*1.5;this.onGround=false;return;}
                             if(isDown&&p.id!==16)return;
                             this.y=p.y-this.h; this.vy=0; this.onGround=true; if (p.isSlippery) this.onIce = true;
@@ -1099,7 +1459,7 @@
                     }else if(p.type==='slope'){
                         if(this.x+this.w/2>p.x1&&this.x+this.w/2<p.x2){
                             let t=((this.x+this.w/2)-p.x1)/(p.x2-p.x1); let ty=p.y1+t*(p.y2-p.y1);
-                            if(this.vy>=0&&this.y+this.h>=ty-20&&this.y+this.h<=ty+30){
+                            if(this.vy>=0&&this.y+this.h>=ty-20&&this.y+this.h<=ty+100){
                                 if(isDown)return; this.y=ty-this.h; this.vy=0; this.onGround=true; if (p.isSlippery) this.onIce = true;
                             }
                         }
@@ -1131,10 +1491,15 @@
             }
             
             checkMeleeHit(){
-                let t=(this.id==='p1')?p2:p1; let r=95; let hX=this.facing===1?this.x+this.w:this.x-r;
-                if(t && hX+r>t.x&&hX<t.x+t.w&&this.y+this.h>t.y&&this.y<t.y+t.h) t.takeDamage(15);
-                minions.forEach(m => { if(hX+r>m.x&&hX<m.x+m.w&&this.y+this.h>m.y&&this.y<m.y+m.h) m.takeDamage(15); });
+                if (this.model3D && this.pontosDanoAtivo.length > 0) {
+                    check3DHit(this, this.pontosDanoAtivo, 15, false);
+                } else {
+                    let t=(this.id==='p1')?p2:p1; let r=95; let hX=this.facing===1?this.x+this.w:this.x-r;
+                    if(t && hX+r>t.x&&hX<t.x+t.w&&this.y+this.h>t.y&&this.y<t.y+t.h) t.takeDamage(15);
+                    minions.forEach(m => { if(hX+r>m.x&&hX<m.x+m.w&&this.y+this.h>m.y&&this.y<m.y+m.h) m.takeDamage(15); });
+                }
             }
+
             shoot(){
                 const activeBullets = bullets.filter(b => b.owner === this.id).length; if (activeBullets >= 4) return;
                 const ic=this.charge>90; const sx=this.facing===1?this.x+this.w:this.x; const sy=this.y+(this.h*0.4);
@@ -1165,7 +1530,7 @@
 
         async function loadStageData(stageUrl) {
             try { const response = await fetch(`${stageUrl}/platforms.json`); if (response.ok) { colliders = await response.json(); generateFruitSpawns(); } else { throw new Error("JSON 404"); } }
-            catch (e) { console.warn("Usando fallback de plataformas."); colliders = [ { x: 0, y: 1509, w: 2752, h: 15, id: 16, type: 'rect' }, { x: 500, y: 1200, w: 400, h: 20, type: 'rect', isSlippery: true }, { x: 1200, y: 1000, w: 400, h: 20, type: 'rect' }, { x: 200, y: 800, w: 300, h: 20, type: 'rect' } ]; generateFruitSpawns(); }
+            catch (e) { colliders = [ { x: 0, y: 1509, w: 2752, h: 15, id: 16, type: 'rect' }, { x: 500, y: 1200, w: 400, h: 20, type: 'rect', isSlippery: true }, { x: 1200, y: 1000, w: 400, h: 20, type: 'rect' }, { x: 200, y: 800, w: 300, h: 20, type: 'rect' } ]; generateFruitSpawns(); }
             try {
                 const fxResponse = await fetch(`${stageUrl}/particles.json`);
                 if (fxResponse.ok) { const fxData = await fxResponse.json(); stageFX = new StageFX(); stageFX.init(fxData); } else { throw new Error("Particles 404"); }
@@ -1301,8 +1666,12 @@
                     minionSpawnTimer -= dt;
                     if (minionSpawnTimer <= 0 && minions.length < 5) {
                         let randType = availableMinionIds[Math.floor(Math.random() * availableMinionIds.length)];
-                        let spawnX = Math.random() < 0.5 ? camera.x - 50 : camera.x + camera.viewWidth + 50;
-                        minions.push(new Minion(spawnX, GROUND_Y - 100, randType));
+                        
+                        let spawnPt = fruitSpawnPoints[Math.floor(Math.random() * fruitSpawnPoints.length)];
+                        let spawnX = spawnPt ? spawnPt.x : (Math.random() < 0.5 ? camera.x + 10 : camera.x + camera.viewWidth - 60);
+                        let spawnY = spawnPt ? spawnPt.y - 100 : GROUND_Y - 100;
+                        
+                        minions.push(new Minion(spawnX, spawnY, randType));
                         minionSpawnTimer = 5.0 + Math.random() * 5.0; 
                     }
                 }
@@ -1316,34 +1685,45 @@
                 for(let i=bullets.length-1;i>=0;i--){
                     for(let j=i-1;j>=0;j--){
                         const b1=bullets[i],b2=bullets[j];if(!b1||!b2)continue;
-                        if(Math.hypot(b1.x-b2.x,b1.y-b2.y) < b1.size + b2.size){
-                            if(b1.ic&&b2.ic){explosions.push(new Explosion((b1.x+b2.x)/2,(b1.y+b2.y)/2,"orange")); b1.destroy(); b2.destroy(); bullets.splice(i,1);bullets.splice(j,1);break;}
+                        
+                        let collisionDist = b1.size + b2.size;
+                        if(Math.hypot(b1.x-b2.x,b1.y-b2.y) < collisionDist){
+                            if(b1.ic&&b2.ic){explosions.push(new Explosion((b1.x+b2.x)/2,(b1.y+b2.y)/2,"orange", 150)); b1.destroy(); b2.destroy(); bullets.splice(i,1);bullets.splice(j,1);break;}
                             else if(b1.ic&&!b2.ic){b2.destroy(); bullets.splice(j,1);}else if(!b1.ic&&b2.ic){b1.destroy(); bullets.splice(i,1);break;}
                             else{b1.destroy(); b2.destroy(); bullets.splice(i,1);bullets.splice(j,1);break;}
                         }
                     }
                 }
+                
                 bullets.forEach((b,i)=>{
                     b.update(dt); let hit = false;
                     
-                    [p1, p2].forEach(p => {
-                        if (p && p.health > 0 && b.x + b.size > p.x && b.x - b.size < p.x + p.w && b.y + b.size > p.y && b.y - b.size < p.y + p.h) {
-                            if (b.owner !== p.id) { p.takeDamage(b.damage); hit = true; }
-                        }
-                    });
-                    
-                    if (!hit && b.owner !== 'minion') {
-                        minions.forEach(m => { 
-                            if (m.health > 0 && b.x + b.size > m.x && b.x - b.size < m.x + m.w && b.y + b.size > m.y && b.y - b.size < m.y + m.h) { 
-                                m.takeDamage(b.damage); hit = true; 
-                            } 
+                    if (b.active) {
+                        [p1, p2].forEach(p => {
+                            if (p && p.health > 0 && b.x + b.size > p.x && b.x - b.size < p.x + p.w && b.y + b.size > p.y && b.y - b.size < p.y + p.h) {
+                                if (b.owner !== p.id) { 
+                                    p.takeDamage(b.damage); hit = true; 
+                                    let rad = b.explosionRadius || 40;
+                                    explosions.push(new Explosion(b.x, b.y, b.c, rad));
+                                }
+                            }
                         });
+                        
+                        if (!hit && b.owner !== 'minion') {
+                            minions.forEach(m => { 
+                                if (m.health > 0 && b.x + b.size > m.x && b.x - b.size < m.x + m.w && b.y + b.size > m.y && b.y - b.size < m.y + m.h) { 
+                                    m.takeDamage(b.damage); hit = true; 
+                                    let rad = b.explosionRadius || 40;
+                                    explosions.push(new Explosion(b.x, b.y, b.c, rad));
+                                } 
+                            });
+                        }
+                        if(hit) b.active = false;
                     }
-                    if(hit) b.active = false;
-                    if(!b.active) { b.destroy(); bullets.splice(i,1); }
+                    if(!b.active) { b.destroy && b.destroy(); bullets.splice(i,1); }
                 });
                 
-                explosions.forEach((e,i)=>{ e.update(dt); if(e.life<=0 || e.l <= 0) { e.destroy(); explosions.splice(i,1); } });
+                explosions.forEach((e,i)=>{ e.update(dt); if(e.life<=0 || e.l <= 0) { e.destroy && e.destroy(); explosions.splice(i,1); } });
             }
             updateCamera();
         }
@@ -1427,13 +1807,21 @@
                 stage_bg: `${selectedStage.folder}/fundo.png`, stage_scene: `${selectedStage.folder}/cena.png`, stage_fg: `${selectedStage.folder}/frente.png`, 
                 stage_sky: `${selectedStage.folder}/ceuhdr.jpg`, 
                 boss1: `${selectedStage.folder}/boss1.png`, boss2: `${selectedStage.folder}/boss2.png`, boss3: `${selectedStage.folder}/boss3.png`, boss4: `${selectedStage.folder}/boss4.png`,
-                minion1: `${selectedStage.folder}/minion1.png`, minion2: `${selectedStage.folder}/minion2.png`, minion3: `${selectedStage.folder}/minion3.png`
             };
             
             audioManager.load('shot_common', COMMON_SOUNDS.shot); audioManager.load('hit', COMMON_SOUNDS.hit); 
             audioManager.load('p1_jump', selectedP1.audio.jump); audioManager.load('p1_charge', selectedP1.audio.charge_shot); 
             audioManager.load('p2_jump', selectedP2.audio.jump); audioManager.load('p2_charge', selectedP2.audio.charge_shot); 
             audioManager.load('stage_intro', selectedStage.audio.intro); audioManager.load('stage_ambience', selectedStage.audio.ambience);
+            
+            availableMinionIds = [];
+            for (let i = 1; i <= 3; i++) {
+                try {
+                    let r = await fetch(`${selectedStage.folder}/minion${i}.glb`, { method: 'GET' });
+                    if (r.ok) availableMinionIds.push(`minion${i}`);
+                } catch(e) {}
+            }
+            if (availableMinionIds.length === 0) availableMinionIds.push('minion1');
             
             let loadedCount = 0; const total = Object.keys(imagesToLoad).length;
             for (let key in imagesToLoad) {
@@ -1445,7 +1833,6 @@
 
         function checkLoad(current, total) {
             if (current >= total) { 
-                availableMinionIds = ['minion1', 'minion2', 'minion3'].filter(id => isImageOk(assets[id]));
                 build3DBackgrounds(); 
                 loadingScreen.style.display = 'none'; 
                 const introVideoEl = document.getElementById('intro-video-element');
