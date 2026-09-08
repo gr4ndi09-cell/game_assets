@@ -1,0 +1,9 @@
+{
+  "_comentario": "Minion Ágil: Dispara esferas verdes que quicam várias vezes",
+  "speed": 180,
+  "size": 35,
+  "projType": "bouncing",
+  "projColor": "#00ff33",
+  "damage": 10,
+  "arcForce": 400
+}
