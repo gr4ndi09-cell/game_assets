@@ -1,5 +1,6 @@
 {
   "_comentario": "Minion Ágil: Dispara esferas verdes que quicam várias vezes",
+  "projShape": "shuriken",
   "speed": 180,
   "size": 50,
   "projType": "bouncing",
