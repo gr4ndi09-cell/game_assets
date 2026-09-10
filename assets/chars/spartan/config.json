@@ -1,14 +1,14 @@
 {
   "_comentario1": "ATRIBUTOS FÍSICOS",
-  "moveSpeed": 800,
-  "jumpForce": 1600,
-  "projSpeed": 1.8,
+  "moveSpeed": 780,
+  "jumpForce": 1680,
+  "projSpeed": 1.4,
 
   "_comentario2": "ATRIBUTOS DA MAGIA / ARMA",
   "color": "#cccccc",
-  "size": 20,
+  "size": 25,
   "projectile": {
-    "shape": "shuriken",
-    "trailLength": 8
+    "shape": "cone",
+    "trailLength": 5
   }
 }
