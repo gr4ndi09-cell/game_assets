@@ -5,7 +5,7 @@
   "projSpeed": 1.4,
 
   "_comentario2": "ATRIBUTOS DA MAGIA / ARMA",
-  "color": "#cccccc",
+  "color": "#e7180b",
   "size": 25,
   "projectile": {
     "shape": "cone",
