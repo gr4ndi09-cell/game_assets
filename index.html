@@ -688,7 +688,7 @@
 
                         this.layers.forEach(l => {
                             const tex = new THREE.Texture(assets[l.key]);
-                            tex.needsUpdate = true; tex.colorSpace = THREE.SRGBColorSpace; tex.flipY = false;
+                            tex.needsUpdate = true; tex.colorSpace = THREE.SRGBColorSpace; tex.flipY = true; // CORRIGIDO PARA TRUE!
                             
                             const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.05, side: THREE.DoubleSide, depthWrite: false });
                             
@@ -815,14 +815,13 @@
                 this.x=x;this.y=y;this.c=c;this.r=0;this.mr=maxRadius;this.l=1.0;
                 this.p=Array.from({length:60},()=>new BulletParticle(x,y,c,2.0));
                 
-                // NOVOS ESTILHAÇOS FÍSICOS! (Shrapnel)
                 this.chunks = Array.from({length: 12}, () => ({
                     x: x, y: y,
-                    vx: (Math.random() - 0.5) * 1200, // Voam aleatoriamente para os lados
-                    vy: -(Math.random() * 800 + 200), // Disparam com força para cima
+                    vx: (Math.random() - 0.5) * 1200, 
+                    vy: -(Math.random() * 800 + 200), 
                     s: Math.random() * 6 + 3,
                     a: 1.0,
-                    c: Math.random() > 0.4 ? "white" : c // O núcleo é tão quente que brilha a branco
+                    c: Math.random() > 0.4 ? "white" : c 
                 }));
 
                 this.dd=false;
@@ -838,18 +837,16 @@
                 this.r+=800*dt;this.l-=2*dt;
                 this.p.forEach(p=>p.update(dt));this.p=this.p.filter(p=>p.l>0);
                 
-                // Atualiza a gravidade e o voo dos estilhaços
                 this.chunks.forEach(ch => {
                     ch.vy += GRAVITY * dt; 
                     ch.x += ch.vx * dt;
                     ch.y += ch.vy * dt;
-                    ch.a -= 1.5 * dt; // Esmaecem enquanto caem
+                    ch.a -= 1.5 * dt; 
                 });
                 this.chunks = this.chunks.filter(c => c.a > 0);
 
                 if(this.light) this.light.intensity = Math.max(0, this.l * 10.0);
 
-                // Apenas aplica dano em área se a explosão for das grandes (raio > 50)
                 if(!this.dd && this.r > this.mr && this.mr > 50){
                     [p1,p2].forEach(p=>{if(!p)return;let dx=(p.x+p.w/2)-this.x;let dy=(p.y+p.h/2)-this.y;if(Math.sqrt(dx*dx+dy*dy)<this.mr+50)p.takeDamage(30);});
                     minions.forEach(m=>{let dx=(m.x+m.w/2)-this.x;let dy=(m.y+m.h/2)-this.y;if(Math.sqrt(dx*dx+dy*dy)<this.mr+50)m.takeDamage(30);});
@@ -865,14 +862,13 @@
                 
                 this.p.forEach(p=>p.draw(c));
                 
-                // Desenha a chuva de estilhaços
                 c.globalCompositeOperation='lighter';
                 this.chunks.forEach(ch => {
                     c.globalAlpha = Math.max(0, ch.a);
                     c.fillStyle = ch.c;
                     c.shadowBlur = 15;
                     c.shadowColor = this.c;
-                    c.fillRect(ch.x - ch.s/2, ch.y - ch.s/2, ch.s, ch.s); // Quadrados pontiagudos
+                    c.fillRect(ch.x - ch.s/2, ch.y - ch.s/2, ch.s, ch.s); 
                 });
                 
                 c.restore();
@@ -899,7 +895,6 @@
                 this.p = []; this.trail = [];
                 this.alpha = 1.0;
 
-                // CONSTRUÇÃO DO MODELO 3D (Formato)
                 this.meshGroup = new THREE.Group();
                 let geometries = [];
                 
@@ -968,12 +963,10 @@
                 
                 if (this.x < -100 || this.x > WORLD_WIDTH + 100) this.active = false;
 
-                // ATUALIZAÇÃO 3D (Posição e Rotação)
                 if (this.meshGroup) {
                     const nx = (this.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2); const curveZ = Math.pow(nx, 2) * 300;
                     this.meshGroup.position.set(this.x, WORLD_HEIGHT - this.y, 0 + curveZ);
 
-                    // Animação de acordo com a forma escolhida no minion.json
                     if (this.shapeType === 'star') { this.meshGroup.rotation.x += 10 * dt; this.meshGroup.rotation.y += 10 * dt; } 
                     else if (this.shapeType === 'cone') { this.meshGroup.rotation.x += 15 * dt; } 
                     else if (this.shapeType === 'shuriken') { this.meshGroup.rotation.z += (this.vx > 0 ? -20 : 20) * dt; } 
@@ -1003,8 +996,6 @@
                     c.arc(p.x, p.y, this.size * sizePercent * 0.8, 0, Math.PI*2); 
                     c.fill();
                 });
-                // Removi a "bolinha branca" 2D fixa que existia aqui,
-                // porque o modelo 3D mágico agora trata disso perfeitamente!
                 c.restore();
             }
             destroy() { if (this.meshGroup) scene3D.remove(this.meshGroup); }
@@ -1095,7 +1086,7 @@
                     if (alvo.ossosPassivos && alvo.ossosPassivos.length > 0) {
                         for (let osso of alvo.ossosPassivos) {
                             osso.getWorldPosition(posOsso);
-                            if (posAtaque.distanceTo(posOsso) < 50) { 
+                            if (posAtaque.distanceTo(posOsso) < 65) { 
                                 alvo.takeDamage(dano);
                                 hit = true; break;
                             }
@@ -1220,8 +1211,7 @@
                             this.attackAnimTimer = 0.8;
                             this.playAnimation('disparo');
                             
-                            // Nasce um pouco mais à frente para evitar self-hit visual, e regista 'minion'
-                            let sx = this.facing === 1 ? this.x + this.w + 10 : this.x - 10; let sy = this.y + (this.h * 0.2);
+                            let sx = this.facing === 1 ? this.x + this.w + 15 : this.x - 15; let sy = this.y + (this.h * 0.2);
                             bullets.push(new ArcProjectile(sx, sy, this.facing, this.mConfig, 'minion'));
                             this.attackCooldown = 3.0 + Math.random(); 
                         } else {
@@ -1273,7 +1263,6 @@
                 this.vy += GRAVITY * dt * 2; this.x += this.vx * dt; this.y += this.vy * dt; this.onGround = false;
                 if (this.y + this.h > GROUND_Y) { this.y = GROUND_Y - this.h; this.vy = 0; this.onGround = true; }
 
-                // Margem Vertical Gigante (+100) para evitar atravessar chão a alta velocidade
                 colliders.forEach(c => {
                     if (!c.type || c.type === 'rect') {
                         if (this.vy >= 0 && this.y + this.h > c.y - 10 && this.y + this.h < c.y + c.h + 100 && this.x + this.w > c.x && this.x < c.x + c.w) {
@@ -1366,8 +1355,14 @@
                             const action = this.mixer.clipAction(clip); const animName = clip.name.toLowerCase();
                             if (['meele', 'cast_3', 'cast_7', 'combo', 'caido'].includes(animName)) { action.loop = THREE.LoopOnce; action.clampWhenFinished = true; }
                             this.actions[animName] = action;
+                            
+                            // Sistema Inteligente de Sinónimos (Aliases) para Animacoes!
+                            if (animName.includes('corrida') || animName.includes('andar') || animName.includes('run') || animName.includes('walk')) this.actions['alias_run'] = action;
+                            if (animName.includes('idle') || animName.includes('parado') || animName.includes('descanso')) this.actions['alias_idle'] = action;
+                            if (animName.includes('pulo') || animName.includes('jump') || animName.includes('saltar')) this.actions['alias_jump'] = action;
+                            if (animName.includes('meele') || animName.includes('soco') || animName.includes('ataque') || animName.includes('punch')) this.actions['alias_melee'] = action;
                         });
-                        this.playAnimation('idle');
+                        this.playAnimation(this.actions['alias_idle'] ? 'alias_idle' : 'idle');
                     }
                 }, undefined, (error) => {});
             }
@@ -1384,10 +1379,10 @@
             setAnimation(n){ 
                 if(this.state!==n){
                     this.state=n; if(n===LOGICAL_STATE.MELEE) this.mHD=false;
-                    if (this.state === LOGICAL_STATE.IDLE) this.playAnimation('idle');
-                    else if (this.state === LOGICAL_STATE.RUN) this.playAnimation('corrida');
-                    else if (this.state === LOGICAL_STATE.JUMP) this.playAnimation('pulo');
-                    else if (this.state === LOGICAL_STATE.MELEE) this.playAnimation('meele');
+                    if (this.state === LOGICAL_STATE.IDLE) this.playAnimation(this.actions['alias_idle'] ? 'alias_idle' : 'idle');
+                    else if (this.state === LOGICAL_STATE.RUN) this.playAnimation(this.actions['alias_run'] ? 'alias_run' : 'corrida');
+                    else if (this.state === LOGICAL_STATE.JUMP) this.playAnimation(this.actions['alias_jump'] ? 'alias_jump' : 'pulo');
+                    else if (this.state === LOGICAL_STATE.MELEE) this.playAnimation(this.actions['alias_melee'] ? 'alias_melee' : 'meele');
                     else if (this.state === LOGICAL_STATE.SHOOT) { this.playAnimation(this.charge > 90 ? 'cast_3' : 'cast_7'); }
                 } 
             }
@@ -1428,12 +1423,23 @@
                 
                 if(!this.isAttacking&&!this.isCharging){
                     if(!this.onGround)this.setAnimation(LOGICAL_STATE.JUMP);
-                    else if(Math.abs(this.vx)>0)this.setAnimation(LOGICAL_STATE.RUN);
-                    else this.setAnimation(LOGICAL_STATE.IDLE);
-                }
-                
-                if(this.atkT>0) { this.atkT-=dt; if (this.atkT < 0.25 && !this.mHD) { this.checkMeleeHit(); this.mHD=true; } } else this.isAttacking=false;
-                if(this.dF>0)this.dF-=dt;
+                else if(Math.abs(this.vx)>0)this.setAnimation(LOGICAL_STATE.RUN);
+                else this.setAnimation(LOGICAL_STATE.IDLE);
+            }
+            
+            if(this.atkT>0) { 
+                this.atkT-=dt; 
+                // Active Frames: A janela de impacto
+                if (this.atkT < 0.35 && this.atkT > 0.05 && !this.mHD) { 
+                    if (this.checkMeleeHit()) {
+                        this.mHD = true; 
+                    } 
+                } 
+            } else {
+                this.isAttacking = false;
+            }
+            
+            if(this.dF>0)this.dF-=dt;
                 
                 if (this.passiveHitTimer > 0) this.passiveHitTimer -= dt;
                 if (this.pontosDanoPassivo.length > 0 && this.passiveHitTimer <= 0) {
@@ -1448,7 +1454,6 @@
                 
                 const isDown=activeKeys.down;
                 
-                // Margem Vertical Aumentada (+100)
                 colliders.forEach(p=>{
                     if(!p.type||p.type==='rect'){
                         if(this.vy>=0&&this.y+this.h>p.y-10&&this.y+this.h<p.y+p.h+100&&this.x+this.w>p.x&&this.x<p.x+p.w){
@@ -1492,11 +1497,13 @@
             
             checkMeleeHit(){
                 if (this.model3D && this.pontosDanoAtivo.length > 0) {
-                    check3DHit(this, this.pontosDanoAtivo, 15, false);
+                    return check3DHit(this, this.pontosDanoAtivo, 15, false);
                 } else {
                     let t=(this.id==='p1')?p2:p1; let r=95; let hX=this.facing===1?this.x+this.w:this.x-r;
-                    if(t && hX+r>t.x&&hX<t.x+t.w&&this.y+this.h>t.y&&this.y<t.y+t.h) t.takeDamage(15);
-                    minions.forEach(m => { if(hX+r>m.x&&hX<m.x+m.w&&this.y+this.h>m.y&&this.y<m.y+m.h) m.takeDamage(15); });
+                    let hit = false;
+                    if(t && hX+r>t.x&&hX<t.x+t.w&&this.y+this.h>t.y&&this.y<t.y+t.h) { t.takeDamage(15); hit = true; }
+                    minions.forEach(m => { if(hX+r>m.x&&hX<m.x+m.w&&this.y+this.h>m.y&&this.y<m.y+m.h) { m.takeDamage(15); hit = true; } });
+                    return hit;
                 }
             }
 
@@ -1774,6 +1781,39 @@
                         if (!p.type || p.type === 'rect') { ctx.fillRect(p.x, p.y, p.w, p.h); } 
                         else if (p.type === 'slope') { ctx.beginPath(); ctx.strokeStyle = "rgba(255, 0, 0, 0.5)"; ctx.lineWidth = 5; ctx.moveTo(p.x1, p.y1); ctx.lineTo(p.x2, p.y2); ctx.stroke(); } 
                     }); 
+                    
+                    let pos = new THREE.Vector3();
+                    const drawDebugPoints = (ent) => {
+                        if(!ent || !ent.model3D) return;
+                        
+                        // 1. Ossos Passivos (Azul Claro)
+                        ctx.fillStyle = "rgba(0, 200, 255, 0.7)";
+                        ent.ossosPassivos.forEach(b => {
+                            b.getWorldPosition(pos);
+                            ctx.beginPath(); ctx.arc(pos.x, WORLD_HEIGHT - pos.y, 6, 0, Math.PI*2); ctx.fill();
+                        });
+                        
+                        // 2. Dano Ativo (Vermelho)
+                        ent.pontosDanoAtivo.forEach(b => {
+                            b.getWorldPosition(pos);
+                            ctx.fillStyle = "rgba(255, 0, 0, 0.9)";
+                            ctx.beginPath(); ctx.arc(pos.x, WORLD_HEIGHT - pos.y, 8, 0, Math.PI*2); ctx.fill();
+                            // Esfera de impacto (Raio visual correspondente ao raio matematico ex: 50px)
+                            ctx.strokeStyle = "rgba(255, 0, 0, 0.4)"; ctx.lineWidth = 2;
+                            ctx.beginPath(); ctx.arc(pos.x, WORLD_HEIGHT - pos.y, 50, 0, Math.PI*2); ctx.stroke();
+                        });
+                        
+                        // 3. Dano Passivo (Laranja)
+                        ent.pontosDanoPassivo.forEach(b => {
+                            b.getWorldPosition(pos);
+                            ctx.fillStyle = "rgba(255, 150, 0, 0.9)";
+                            ctx.beginPath(); ctx.arc(pos.x, WORLD_HEIGHT - pos.y, 8, 0, Math.PI*2); ctx.fill();
+                            ctx.strokeStyle = "rgba(255, 150, 0, 0.4)"; ctx.lineWidth = 2;
+                            ctx.beginPath(); ctx.arc(pos.x, WORLD_HEIGHT - pos.y, 50, 0, Math.PI*2); ctx.stroke();
+                        });
+                    };
+                    
+                    [p1, p2, ...minions].forEach(e => drawDebugPoints(e));
                 }
             } catch(e) { console.error("Erro no desenho:", e); } finally { ctx.restore(); }
         }
