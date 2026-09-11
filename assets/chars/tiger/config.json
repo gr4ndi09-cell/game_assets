@@ -1,13 +1,13 @@
 {
   "_comentario1": "ATRIBUTOS FÍSICOS",
-  "moveSpeed": 900,
-  "jumpForce": 1600,
+  "moveSpeed": 600,
+  "jumpForce": 1900,
   "projSpeed": 1.8,
-  "size": 1000,
+  "size": 1.0,
 
   "_comentario2": "ATRIBUTOS DA MAGIA / ARMA",
   "color": "#d0872e",
-  "size": 10,
+  "size": 20,
   "projectile": {
     "shape": "crescent",
     "trailLength": 8
