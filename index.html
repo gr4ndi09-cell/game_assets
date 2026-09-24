@@ -42,8 +42,40 @@
         }
 
         #loading-screen { position: absolute; inset: 0; background: #050510; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 500; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #1a1a4a; border-top: 5px solid cyan; border-radius: 50%; animation: spin 1s linear infinite; }
+        .spinner { width: 50px; height: 50px; border: 5px solid #1a1a4a; border-top: 5px solid cyan; border-radius: 50%; animation: spin 1s linear infinite; display: block; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        #start-boot-btn { display: none; background: linear-gradient(45deg, #00ffff, #0055ff); border: none; color: white; padding: 15px 40px; cursor: pointer; border-radius: 30px; font-weight: bold; font-size: 24px; text-transform: uppercase; box-shadow: 0 0 20px cyan; margin-top: 20px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        /* TELA DE VÍDEO INICIAL (OPENING) */
+        #opening-video-container { position: absolute; inset: 0; z-index: 450; display: none; background: black; }
+        #start-video { width: 100%; height: 100%; object-fit: cover; }
+        #skip-video-btn { position: absolute; bottom: 40px; right: 40px; z-index: 460; padding: 10px 30px; background: rgba(0,0,0,0.6); color: white; border: 2px solid cyan; border-radius: 10px; cursor: pointer; font-size: 16px; text-transform: uppercase; backdrop-filter: blur(5px); transition: all 0.2s; }
+        #skip-video-btn:hover { background: rgba(0, 255, 255, 0.4); transform: scale(1.1); }
+
+        /* MENU BOSS PARALLAX */
+        #menu-boss-container { position: absolute; inset: 0; z-index: 350; display: none; background: #080815; overflow: hidden; perspective: 1000px; }
+        .menu-boss-scene { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; transform-style: preserve-3d; }
+        .menu-boss-layer { position: absolute; height: 95%; width: auto; max-width: none; object-fit: contain; }
+        .menu-overlay { position: absolute; inset: 0; background: rgba(0, 0, 15, 0.75); z-index: 360; pointer-events: none; } /* Filtro escuro obrigatório */
+
+        /* TELA DE SELEÇÃO (Fundo Transparente para ver o Boss) */
+        #selection-screen {
+            position: absolute; inset: 0; background: transparent; z-index: 400;
+            display: none; flex-direction: column; align-items: center; justify-content: flex-start;
+            padding: 40px 20px; overflow-y: auto; text-shadow: 0 0 5px black;
+        }
+        .selection-grid { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+        .select-card { border: 2px solid #444; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; background: rgba(10, 10, 30, 0.8); padding: 10px; width: 120px; text-align: center; backdrop-filter: blur(3px); }
+        .select-card:hover { border-color: white; transform: scale(1.05); }
+        .select-card.selected { border-color: cyan; box-shadow: 0 0 15px cyan; background: rgba(0, 51, 51, 0.9); }
+        .select-card img { border-radius: 5px; display: block; margin-bottom: 5px; width: 100%; height: auto; }
+        .char-img { width: 100px; height: 100px; object-fit: cover; }
+        .stage-img { width: 200px; height: 100px; object-fit: cover; }
+        .section-title { color: cyan; margin: 15px 0 5px 0; text-transform: uppercase; font-size: 18px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px; }
+
+        .ia-tag { height: 55px; width: auto; opacity: 0.9; pointer-events: none; filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.4)); }
 
         .hud { position: absolute; top: 20px; width: 90%; display: none; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 10; opacity: 0; transition: opacity 1s; }
         .health-bar-container { width: 300px; height: 25px; background: #333; border: 2px solid #fff; position: relative; border-radius: 5px; overflow: hidden; }
@@ -55,20 +87,6 @@
         #ai-menu { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 10px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; border: 1px solid cyan; }
         #theme-input { background: #222; border: 1px solid cyan; color: white; padding: 8px; border-radius: 4px; width: 250px; text-align: center; }
         .gemini-btn { background: linear-gradient(45deg, #4285f4, #9b51e0); border: none; color: white; padding: 8px 20px; cursor: pointer; border-radius: 20px; font-weight: bold; text-transform: uppercase; }
-
-        #selection-screen {
-            position: absolute; inset: 0; background: #111; z-index: 400;
-            display: none; flex-direction: column; align-items: center; justify-content: flex-start;
-            padding: 40px 20px; overflow-y: auto;
-        }
-        .selection-grid { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
-        .select-card { border: 2px solid #444; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; background: #222; padding: 10px; width: 120px; text-align: center;}
-        .select-card:hover { border-color: white; transform: scale(1.05); }
-        .select-card.selected { border-color: cyan; box-shadow: 0 0 15px cyan; background: #003333; }
-        .select-card img { border-radius: 5px; display: block; margin-bottom: 5px; width: 100%; height: auto; }
-        .char-img { width: 100px; height: 100px; object-fit: cover; }
-        .stage-img { width: 200px; height: 100px; object-fit: cover; }
-        .section-title { color: cyan; margin: 15px 0 5px 0; text-transform: uppercase; font-size: 18px; font-weight: bold; }
 
         #quiz-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 30, 0.85); border: 4px solid cyan; padding: 40px; display: none; flex-direction: column; align-items: center; width: 70%; max-width: 800px; text-align: center; border-radius: 20px; z-index: 100; backdrop-filter: blur(5px); }
         .options-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; margin-top: 30px; }
@@ -113,8 +131,24 @@
 <body>
 
     <div id="loading-screen">
-        <div class="spinner"></div>
+        <div class="spinner" id="loading-spinner"></div>
         <p id="loading-text" style="margin-top: 20px; color: cyan;">A conectar ao Servidor...</p>
+        <button id="start-boot-btn" onclick="startOpeningSequence()">INICIAR</button>
+    </div>
+
+    <div id="opening-video-container">
+        <video id="start-video" playsinline></video>
+        <button id="skip-video-btn" onclick="endOpeningSequence()">Pular Abertura &raquo;</button>
+    </div>
+
+    <div id="menu-boss-container">
+        <div class="menu-boss-scene">
+            <img id="menu-boss-layer-1" class="menu-boss-layer" src="">
+            <img id="menu-boss-layer-2" class="menu-boss-layer" src="">
+            <img id="menu-boss-layer-3" class="menu-boss-layer" src="">
+            <img id="menu-boss-layer-4" class="menu-boss-layer" src="">
+        </div>
+        <div class="menu-overlay"></div>
     </div>
 
     <div id="selection-screen">
@@ -133,7 +167,10 @@
         <div class="section-title">Cenário</div>
         <div class="selection-grid" id="stage-select-container"></div>
         
-        <button class="gemini-btn" id="confirm-selection-btn" style="font-size: 20px; padding: 15px 40px; margin-top: 30px; margin-bottom: 50px;">INICIAR COMBATE</button>
+        <div style="display: flex; align-items: center; gap: 20px; margin-top: 30px; margin-bottom: 50px;">
+            <button class="gemini-btn" id="confirm-selection-btn" style="font-size: 20px; padding: 15px 40px;">INICIAR COMBATE</button>
+            <img id="ia-tag-img" class="ia-tag" src="">
+        </div>
     </div>
 
     <div id="game-container">
@@ -187,7 +224,7 @@
             <button id="quiz-continue-btn" class="opt-btn" style="display:none; margin-top:20px; width:100%;">Continuar</button>
         </div>
         
-        <div id="debug-toggle"><input type="checkbox" id="debug-check"> <span style="color:white; background:rgba(0,0,0,0.5); padding:2px;">Debug</span></div>
+        <div id="debug-toggle" style="display:none;"><input type="checkbox" id="debug-check"> <span style="color:white; background:rgba(0,0,0,0.5); padding:2px;">Debug</span></div>
     </div>
 
     <script>
@@ -227,7 +264,7 @@
         let colliders = []; 
         let keys = {};
         let camera = { x: 0, y: 0, viewWidth: MAX_VIEW_WIDTH, viewHeight: MAX_VIEW_HEIGHT, targetViewWidth: MAX_VIEW_WIDTH };
-        let gameState = 'SELECTION'; 
+        let gameState = 'BOOT'; 
         let gameMode = '1p';
         let questions = [{ q: "Pronto?", options: ["Sim"], correct: 0 }];
         let bullets = [], explosions = [];
@@ -260,6 +297,123 @@
         const victoryText = document.getElementById('victory-text');
         const debugCheck = document.getElementById('debug-check');
         const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+        let menuMouseX = 0, menuMouseY = 0;
+        let menuTargetX = 0, menuTargetY = 0;
+        let menuIdleTimer = 0;
+        let menuAnimFrameId = null;
+
+        document.addEventListener('mousemove', (e) => {
+            if(gameState !== 'SELECTION') return;
+            menuIdleTimer = 0; // Resetar descanso
+            // Mapear posição do rato de -1 a 1
+            menuTargetX = (e.clientX / window.innerWidth) * 2 - 1; 
+            menuTargetY = -(e.clientY / window.innerHeight) * 2 + 1; 
+        });
+
+        function updateMenuBossLoop() {
+            if(gameState !== 'SELECTION') return;
+            
+            menuIdleTimer += 0.016; // Incremento baseado em ~60fps
+            if(menuIdleTimer > 2.0) {
+                // Se largar o rato por 2 segundos, o Boss entra em modo Sinuoso/Respiração Automática
+                menuTargetX = Math.sin(Date.now() * 0.001) * 0.5;
+                menuTargetY = Math.cos(Date.now() * 0.0013) * 0.2;
+            }
+
+            // Interpolação super suave (Easing)
+            menuMouseX += (menuTargetX - menuMouseX) * 0.05;
+            menuMouseY += (menuTargetY - menuMouseY) * 0.05;
+
+            // Aplicar Transforms CSS às 4 camadas
+            for(let i=1; i<=4; i++) {
+                let el = document.getElementById(`menu-boss-layer-${i}`);
+                if(el) {
+                    let depth = i * 15; // Camadas mais à frente movem-se mais
+                    let rotX = menuMouseY * 10;
+                    let rotY = menuMouseX * 10;
+                    let transX = menuMouseX * depth * -1.5; // Paralaxe lateral
+                    let transY = menuMouseY * depth * 1.5;
+                    el.style.transform = `translate(${transX}px, ${transY}px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateZ(${i*30}px)`;
+                }
+            }
+            menuAnimFrameId = requestAnimationFrame(updateMenuBossLoop);
+        }
+
+        function initBootSequence() {
+            gameState = 'BOOT';
+            document.getElementById('loading-text').innerText = "A carregar abertura...";
+            
+            document.getElementById('ia-tag-img').src = `${REPO_ROOT}/cenarios/start/iatag.png`;
+            
+            let loadedCount = 0;
+            const bootImages = [
+                `${REPO_ROOT}/cenarios/start/boss1.png`,
+                `${REPO_ROOT}/cenarios/start/boss2.png`,
+                `${REPO_ROOT}/cenarios/start/boss3.png`,
+                `${REPO_ROOT}/cenarios/start/boss4.png`
+            ];
+            
+            let bootAssets = [];
+            
+            const checkBootLoad = () => {
+                loadedCount++;
+                if(loadedCount >= bootImages.length) {
+                    // Colocar imagens nas tags HTML do menu
+                    for(let i=1; i<=4; i++) {
+                        let el = document.getElementById(`menu-boss-layer-${i}`);
+                        if(bootAssets[i-1].complete && bootAssets[i-1].naturalWidth !== 0) {
+                            el.src = bootAssets[i-1].src;
+                        }
+                    }
+                    
+                    // Mostrar Botão Iniciar para contornar políticas de Autoplay com Som
+                    document.getElementById('loading-spinner').style.display = 'none';
+                    document.getElementById('loading-text').innerText = "Tudo Pronto!";
+                    document.getElementById('start-boot-btn').style.display = 'block';
+                }
+            };
+
+            bootImages.forEach((src, idx) => {
+                let img = new Image();
+                img.crossOrigin = "anonymous";
+                img.src = src;
+                img.onload = checkBootLoad;
+                img.onerror = checkBootLoad; // Mesmo que dê erro, o carregamento avança
+                bootAssets.push(img);
+            });
+        }
+
+        function startOpeningSequence() {
+            document.getElementById('loading-screen').style.display = 'none';
+            document.getElementById('opening-video-container').style.display = 'block';
+            
+            const startVideo = document.getElementById('start-video');
+            startVideo.src = `${REPO_ROOT}/cenarios/start/opening.mp4`;
+            
+            startVideo.onended = endOpeningSequence;
+            startVideo.onerror = endOpeningSequence; // Se falhar/não existir, vai direto pro menu
+            
+            startVideo.play().catch(e => {
+                console.warn("Erro ao reproduzir abertura:", e);
+                endOpeningSequence();
+            });
+        }
+
+        function endOpeningSequence() {
+            const startVideo = document.getElementById('start-video');
+            startVideo.pause();
+            startVideo.src = ""; // Limpar memória
+            startVideo.load();
+            
+            document.getElementById('opening-video-container').style.display = 'none';
+            
+            // Iniciar Ecrã de Seleção e Boss do Menu
+            gameState = 'SELECTION';
+            document.getElementById('menu-boss-container').style.display = 'flex';
+            initSelectionScreen();
+            updateMenuBossLoop();
+        }
 
         function isImageOk(img) { return img && img.complete && img.naturalWidth !== 0; }
         function showMessage(text, duration = 3000) { 
@@ -688,7 +842,7 @@
 
                         this.layers.forEach(l => {
                             const tex = new THREE.Texture(assets[l.key]);
-                            tex.needsUpdate = true; tex.colorSpace = THREE.SRGBColorSpace; tex.flipY = true; // CORRIGIDO PARA TRUE!
+                            tex.needsUpdate = true; tex.colorSpace = THREE.SRGBColorSpace; tex.flipY = true;
                             
                             const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.05, side: THREE.DoubleSide, depthWrite: false });
                             
@@ -1356,7 +1510,7 @@
                             if (['meele', 'cast_3', 'cast_7', 'combo', 'caido'].includes(animName)) { action.loop = THREE.LoopOnce; action.clampWhenFinished = true; }
                             this.actions[animName] = action;
                             
-                            // Sistema Inteligente de Sinónimos (Aliases) para Animacoes!
+                            // Sistema Inteligente de Sinónimos (Aliases)
                             if (animName.includes('corrida') || animName.includes('andar') || animName.includes('run') || animName.includes('walk')) this.actions['alias_run'] = action;
                             if (animName.includes('idle') || animName.includes('parado') || animName.includes('descanso')) this.actions['alias_idle'] = action;
                             if (animName.includes('pulo') || animName.includes('jump') || animName.includes('saltar')) this.actions['alias_jump'] = action;
@@ -1429,10 +1583,10 @@
             
             if(this.atkT>0) { 
                 this.atkT-=dt; 
-                // Active Frames: A janela de impacto
+                // "Active Frames": O ataque varre a zona de dano durante a animação inteira!
                 if (this.atkT < 0.35 && this.atkT > 0.05 && !this.mHD) { 
                     if (this.checkMeleeHit()) {
-                        this.mHD = true; 
+                        this.mHD = true; // Só desativa a verificação SE acertar!
                     } 
                 } 
             } else {
@@ -1786,24 +1940,20 @@
                     const drawDebugPoints = (ent) => {
                         if(!ent || !ent.model3D) return;
                         
-                        // 1. Ossos Passivos (Azul Claro)
                         ctx.fillStyle = "rgba(0, 200, 255, 0.7)";
                         ent.ossosPassivos.forEach(b => {
                             b.getWorldPosition(pos);
                             ctx.beginPath(); ctx.arc(pos.x, WORLD_HEIGHT - pos.y, 6, 0, Math.PI*2); ctx.fill();
                         });
                         
-                        // 2. Dano Ativo (Vermelho)
                         ent.pontosDanoAtivo.forEach(b => {
                             b.getWorldPosition(pos);
                             ctx.fillStyle = "rgba(255, 0, 0, 0.9)";
                             ctx.beginPath(); ctx.arc(pos.x, WORLD_HEIGHT - pos.y, 8, 0, Math.PI*2); ctx.fill();
-                            // Esfera de impacto (Raio visual correspondente ao raio matematico ex: 50px)
                             ctx.strokeStyle = "rgba(255, 0, 0, 0.4)"; ctx.lineWidth = 2;
                             ctx.beginPath(); ctx.arc(pos.x, WORLD_HEIGHT - pos.y, 50, 0, Math.PI*2); ctx.stroke();
                         });
                         
-                        // 3. Dano Passivo (Laranja)
                         ent.pontosDanoPassivo.forEach(b => {
                             b.getWorldPosition(pos);
                             ctx.fillStyle = "rgba(255, 150, 0, 0.9)";
@@ -1895,14 +2045,20 @@
         }
 
         function initSelectionScreen() {
-            loadingScreen.style.display = 'none'; selectionScreen.style.display = 'flex';
             renderSelectionList(CHARACTERS_DB, 'p1-select-container', (char) => selectedP1 = char, selectedP1);
             renderSelectionList(CHARACTERS_DB, 'p2-select-container', (char) => selectedP2 = char, selectedP2);
             renderSelectionList(STAGES_DB, 'stage-select-container', (stage) => selectedStage = stage, selectedStage);
+            selectionScreen.style.display = 'flex';
         }
 
         document.getElementById('confirm-selection-btn').onclick = () => {
-            selectionScreen.style.display = 'none'; loadingScreen.style.display = 'flex'; document.getElementById('loading-text').innerText = "A carregar motor 3D..."; initGameWithSelection();
+            selectionScreen.style.display = 'none'; 
+            document.getElementById('menu-boss-container').style.display = 'none'; // Desligar Boss do Menu
+            if(menuAnimFrameId) cancelAnimationFrame(menuAnimFrameId);
+            
+            loadingScreen.style.display = 'flex'; 
+            document.getElementById('loading-text').innerText = "A carregar motor 3D..."; 
+            initGameWithSelection();
         };
 
         window.addEventListener('keydown', e => { let k = e.key; if(k.length===1) k=k.toLowerCase(); keys[k] = true; });
@@ -1978,7 +2134,8 @@
         }
 
         canvas2D.width = CANVAS_WIDTH; canvas2D.height = CANVAS_HEIGHT;
-        initSelectionScreen();
+        
+        initBootSequence(); // Substitui o initSelectionScreen() antigo
     </script>
 </body>
 </html>
