@@ -45,12 +45,11 @@
         .spinner { width: 50px; height: 50px; border: 5px solid #1a1a4a; border-top: 5px solid cyan; border-radius: 50%; animation: spin 1s linear infinite; display: block; }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        #start-boot-btn { display: none; background: linear-gradient(45deg, #00ffff, #0055ff); border: none; color: white; padding: 15px 40px; cursor: pointer; border-radius: 30px; font-weight: bold; font-size: 24px; text-transform: uppercase; box-shadow: 0 0 20px cyan; margin-top: 20px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+        #boot-options { display: none; flex-direction: column; gap: 15px; margin-top: 20px; align-items: center; animation: popIn 0.5s ease-out; }
 
         /* TELA DE VÍDEO INICIAL (OPENING) */
         #opening-video-container { position: absolute; inset: 0; z-index: 450; display: none; background: black; }
-        #start-video { width: 100%; height: 100%; object-fit: cover; }
+        #start-video-yt { width: 100%; height: 100%; pointer-events: none; }
         #skip-video-btn { position: absolute; bottom: 40px; right: 40px; z-index: 460; padding: 10px 30px; background: rgba(0,0,0,0.6); color: white; border: 2px solid cyan; border-radius: 10px; cursor: pointer; font-size: 16px; text-transform: uppercase; backdrop-filter: blur(5px); transition: all 0.2s; }
         #skip-video-btn:hover { background: rgba(0, 255, 255, 0.4); transform: scale(1.1); }
 
@@ -133,11 +132,15 @@
     <div id="loading-screen">
         <div class="spinner" id="loading-spinner"></div>
         <p id="loading-text" style="margin-top: 20px; color: cyan;">A conectar ao Servidor...</p>
-        <button id="start-boot-btn" onclick="startOpeningSequence()">INICIAR</button>
+        
+        <div id="boot-options">
+            <button class="gemini-btn" onclick="startOpeningSequence()" style="font-size: 18px; padding: 15px 30px; box-shadow: 0 0 15px cyan;">🎬 Assistir Vídeo de Introdução</button>
+            <button class="gemini-btn" onclick="endOpeningSequence()" style="font-size: 16px; padding: 15px 30px; background: rgba(50, 50, 50, 0.8); color: white;">⏭️ Ir Direto para o Menu</button>
+        </div>
     </div>
 
     <div id="opening-video-container">
-        <video id="start-video" playsinline></video>
+        <div id="start-video-yt"></div>
         <button id="skip-video-btn" onclick="endOpeningSequence()">Pular Abertura &raquo;</button>
     </div>
 
@@ -289,7 +292,8 @@
         const canvas2D = document.getElementById('gameCanvas');
         const ctx = canvas2D.getContext('2d');
         const canvas3D = document.getElementById('glCanvas');
-        const videoIntro = document.getElementById('intro-video-element');
+        
+        // Declaração explícita e definitiva de toda a UI
         const loadingScreen = document.getElementById('loading-screen');
         const selectionScreen = document.getElementById('selection-screen');
         const msgBox = document.getElementById('message-box');
@@ -298,11 +302,15 @@
         const debugCheck = document.getElementById('debug-check');
         const fullscreenBtn = document.getElementById('fullscreen-btn');
 
-        let menuMouseX = 0, menuMouseY = 0;
-        let menuTargetX = 0, menuTargetY = 0;
+        let menuMouseX = 0;
+        let menuMouseY = 0;
+        let menuTargetX = 0;
+        let menuTargetY = 0;
         let menuIdleTimer = 0;
         let menuAnimFrameId = null;
-        let isOpeningFinished = false; // NOVA FLAG: Cadeado de Segurança!
+        let isOpeningFinished = false; 
+        
+        const YOUTUBE_INTRO_ID = "dQw4w9WgXcQ"; // <--- COLOCA AQUI O ID DO TEU VÍDEO DO YOUTUBE!
 
         document.addEventListener('mousemove', (e) => {
             if(gameState !== 'SELECTION') return;
@@ -368,10 +376,9 @@
                         }
                     }
                     
-                    // Mostrar Botão Iniciar para contornar políticas de Autoplay com Som
                     document.getElementById('loading-spinner').style.display = 'none';
                     document.getElementById('loading-text').innerText = "Tudo Pronto!";
-                    document.getElementById('start-boot-btn').style.display = 'block';
+                    document.getElementById('boot-options').style.display = 'flex';
                 }
             };
 
@@ -390,39 +397,28 @@
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('opening-video-container').style.display = 'block';
             
-            const startVideo = document.getElementById('start-video');
-            startVideo.src = `${REPO_ROOT}/cenarios/start/opening.mp4`;
+            // Usando o código EXATO de incorporação do YouTube adaptado para 100% da tela e Autoplay
+            const ytContainer = document.getElementById('start-video-yt');
+            ytContainer.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/WZZofnYgMLo?autoplay=1&si=ftG1tzS0dPcFrlpZ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen style="pointer-events: auto;"></iframe>`;
             
-            startVideo.onended = endOpeningSequence;
-            startVideo.onerror = () => {
-                console.warn("Vídeo não encontrado ou formato não suportado. A saltar...");
-                endOpeningSequence();
-            };
-            
-            startVideo.play().catch(e => {
-                console.warn("Erro ao reproduzir abertura (Autoplay/Source):", e);
-                endOpeningSequence();
-            });
+            document.getElementById('skip-video-btn').innerText = "Ir para o Jogo »";
         }
 
         function endOpeningSequence() {
-            if (isOpeningFinished) return; // Se já passámos por aqui, aborta! (Previne duplicação e lag)
+            if (isOpeningFinished) return; 
             isOpeningFinished = true;
 
-            const startVideo = document.getElementById('start-video');
-            startVideo.onended = null;
-            startVideo.onerror = null;
-            startVideo.pause();
-            startVideo.removeAttribute('src'); // Limpa a memória de forma segura
-            
+            // Limpa o iframe para forçar o vídeo e o áudio a pararem imediatamente
+            document.getElementById('start-video-yt').innerHTML = '';
             document.getElementById('opening-video-container').style.display = 'none';
             
             // Iniciar Ecrã de Seleção e Boss do Menu
             gameState = 'SELECTION';
+            document.getElementById('loading-screen').style.display = 'none'; // Garante que a tela sai da frente
             document.getElementById('menu-boss-container').style.display = 'flex';
             initSelectionScreen();
             
-            if (menuAnimFrameId) cancelAnimationFrame(menuAnimFrameId); // Garante que o Boss antigo morre
+            if (menuAnimFrameId) cancelAnimationFrame(menuAnimFrameId); 
             updateMenuBossLoop();
         }
 
