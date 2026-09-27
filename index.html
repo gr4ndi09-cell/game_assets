@@ -41,25 +41,48 @@
             background: black; transition: opacity 1.5s ease-out;
         }
 
-        #loading-screen { position: absolute; inset: 0; background: #050510; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 500; }
+        /* ECRÃ DE CARREGAMENTO (Com transição de fundo) */
+        #loading-screen { 
+            position: absolute; inset: 0; background: #050510; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            z-index: 500; transition: background 1.5s ease;
+        }
         .spinner { width: 50px; height: 50px; border: 5px solid #1a1a4a; border-top: 5px solid cyan; border-radius: 50%; animation: spin 1s linear infinite; display: block; }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        #boot-options { display: none; flex-direction: column; gap: 15px; margin-top: 20px; align-items: center; animation: popIn 0.5s ease-out; }
+        /* BOTÕES INICIAIS (Title Screen - Rodapé) */
+        #boot-options { 
+            display: none; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 20px; 
+            position: absolute; bottom: 80px; width: 100%; align-items: center; 
+            animation: popIn 0.5s ease-out; z-index: 510; pointer-events: auto;
+        }
 
         /* TELA DE VÍDEO INICIAL (OPENING) */
         #opening-video-container { position: absolute; inset: 0; z-index: 450; display: none; background: black; }
         #start-video-yt { width: 100%; height: 100%; pointer-events: none; }
-        #skip-video-btn { position: absolute; bottom: 40px; right: 40px; z-index: 460; padding: 10px 30px; background: rgba(0,0,0,0.6); color: white; border: 2px solid cyan; border-radius: 10px; cursor: pointer; font-size: 16px; text-transform: uppercase; backdrop-filter: blur(5px); transition: all 0.2s; }
+        #skip-video-btn { position: absolute; bottom: 40px; right: 40px; z-index: 460; padding: 10px 30px; background: rgba(0,0,0,0.6); color: white; border: 2px solid cyan; border-radius: 10px; cursor: pointer; font-size: 16px; text-transform: uppercase; backdrop-filter: blur(5px); transition: all 0.2s; pointer-events: auto; }
         #skip-video-btn:hover { background: rgba(0, 255, 255, 0.4); transform: scale(1.1); }
 
-        /* MENU BOSS PARALLAX */
+        /* MENU BOSS PARALLAX E HOLOFOTES */
         #menu-boss-container { position: absolute; inset: 0; z-index: 350; display: none; background: #080815; overflow: hidden; perspective: 1000px; }
         .menu-boss-scene { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; transform-style: preserve-3d; }
         .menu-boss-layer { position: absolute; height: 95%; width: auto; max-width: none; object-fit: contain; }
-        .menu-overlay { position: absolute; inset: 0; background: rgba(0, 0, 15, 0.75); z-index: 360; pointer-events: none; } /* Filtro escuro obrigatório */
+        .menu-overlay { position: absolute; inset: 0; background: rgba(0, 0, 15, 0.75); z-index: 360; pointer-events: none; } 
+        
+        /* HOLOFOTES VOLUMÉTRICOS */
+        .spotlight {
+            position: absolute; top: -20%; width: 50vw; height: 140%;
+            background: linear-gradient(to bottom, rgba(0, 255, 255, 0.5) 0%, rgba(0, 255, 255, 0.1) 50%, transparent 100%);
+            mix-blend-mode: screen; pointer-events: none; z-index: 365;
+            filter: blur(20px); transform-origin: top center;
+        }
+        .spotlight-left { left: 0; clip-path: polygon(30% 0, 70% 0, 100% 100%, 0% 100%); animation: sweepLeft 6s ease-in-out infinite alternate; }
+        .spotlight-right { right: 0; clip-path: polygon(30% 0, 70% 0, 100% 100%, 0% 100%); animation: sweepRight 7s ease-in-out infinite alternate; }
+        
+        @keyframes sweepLeft { 0% { transform: rotate(10deg); } 100% { transform: rotate(-25deg); } }
+        @keyframes sweepRight { 0% { transform: rotate(-10deg); } 100% { transform: rotate(25deg); } }
 
-        /* TELA DE SELEÇÃO (Fundo Transparente para ver o Boss) */
+        /* TELA DE SELEÇÃO */
         #selection-screen {
             position: absolute; inset: 0; background: transparent; z-index: 400;
             display: none; flex-direction: column; align-items: center; justify-content: flex-start;
@@ -151,6 +174,8 @@
             <img id="menu-boss-layer-3" class="menu-boss-layer" src="">
             <img id="menu-boss-layer-4" class="menu-boss-layer" src="">
         </div>
+        <div class="spotlight spotlight-left"></div>
+        <div class="spotlight spotlight-right"></div>
         <div class="menu-overlay"></div>
     </div>
 
@@ -293,7 +318,7 @@
         const ctx = canvas2D.getContext('2d');
         const canvas3D = document.getElementById('glCanvas');
         
-        // Declaração explícita e definitiva de toda a UI
+        // Declaração explícita de toda a UI
         const loadingScreen = document.getElementById('loading-screen');
         const selectionScreen = document.getElementById('selection-screen');
         const msgBox = document.getElementById('message-box');
@@ -310,38 +335,37 @@
         let menuAnimFrameId = null;
         let isOpeningFinished = false; 
         
-        const YOUTUBE_INTRO_ID = "dQw4w9WgXcQ"; // <--- COLOCA AQUI O ID DO TEU VÍDEO DO YOUTUBE!
+        // Substitui isto pelo teu ID real do Youtube
+        const YOUTUBE_INTRO_ID = "WZZofnYgMLo"; 
 
         document.addEventListener('mousemove', (e) => {
-            if(gameState !== 'SELECTION') return;
-            menuIdleTimer = 0; // Resetar descanso
-            // Mapear posição do rato de -1 a 1
+            // Agora o boss anima tanto no BOOT quanto no SELECTION
+            if(gameState !== 'SELECTION' && gameState !== 'BOOT') return;
+            menuIdleTimer = 0; 
             menuTargetX = (e.clientX / window.innerWidth) * 2 - 1; 
             menuTargetY = -(e.clientY / window.innerHeight) * 2 + 1; 
         });
 
         function updateMenuBossLoop() {
-            if(gameState !== 'SELECTION') return;
+            if(gameState !== 'SELECTION' && gameState !== 'BOOT') return;
             
-            menuIdleTimer += 0.016; // Incremento baseado em ~60fps
+            menuIdleTimer += 0.016; 
             if(menuIdleTimer > 2.0) {
-                // Se largar o rato por 2 segundos, o Boss entra em modo Sinuoso/Respiração Automática
+                // Modo respiração
                 menuTargetX = Math.sin(Date.now() * 0.001) * 0.5;
                 menuTargetY = Math.cos(Date.now() * 0.0013) * 0.2;
             }
 
-            // Interpolação super suave (Easing)
             menuMouseX += (menuTargetX - menuMouseX) * 0.05;
             menuMouseY += (menuTargetY - menuMouseY) * 0.05;
 
-            // Aplicar Transforms CSS às 4 camadas
             for(let i=1; i<=4; i++) {
                 let el = document.getElementById(`menu-boss-layer-${i}`);
                 if(el) {
-                    let depth = i * 15; // Camadas mais à frente movem-se mais
+                    let depth = i * 15; 
                     let rotX = menuMouseY * 10;
                     let rotY = menuMouseX * 10;
-                    let transX = menuMouseX * depth * -1.5; // Paralaxe lateral
+                    let transX = menuMouseX * depth * -1.5; 
                     let transY = menuMouseY * depth * 1.5;
                     el.style.transform = `translate(${transX}px, ${transY}px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateZ(${i*30}px)`;
                 }
@@ -352,7 +376,6 @@
         function initBootSequence() {
             gameState = 'BOOT';
             document.getElementById('loading-text').innerText = "A carregar abertura...";
-            
             document.getElementById('ia-tag-img').src = `${REPO_ROOT}/cenarios/start/iatag.png`;
             
             let loadedCount = 0;
@@ -368,7 +391,6 @@
             const checkBootLoad = () => {
                 loadedCount++;
                 if(loadedCount >= bootImages.length) {
-                    // Colocar imagens nas tags HTML do menu
                     for(let i=1; i<=4; i++) {
                         let el = document.getElementById(`menu-boss-layer-${i}`);
                         if(bootAssets[i-1].complete && bootAssets[i-1].naturalWidth !== 0) {
@@ -377,8 +399,17 @@
                     }
                     
                     document.getElementById('loading-spinner').style.display = 'none';
-                    document.getElementById('loading-text').innerText = "Tudo Pronto!";
+                    document.getElementById('loading-text').style.display = 'none';
+                    
+                    // Transição: faz o fundo ficar transparente para vermos o Boss
+                    document.getElementById('loading-screen').style.background = 'transparent';
+                    document.getElementById('loading-screen').style.pointerEvents = 'none'; // Permite interagir com o Boss por trás
+                    
                     document.getElementById('boot-options').style.display = 'flex';
+                    
+                    // Mostra a magia do Title Screen
+                    document.getElementById('menu-boss-container').style.display = 'flex';
+                    if (!menuAnimFrameId) updateMenuBossLoop();
                 }
             };
 
@@ -387,39 +418,41 @@
                 img.crossOrigin = "anonymous";
                 img.src = src;
                 img.onload = checkBootLoad;
-                img.onerror = checkBootLoad; // Mesmo que dê erro, o carregamento avança
+                img.onerror = checkBootLoad; 
                 bootAssets.push(img);
             });
         }
 
         function startOpeningSequence() {
             isOpeningFinished = false;
+            // Desliga os botões do Title Screen
+            document.getElementById('boot-options').style.display = 'none';
             document.getElementById('loading-screen').style.display = 'none';
             document.getElementById('opening-video-container').style.display = 'block';
             
-            // Usando o código EXATO de incorporação do YouTube adaptado para 100% da tela e Autoplay
-            const ytContainer = document.getElementById('start-video-yt');
-            ytContainer.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/WZZofnYgMLo?autoplay=1&si=ftG1tzS0dPcFrlpZ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen style="pointer-events: auto;"></iframe>`;
+            // Pausa a animação do boss enquanto toca o vídeo para poupar o PC
+            if (menuAnimFrameId) { cancelAnimationFrame(menuAnimFrameId); menuAnimFrameId = null; }
             
-            document.getElementById('skip-video-btn').innerText = "Ir para o Jogo »";
+            const ytContainer = document.getElementById('start-video-yt');
+            ytContainer.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${YOUTUBE_INTRO_ID}?autoplay=1&si=ftG1tzS0dPcFrlpZ" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen style="pointer-events: none;"></iframe>`;
+            
+            document.getElementById('skip-video-btn').innerText = "Pular Abertura »";
         }
 
         function endOpeningSequence() {
             if (isOpeningFinished) return; 
             isOpeningFinished = true;
 
-            // Limpa o iframe para forçar o vídeo e o áudio a pararem imediatamente
             document.getElementById('start-video-yt').innerHTML = '';
             document.getElementById('opening-video-container').style.display = 'none';
+            document.getElementById('boot-options').style.display = 'none'; // Prevenção extra
             
-            // Iniciar Ecrã de Seleção e Boss do Menu
             gameState = 'SELECTION';
-            document.getElementById('loading-screen').style.display = 'none'; // Garante que a tela sai da frente
+            document.getElementById('loading-screen').style.display = 'none'; 
             document.getElementById('menu-boss-container').style.display = 'flex';
             initSelectionScreen();
             
-            if (menuAnimFrameId) cancelAnimationFrame(menuAnimFrameId); 
-            updateMenuBossLoop();
+            if (!menuAnimFrameId) updateMenuBossLoop();
         }
 
         function isImageOk(img) { return img && img.complete && img.naturalWidth !== 0; }
@@ -2060,11 +2093,16 @@
 
         document.getElementById('confirm-selection-btn').onclick = () => {
             selectionScreen.style.display = 'none'; 
-            document.getElementById('menu-boss-container').style.display = 'none'; // Desligar Boss do Menu
+            document.getElementById('menu-boss-container').style.display = 'none'; 
+            document.getElementById('boot-options').style.display = 'none'; // Previne que reapareçam ao carregar
             if(menuAnimFrameId) cancelAnimationFrame(menuAnimFrameId);
             
+            loadingScreen.style.background = '#050510'; // Restaura o fundo escuro para o loading do 3D
             loadingScreen.style.display = 'flex'; 
+            document.getElementById('loading-spinner').style.display = 'block';
+            document.getElementById('loading-text').style.display = 'block';
             document.getElementById('loading-text').innerText = "A carregar motor 3D..."; 
+            
             initGameWithSelection();
         };
 
@@ -2142,7 +2180,7 @@
 
         canvas2D.width = CANVAS_WIDTH; canvas2D.height = CANVAS_HEIGHT;
         
-        initBootSequence(); // Substitui o initSelectionScreen() antigo
+        initBootSequence();
     </script>
 </body>
 </html>
