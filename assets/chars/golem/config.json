@@ -1,7 +1,7 @@
 {
   "_comentario1": "ATRIBUTOS FÍSICOS",
-  "moveSpeed": 800,
-  "jumpForce": 1600,
+  "moveSpeed": 500,
+  "jumpForce": 1800,
   "projSpeed": 1.6,
 
   "_comentario2": "ATRIBUTOS DA MAGIA / ARMA",
