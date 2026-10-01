@@ -64,10 +64,10 @@
         #skip-video-btn:hover { background: rgba(0, 255, 255, 0.4); transform: scale(1.1); }
 
         /* MENU BOSS PARALLAX E HOLOFOTES */
-        #menu-boss-container { position: absolute; inset: 0; z-index: 350; display: none; background: #080815; overflow: hidden; perspective: 1000px; }
+        #menu-boss-container { position: absolute; inset: 0; z-index: 350; display: none; background: #08081521; overflow: hidden; perspective: 1000px; }
         .menu-boss-scene { position: relative; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; transform-style: preserve-3d; }
         .menu-boss-layer { position: absolute; height: 95%; width: auto; max-width: none; object-fit: contain; }
-        .menu-overlay { position: absolute; inset: 0; background: rgba(0, 0, 15, 0.75); z-index: 360; pointer-events: none; } 
+        .menu-overlay { position: absolute; inset: 0; background: rgba(0, 0, 15, 0.162); z-index: 360; pointer-events: none; } 
         
         /* HOLOFOTES VOLUMÉTRICOS */
         .spotlight {
@@ -100,15 +100,15 @@
         .ia-tag { height: 55px; width: auto; opacity: 0.9; pointer-events: none; filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.4)); }
 
         .hud { position: absolute; top: 20px; width: 90%; display: none; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 10; opacity: 0; transition: opacity 1s; }
-        .health-bar-container { width: 300px; height: 25px; background: #333; border: 2px solid #fff; position: relative; border-radius: 5px; overflow: hidden; }
+        .health-bar-container { width: 300px; height: 25px; background: #33333374; border: 2px solid #ffffff60; position: relative; border-radius: 5px; overflow: hidden; }
         .health-fill { height: 100%; width: 100%; transition: width 0.3s; }
-        #p1-health-fill { background: linear-gradient(90deg, #ff3e3e, #ff9a9a); }
-        #p2-health-fill { background: linear-gradient(90deg, #3e8bff, #9abeff); }
-        .charge-bar { height: 6px; background: yellow; width: 0%; margin-top: 5px; border-radius: 3px; }
+        #p1-health-fill { background: linear-gradient(90deg, #ff3e3e91, #ff9a9a6b); }
+        #p2-health-fill { background: linear-gradient(90deg, #3e8bff63, #9abeff); }
+        .charge-bar { height: 6px; background: rgba(255, 255, 0, 0.432); width: 0%; margin-top: 5px; border-radius: 3px; }
 
-        #ai-menu { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 10px; background: rgba(0,0,0,0.8); padding: 15px; border-radius: 10px; border: 1px solid cyan; }
-        #theme-input { background: #222; border: 1px solid cyan; color: white; padding: 8px; border-radius: 4px; width: 250px; text-align: center; }
-        .gemini-btn { background: linear-gradient(45deg, #4285f4, #9b51e0); border: none; color: white; padding: 8px 20px; cursor: pointer; border-radius: 20px; font-weight: bold; text-transform: uppercase; }
+        #ai-menu { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.486); padding: 15px; border-radius: 10px; border: 1px solid cyan; }
+        #theme-input { background: #2222228d; border: 1px solid rgba(0, 255, 255, 0.525); color: rgba(255, 255, 255, 0.731); padding: 8px; border-radius: 4px; width: 250px; text-align: center; }
+        .gemini-btn { background: linear-gradient(45deg, #4286f48c, #9b51e07e); border: none; color: white; padding: 8px 20px; cursor: pointer; border-radius: 20px; font-weight: bold; text-transform: uppercase; }
 
         #quiz-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10, 10, 30, 0.85); border: 4px solid cyan; padding: 40px; display: none; flex-direction: column; align-items: center; width: 70%; max-width: 800px; text-align: center; border-radius: 20px; z-index: 100; backdrop-filter: blur(5px); }
         .options-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; margin-top: 30px; }
@@ -158,7 +158,7 @@
         
         <div id="boot-options">
             <button class="gemini-btn" onclick="startOpeningSequence()" style="font-size: 18px; padding: 15px 30px; box-shadow: 0 0 15px cyan;">🎬 Assistir Vídeo de Introdução</button>
-            <button class="gemini-btn" onclick="endOpeningSequence()" style="font-size: 16px; padding: 15px 30px; background: rgba(50, 50, 50, 0.8); color: white;">⏭️ Ir Direto para o Menu</button>
+            <button class="gemini-btn" onclick="endOpeningSequence()" style="font-size: 18px; padding: 15px 30px; box-shadow: 0 0 15px cyan;">⏭️ Ir Direto para o Menu</button>
         </div>
     </div>
 
@@ -266,7 +266,7 @@
         const MIN_VIEW_WIDTH = 1000, MAX_VIEW_WIDTH = 2752;
         const MAX_VIEW_HEIGHT = MAX_VIEW_WIDTH * ASPECT_RATIO;
         const MIN_VIEW_HEIGHT = MIN_VIEW_WIDTH * ASPECT_RATIO;
-        const GRAVITY = 2500, JUMP_FORCE = 1800, MOVE_SPEED = 600, GROUND_Y = 1530; 
+        const GRAVITY = 2000, JUMP_FORCE = 1800, MOVE_SPEED = 600, GROUND_Y = 1530; 
 
         const LOGICAL_STATE = { RUN: 'RUN', IDLE: 'IDLE', MELEE: 'MELEE', JUMP: 'JUMP', SHOOT: 'SHOOT' };
         
@@ -447,6 +447,9 @@
             document.getElementById('opening-video-container').style.display = 'none';
             document.getElementById('boot-options').style.display = 'none'; // Prevenção extra
             
+            // Toca a Música de Título com Efeito "Sine In" (Fade In suave de 2 segundos até 50% volume)
+            audioManager.playFadeIn('bgm_titulo', 0.5, 2000);
+
             gameState = 'SELECTION';
             document.getElementById('loading-screen').style.display = 'none'; 
             document.getElementById('menu-boss-container').style.display = 'flex';
@@ -488,16 +491,60 @@
         }
 
         const audioManager = {
-            sounds: {}, bgm: null,
+            sounds: {}, bgm: null, fadeInterval: null,
             load(key, url) { if(!url) return; const a = new Audio(); a.src = url; a.crossOrigin = "anonymous"; this.sounds[key] = a; },
             play(key, loop = false, volume = 1.0) {
                 const snd = this.sounds[key]; if (snd) {
                     if (!loop) { const c = snd.cloneNode(); c.volume = volume; c.play().catch(()=>{}); }
-                    else { snd.loop = true; snd.volume = volume; snd.play().catch(()=>{}); this.bgm = snd; }
+                    else { this.stopBGM(); snd.loop = true; snd.volume = volume; snd.play().catch(()=>{}); this.bgm = snd; }
                 }
             },
-            stopBGM() { if (this.bgm) { this.bgm.pause(); this.bgm.currentTime = 0; } }
+            playFadeIn(key, maxVolume = 1.0, duration = 2000) {
+                const snd = this.sounds[key];
+                if (!snd) return;
+                this.stopBGM(); // Garante que som anterior pára
+                snd.loop = true;
+                snd.volume = 0; // Começa no zero
+                
+                // Promessa de áudio para evitar crashes caso o browser bloqueie
+                const playPromise = snd.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        this.bgm = snd;
+                        let vol = 0;
+                        const step = maxVolume / (duration / 50); // Incremento a cada 50ms
+                        
+                        if (this.fadeInterval) clearInterval(this.fadeInterval);
+                        this.fadeInterval = setInterval(() => {
+                            vol += step;
+                            if (vol >= maxVolume) {
+                                vol = maxVolume;
+                                clearInterval(this.fadeInterval);
+                            }
+                            if (this.bgm) this.bgm.volume = vol;
+                        }, 50);
+                    }).catch(err => {
+                        console.warn("Autoplay da música do Menu bloqueado pelo browser.", err);
+                    });
+                }
+            },
+            stopBGM() { 
+                if (this.fadeInterval) clearInterval(this.fadeInterval);
+                if (this.bgm) { this.bgm.pause(); this.bgm.currentTime = 0; this.bgm = null; } 
+            }
         };
+
+        // CARREGA SONS DA INTERFACE DO JOGO
+        audioManager.load('bgm_titulo', `${REPO_ROOT}/sounds/common/titulo.mp4`);
+        audioManager.load('ui_click', `${REPO_ROOT}/sounds/common/click.mp3`);
+
+        // ESPIÃO DE CLIQUES GLOBAIS (Sonoriza qualquer interação de botão)
+        window.addEventListener('click', (e) => {
+            // Dispara som se clicar num botão genérico, num card de seleção ou num input de texto
+            if (e.target.closest('button') || e.target.closest('.select-card') || e.target.tagName.toLowerCase() === 'input') {
+                audioManager.play('ui_click', false, 0.7);
+            }
+        });
 
         function initThreeJS() {
             renderer3D = new THREE.WebGLRenderer({ canvas: canvas3D, antialias: true, alpha: false });
@@ -631,7 +678,7 @@
                 const rand = Math.random(); this.c = rand < 0.05 ? 0x00ff88 : (rand < 0.5 ? 0x00ffff : 0xaa00ff);
                 const mat = new THREE.SpriteMaterial({ map: getParticleTexture('glow'), color: new THREE.Color(this.c), transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
                 this.sprite = new THREE.Sprite(mat);
-                this.sprite.scale.set(8, 8, 1);
+                this.sprite.scale.set(8, 8, 8);
                 this.sprite.position.x = 100 + Math.random() * 1000;
                 this.orbitObj.add(this.sprite);
                 const zPos = (Math.random() - 0.5) * 50;
@@ -2092,6 +2139,9 @@
         }
 
         document.getElementById('confirm-selection-btn').onclick = () => {
+            // Pára a música de título do menu imediatamente e corta o fade
+            audioManager.stopBGM();
+
             selectionScreen.style.display = 'none'; 
             document.getElementById('menu-boss-container').style.display = 'none'; 
             document.getElementById('boot-options').style.display = 'none'; // Previne que reapareçam ao carregar
