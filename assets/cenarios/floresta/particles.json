@@ -11,7 +11,7 @@
   },
   "lighting": {
     "bg": 0.8,
-    "scene": 0.3,
+    "scene": 0.8,
     "front": 0.3,
     "sky": 0.4
   },
