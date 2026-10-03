@@ -11,13 +11,13 @@
   },
   "lighting": {
     "bg": 0.8,
-    "scene": 0.8,
-    "front": 0.3,
+    "scene": 0.5,
+    "front": 0.1,
     "sky": 0.4
   },
   "fog": {
     "color": "#080815",
-    "density": 0.0015
+    "density": 0.5
   },
   "emitters": [
     {
