@@ -16,7 +16,7 @@
     "sky": 0.4
   },
   "fog": {
-    "color": "#080815",
+    "color": "#244a1f",
     "density": 0.5
   },
   "emitters": [
