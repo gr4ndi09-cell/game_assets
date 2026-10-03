@@ -1,6 +1,6 @@
 {
   "_comentario1": "ATRIBUTOS FÍSICOS",
-  "moveSpeed": 800,
+  "moveSpeed": 400,
   "jumpForce": 1600,
   "projSpeed": 1.4,
 
