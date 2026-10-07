@@ -1,11 +1,11 @@
 {
   "_comentario": "Minion Bombardeiro: Lento, mas atira bombas perigosas",
-  "speed": 80,
+  "speed": 50,
   "size": 55,
   "projShape": "heart",
   "projType": "explosive",
   "projColor": "#ff5522",
-  "damage": 25,
+  "damage": 10,
   "arcForce": 900,
-  "explosionRadius": 150
+  "explosionRadius": 50
 }
