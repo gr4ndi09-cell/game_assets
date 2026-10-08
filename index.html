@@ -218,6 +218,7 @@
                 <div id="p1-buff" style="min-height:18px; font-size:14px; text-shadow:0 1px 3px black"></div>
                 <div class="health-bar-container"><div id="p1-health-fill" class="health-fill"></div></div>
                 <div id="p1-charge" class="charge-bar"></div>
+                <div id="p1-weapon" style="font-size:12px; max-width:300px; margin-top:5px; text-shadow:0 1px 3px black"></div>
             </div>
             <div id="ai-menu">
                 <input type="text" id="theme-input" value="Matemática Básica do Ensino Fundamental" placeholder="Tema do Quiz">
@@ -229,6 +230,7 @@
                 <div id="p2-buff" style="min-height:18px; font-size:14px; text-shadow:0 1px 3px black"></div>
                 <div class="health-bar-container"><div id="p2-health-fill" class="health-fill"></div></div>
                 <div id="p2-charge" class="charge-bar"></div>
+                <div id="p2-weapon" style="font-size:12px; max-width:300px; margin-top:5px; text-shadow:0 1px 3px black"></div>
             </div>
         </div>
 
@@ -682,6 +684,7 @@
         }
 
         function endSurvival(won, reason) {
+            stopAllLasers();
             survival.won = won; survival.reason = reason; gameState = 'VICTORY';
             quizContext = null; document.getElementById('quiz-overlay').style.display = 'none';
             Object.keys(keys).forEach(k => keys[k] = false);
@@ -757,46 +760,88 @@
         }
 
         const audioManager = {
-            sounds: {}, bgm: null, fadeInterval: null,
+            sounds: {}, bgm: null, fadeInterval: null, bgmRequest: 0,
+            uiContext: null, uiClickBuffer: null, uiClickLoading: false,
             load(key, url) { if(!url) return; const a = new Audio(); a.src = url; a.crossOrigin = "anonymous"; this.sounds[key] = a; },
+            // Cliques usam Web Audio para não abrir outro elemento de mídia a cada seleção.
+            playUiClick(volume = 0.7) {
+                const Context = window.AudioContext || window.webkitAudioContext;
+                if (!Context) return;
+                try {
+                    const context = this.uiContext || (this.uiContext = new Context());
+                    if (context.state === 'suspended') context.resume().catch(()=>{});
+                    if (!this.uiClickBuffer && !this.uiClickLoading && this.sounds.ui_click) {
+                        this.uiClickLoading = true;
+                        fetch(this.sounds.ui_click.src).then(r => {
+                            if (!r.ok) throw new Error('Som de clique indisponível');
+                            return r.arrayBuffer();
+                        }).then(data => context.decodeAudioData(data)).then(buffer => {
+                            this.uiClickBuffer = buffer;
+                        }).catch(()=>{});
+                    }
+                    const gain = context.createGain(); gain.connect(context.destination);
+                    if (this.uiClickBuffer) {
+                        gain.gain.value = volume;
+                        const source = context.createBufferSource(); source.buffer = this.uiClickBuffer;
+                        source.connect(gain); source.onended = () => { source.disconnect(); gain.disconnect(); }; source.start();
+                    } else {
+                        // Clique discreto enquanto o arquivo carrega ou quando estiver offline.
+                        const oscillator = context.createOscillator(); oscillator.type = 'sine';
+                        oscillator.frequency.setValueAtTime(900,context.currentTime);
+                        gain.gain.setValueAtTime(volume*0.12,context.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001,context.currentTime+0.035);
+                        oscillator.connect(gain); oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
+                        oscillator.start(); oscillator.stop(context.currentTime+0.04);
+                    }
+                } catch(e) { /* Um efeito de interface nunca deve interromper a música. */ }
+            },
             play(key, loop = false, volume = 1.0) {
-                const snd = this.sounds[key]; if (snd) {
-                    if (!loop) { const c = snd.cloneNode(); c.volume = volume; c.play().catch(()=>{}); }
-                    else { this.stopBGM(); snd.loop = true; snd.volume = volume; snd.play().catch(()=>{}); this.bgm = snd; }
+                if (key === 'ui_click') { this.playUiClick(volume); return; }
+                const snd = this.sounds[key]; if (!snd) return;
+                if (!loop) { const c = snd.cloneNode(); c.volume = volume; c.play().catch(()=>{}); return; }
+                if (this.bgm === snd) {
+                    if (snd.paused) snd.play().catch(()=>{});
+                    return;
                 }
+                this.stopBGM(); this.bgm = snd;
+                snd.loop = true; snd.volume = volume; snd.play().catch(()=>{});
             },
             playFadeIn(key, maxVolume = 1.0, duration = 2000) {
-                const snd = this.sounds[key];
-                if (!snd) return;
-                this.stopBGM(); // Garante que som anterior pára
-                snd.loop = true;
-                snd.volume = 0; // Começa no zero
-
-                // Promessa de áudio para evitar crashes caso o browser bloqueie
-                const playPromise = snd.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(() => {
-                        this.bgm = snd;
-                        let vol = 0;
-                        const step = maxVolume / (duration / 50); // Incremento a cada 50ms
-
-                        if (this.fadeInterval) clearInterval(this.fadeInterval);
-                        this.fadeInterval = setInterval(() => {
-                            vol += step;
-                            if (vol >= maxVolume) {
-                                vol = maxVolume;
-                                clearInterval(this.fadeInterval);
-                            }
-                            if (this.bgm) this.bgm.volume = vol;
-                        }, 50);
-                    }).catch(err => {
-                        console.warn("Autoplay da música do Menu bloqueado pelo browser.", err);
-                    });
+                const snd = this.sounds[key]; if (!snd) return;
+                if (this.bgm === snd) {
+                    if (snd.paused) snd.play().catch(()=>{});
+                    return;
                 }
+                this.stopBGM();
+                const request = this.bgmRequest;
+                this.bgm = snd; snd.loop = true; snd.volume = 0;
+                Promise.resolve(snd.play()).then(() => {
+                    // A partida pode ter começado enquanto play() aguardava o navegador.
+                    if (request !== this.bgmRequest || this.bgm !== snd) return;
+                    let elapsed = 0;
+                    const fadeDuration = Math.max(50,duration);
+                    this.fadeInterval = setInterval(() => {
+                        if (request !== this.bgmRequest || this.bgm !== snd) return;
+                        elapsed += 50;
+                        snd.volume = Math.min(maxVolume,maxVolume*elapsed/fadeDuration);
+                        if (elapsed >= fadeDuration) { clearInterval(this.fadeInterval); this.fadeInterval = null; }
+                    },50);
+                }).catch(()=>{
+                    if (request === this.bgmRequest && this.bgm === snd) {
+                        snd.volume = maxVolume;
+                        // Outra interação poderá retomar sem retroceder a posição da faixa.
+                    }
+                });
             },
-            stopBGM() { 
-                if (this.fadeInterval) clearInterval(this.fadeInterval);
-                if (this.bgm) { this.bgm.pause(); this.bgm.currentTime = 0; this.bgm = null; } 
+            resumeMenuMusic() {
+                if (gameState !== 'SELECTION') return;
+                const snd = this.sounds.bgm_titulo;
+                if (snd && this.bgm === snd && snd.paused) snd.play().catch(()=>{});
+            },
+            stopBGM() {
+                this.bgmRequest++;
+                if (this.fadeInterval) { clearInterval(this.fadeInterval); this.fadeInterval = null; }
+                if (this.bgm) { this.bgm.pause(); this.bgm.currentTime = 0; this.bgm = null; }
             }
         };
 
@@ -806,6 +851,7 @@
 
         // ESPIÃO DE CLIQUES GLOBAIS (Sonoriza qualquer interação de botão)
         window.addEventListener('click', (e) => {
+            audioManager.resumeMenuMusic();
             // Dispara som se clicar num botão genérico, num card de seleção ou num input de texto
             if (e.target.closest('button') || e.target.closest('.select-card') || e.target.tagName.toLowerCase() === 'input') {
                 audioManager.play('ui_click', false, 0.7);
@@ -1509,11 +1555,118 @@
             destroy() { if (this.meshGroup) scene3D.remove(this.meshGroup); }
         }
 
+        // Em config.json: projectile.behavior = straight | shotgun | spiral | acid | laser.
+        // Os campos antigos na raiz continuam válidos; projectile permite agrupar o disparo.
+        let shotSequence = 0;
+        function weaponConfig(player) {
+            return { ...player.pConfig, ...(player.pConfig.projectile || {}) };
+        }
+        function weaponBehavior(player) {
+            const name = weaponConfig(player).behavior || 'straight';
+            return ['straight','shotgun','spiral','acid','laser'].includes(name) ? name : 'straight';
+        }
+        function weaponNumber(config, key, fallback, min, max) {
+            return Number.isFinite(config[key]) ? Math.max(min,Math.min(max,config[key])) : fallback;
+        }
+        function segmentHitsBox(x1,y1,x2,y2,target,padding=0) {
+            let low=0, high=1;
+            for (const [origin,delta,min,max] of [
+                [x1,x2-x1,target.x-padding,target.x+target.w+padding],
+                [y1,y2-y1,target.y-padding,target.y+target.h+padding]
+            ]) {
+                if (Math.abs(delta)<1e-9) { if(origin<min || origin>max)return false; }
+                else {
+                    let a=(min-origin)/delta,b=(max-origin)/delta;
+                    if(a>b)[a,b]=[b,a];low=Math.max(low,a);high=Math.min(high,b);
+                    if(low>high)return false;
+                }
+            }
+            return true;
+        }
+        function projectileHitsTarget(b,target) {
+            return segmentHitsBox(b.previousX ?? b.x,b.previousY ?? b.y,b.x,b.y,target,b.size);
+        }
+        function stopAllLasers() { [p1,p2].filter(Boolean).forEach(p=>p.stopLaser()); }
+
+        class PlayerLaser {
+            constructor(player, config, charge) {
+                this.player=player;this.owner=player.id;this.config=config;
+                this.elapsed=0;this.angle=0;this.active=true;this.facing=player.facing;
+                this.x=player.facing===1?player.x+player.w:player.x;this.y=player.y+player.h*0.4;
+                this.endX=this.x;this.endY=this.y;
+                this.color=config.color || player.c;
+                this.width=weaponNumber(config,'laserWidth',10,2,30)*(1+2*Math.min(100,Math.max(0,charge))/100);
+                this.damagePerSecond=weaponNumber(config,'laserDPS',20,1,100);
+                this.hitAccumulator=0;this.nextSelfTick=4.3;
+                this.lights=Array.from({length:4},()=>{
+                    const light=new THREE.PointLight(this.color,4,280);scene3D.add(light);return light;
+                });
+            }
+            update(dt,input) {
+                if(!this.active || gameState!=='PLAYING')return;
+                const p=this.player;
+                if(p.health<=0){p.stopLaser();return;}
+                const step=Math.min(dt,10-this.elapsed);
+                this.elapsed+=step;
+                const aim=(input.down?1:0)-(input.up?1:0);
+                this.angle=Math.max(-50,Math.min(50,this.angle+aim*65*step));
+                const a=this.angle*Math.PI/180,dx=this.facing*Math.cos(a),dy=Math.sin(a);
+                let length=WORLD_WIDTH*2;
+                const bounds={left:Math.min(camera.x,this.x),right:Math.max(camera.x+camera.viewWidth,this.x),top:Math.min(camera.y,this.y),bottom:Math.max(camera.y+camera.viewHeight,this.y)};
+                if(dx>0)length=Math.min(length,(bounds.right-this.x)/dx);
+                else if(dx<0)length=Math.min(length,(bounds.left-this.x)/dx);
+                if(dy>0)length=Math.min(length,(bounds.bottom-this.y)/dy);
+                else if(dy<0)length=Math.min(length,(bounds.top-this.y)/dy);
+                length=Math.max(0,length)*Math.min(1,this.elapsed/0.18);
+                this.endX=this.x+dx*length;this.endY=this.y+dy*length;
+                this.lights.forEach((light,i)=>{
+                    const t=i/3,x=this.x+(this.endX-this.x)*t,y=this.y+(this.endY-this.y)*t;
+                    const nx=(x-WORLD_WIDTH/2)/(WORLD_WIDTH/2);
+                    light.position.set(x,WORLD_HEIGHT-y,nx*nx*300-80);
+                });
+                // Ticks de 300 ms, após quatro segundos; aumenta 2 HP a cada 1,2 s.
+                while(this.active && this.nextSelfTick<=this.elapsed+1e-8) {
+                    const damage=3+2*Math.floor((this.nextSelfTick-4+1e-8)/1.2);
+                    this.nextSelfTick+=0.3;p.takeDamage(damage);
+                    if(gameState!=='PLAYING' || p.health<=0)return;
+                }
+                this.hitAccumulator+=step;
+                while(this.active && this.hitAccumulator>=0.1-1e-8) {
+                    this.hitAccumulator-=0.1;
+                    // Buff de fruta só vale enquanto estiver ativo, inclusive no feixe contínuo.
+                    const damage=this.damagePerSecond*0.1*(p.fruitBuff?p.fruitBuff.shot:1);
+                    for(const target of [p1,p2,...minions]) {
+                        if(canDamage(this.owner,target)&&segmentHitsBox(this.x,this.y,this.endX,this.endY,target,this.width/2))target.takeDamage(damage);
+                        if(gameState!=='PLAYING')return;
+                    }
+                }
+                if(this.elapsed>=10-1e-8)p.stopLaser();
+            }
+            draw(c) {
+                if(!this.active)return;
+                c.save();c.lineCap='round';
+                for(const [scale,alpha,color] of [[2.8,.12,this.color],[1.8,.25,this.color],[1,.85,this.color],[.35,1,'white']]) {
+                    c.globalAlpha=alpha;c.strokeStyle=color;c.lineWidth=this.width*scale;
+                    c.shadowColor=this.color;c.shadowBlur=28;
+                    c.beginPath();c.moveTo(this.x,this.y);c.lineTo(this.endX,this.endY);c.stroke();
+                }
+                c.restore();
+            }
+            destroy() {
+                if(!this.active)return;this.active=false;
+                this.lights.forEach(light=>{scene3D.remove(light);if(light.dispose)light.dispose();});
+            }
+        }
+
         class Projectile { 
             constructor(x,y,f,d,s,c,ic=false, owner='player', config={}){
                 this.x=x; this.y=y; this.vx=f; this.damage=d; this.size=s; this.c=c; this.active=true; this.ic=ic; this.owner=owner; this.trail=[]; this.p=[]; this.sp=900+(ic?600:0);
-                if(owner==='p1' || owner==='p2') audioManager.play(ic?(c==='#ff3e3e'?'p1_charge':'p2_charge'):'shot_common',false,0.4);
+                if(!config.silent && (owner==='p1' || owner==='p2')) audioManager.play(ic?(c==='#ff3e3e'?'p1_charge':'p2_charge'):'shot_common',false,0.4);
 
+                this.behavior=config.behavior || 'straight';this.config=config;this.age=0;
+                this.originX=x;this.originY=y;this.previousX=x;this.previousY=y;
+                this.baseSize=s;this.distance=0;this.fade=1;this.bounces=0;this.spiralZ=0;
+                this.motionVX=0;this.motionVY=0;this.fanAngle=0;
                 this.trailLength = config.trailLength || 6; 
                 this.shapeType = config.shape || (owner==='p2'?'cone':'star');
 
@@ -1539,7 +1692,7 @@
                 const nx = (this.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2); const curveZ = Math.pow(nx, 2) * 300;
 
                 this.light = new THREE.PointLight(this.c, 6.0, 300); this.light.position.set(0, 0, -100); this.meshGroup.add(this.light); 
-                this.meshGroup.position.set(this.x, WORLD_HEIGHT - this.y, 0 + curveZ); scene3D.add(this.meshGroup);
+                this.meshGroup.position.set(this.x, WORLD_HEIGHT - this.y, this.spiralZ + curveZ); scene3D.add(this.meshGroup);
             } 
             update(dt){
                 const pCount = this.ic ? 4 : 2;
@@ -1547,12 +1700,47 @@
                     this.p.push(new BulletParticle(this.x,this.y,this.c,this.ic?0.6:0.3, 1.5));
                 }
                 this.trail.unshift({x:this.x,y:this.y}); if(this.trail.length>this.trailLength)this.trail.pop();
-                this.p.forEach((p,i)=>{p.update(dt);if(p.l<=0)this.p.splice(i,1)});
-                this.x+=this.vx*this.sp*dt; if(this.x<-300||this.x>WORLD_WIDTH+300)this.active=false;
+                this.p.forEach(p=>p.update(dt));this.p=this.p.filter(p=>p.l>0);
+                this.previousX=this.x;this.previousY=this.y;this.age+=dt;
+                if(this.behavior==='shotgun') {
+                    const step=Math.min(this.sp*dt,Math.max(0,150-this.distance));this.distance+=step;
+                    this.x+=this.vx*Math.cos(this.fanAngle)*step;this.y+=Math.sin(this.fanAngle)*step;
+                    this.fade=Math.max(0,Math.min(1,(150-this.distance)/45));
+                    if(this.distance>=150-1e-8)this.expiresAfterMove=true;
+                } else if(this.behavior==='acid') {
+                    const oldBottom=this.y+this.size;
+                    this.motionVY+=weaponNumber(this.config,'acidGravity',1400,300,4000)*dt;
+                    this.x+=this.motionVX*dt;this.y+=this.motionVY*dt;
+                    let floor=GROUND_Y;
+                    colliders.forEach(p=>{
+                        let surface;
+                        if((!p.type||p.type==='rect')&&this.x>=p.x&&this.x<=p.x+p.w)surface=p.y;
+                        else if(p.type==='slope'&&this.x>=p.x1&&this.x<=p.x2&&p.x2!==p.x1)surface=p.y1+(this.x-p.x1)/(p.x2-p.x1)*(p.y2-p.y1);
+                        if(surface!==undefined&&oldBottom<=surface+5&&this.y+this.size>=surface)floor=Math.min(floor,surface);
+                    });
+                    if(this.motionVY>0&&this.y+this.size>=floor) {
+                        this.y=floor-this.size;this.motionVY=-this.motionVY*.55;this.motionVX*=.8;this.bounces++;
+                    }
+                    const lifetime=weaponNumber(this.config,'acidLifetime',1.4,.5,3);
+                    this.fade=Math.min(1,Math.max(0,(lifetime-this.age)/.3));
+                    if(this.age>=lifetime||this.bounces>=3)this.expiresAfterMove=true;
+                } else {
+                    this.x+=this.vx*this.sp*dt;
+                    if(this.behavior==='spiral') {
+                        const radius=weaponNumber(this.config,'spiralRadius',30,5,100);
+                        const phase=this.age*weaponNumber(this.config,'spiralFrequency',4,.5,10)*Math.PI*2;
+                        this.y=this.originY+Math.sin(phase)*radius;this.spiralZ=Math.cos(phase)*radius;
+                    }
+                }
+                if(this.x<-300||this.x>WORLD_WIDTH+300||this.y<-300||this.y>WORLD_HEIGHT+300)this.active=false;
+                if(this.behavior==='shotgun'||this.behavior==='acid') {
+                    this.meshGroup.scale.setScalar(Math.max(.01,this.fade));
+                    this.light.intensity=6*this.fade;
+                }
 
                 if (this.meshGroup) {
                     const nx = (this.x - WORLD_WIDTH / 2) / (WORLD_WIDTH / 2); const curveZ = Math.pow(nx, 2) * 300;
-                    this.meshGroup.position.set(this.x, WORLD_HEIGHT - this.y, 0 + curveZ);
+                    this.meshGroup.position.set(this.x, WORLD_HEIGHT - this.y, this.spiralZ + curveZ);
 
                     if (this.shapeType === 'star') { this.meshGroup.rotation.x += 10 * dt; this.meshGroup.rotation.y += 10 * dt; } 
                     else if (this.shapeType === 'cone') { this.meshGroup.rotation.x += 15 * dt; } 
@@ -1568,7 +1756,7 @@
                 this.p.forEach(p=>p.draw(c));
                 this.trail.forEach((p, i)=>{
                     const sizePercent = 1 - (i / this.trailLength);
-                    c.globalAlpha = 0.5 * sizePercent; 
+                    c.globalAlpha = 0.5 * sizePercent * this.fade; 
                     c.fillStyle = this.c; 
                     c.shadowBlur = 20; 
                     c.shadowColor = this.c;
@@ -1578,7 +1766,15 @@
                 });
                 c.restore();
             } 
-            destroy() { if(this.meshGroup) scene3D.remove(this.meshGroup); }
+            destroy() {
+                if(this.disposed)return;this.disposed=true;this.active=false;
+                if(this.meshGroup){
+                    scene3D.remove(this.meshGroup);
+                    const geometries=new Set(),materials=new Set();
+                    this.meshGroup.traverse(o=>{if(o.geometry)geometries.add(o.geometry);if(o.material)materials.add(o.material);});
+                    geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());
+                }
+            }
         }
 
         function check3DHit(atacante, empties, dano, isPassive) {
@@ -1821,7 +2017,8 @@
                 this.atkT=0;this.mHD=false;this.state=LOGICAL_STATE.IDLE;this.dF=0;
                 this.onIce = false; this.isCPU = false; this.lastChanceUsed = false;
                 this.jumpDuration = 0.9; this.landingBlend = 0;
-                this.fruitBuff = null; this.fruitFlash = null; this.fruitEffectTime = 0; 
+                this.fruitBuff = null; this.fruitFlash = null; this.fruitEffectTime = 0;
+                this.laser=null;this.laserCooldown=0;this.acidTimer=0;this.shootHeld=false;this.cpuWeaponHold=0; 
                 this.cpuKeys = { up: false, down: false, left: false, right: false, melee: false, shoot: false };
                 this.pConfig = pConfig; 
 
@@ -1920,10 +2117,22 @@
                 this.cpuKeys = { up: false, down: false, left: false, right: false, melee: false, shoot: false };
                 if (!target || target.health <= 0 || this.health <= 0) return;
                 let distX = (target.x + target.w/2) - (this.x + this.w/2); let absDist = Math.abs(distX);
+                if(this.laser) {
+                    const dx=Math.abs(target.x+target.w/2-this.laser.x);
+                    const desired=Math.max(-50,Math.min(50,Math.atan2(target.y+target.h/2-this.laser.y,Math.max(1,dx))*180/Math.PI));
+                    this.cpuKeys.up=desired<this.laser.angle-2;this.cpuKeys.down=desired>this.laser.angle+2;
+                    return;
+                }
+
 
                 if (absDist > 200) { this.cpuKeys[distX > 0 ? 'right' : 'left'] = true; } 
                 else if (absDist < 120) { if (Math.random() < 0.08) this.cpuKeys.melee = true; if (Math.random() < 0.03) this.cpuKeys[distX > 0 ? 'left' : 'right'] = true; }
-                if (Math.random() < 0.015 && absDist < 800) this.cpuKeys.shoot = true; 
+                const behavior=weaponBehavior(this);
+                if(behavior==='acid'||behavior==='laser') {
+                    this.cpuWeaponHold=Math.max(0,this.cpuWeaponHold-dt);
+                    if(this.cpuWeaponHold<=0&&absDist<800&&Math.random()<dt*0.8)this.cpuWeaponHold=1.1;
+                    this.cpuKeys.shoot=this.cpuWeaponHold>0;
+                } else if (Math.random() < 0.015 && absDist < 800) this.cpuKeys.shoot = true; 
                 if (Math.random() < 0.02 && this.onGround) this.cpuKeys.up = true; 
             }
 
@@ -1938,6 +2147,17 @@
                     melee: keys[this.ctrl.melee] || (is1P && (keys['Enter'] || keys[' '])), shoot: keys[this.ctrl.shoot] || (is1P && keys['Shift'])
                 };
 
+                if(!this.laser) { if(activeKeys.left)this.facing=-1;else if(activeKeys.right)this.facing=1; }
+                const locked=this.updateWeaponInput(dt,activeKeys);
+                this.refreshWeaponHUD();
+                if(gameState!=='PLAYING' || this.health<=0)return;
+                if(locked) {
+                    this.vx=0;this.vy=0;this.setAnimation(LOGICAL_STATE.SHOOT);
+                    this.meshGroup.rotation.y=this.facing===1?Math.PI/2:-Math.PI/2;
+                    document.getElementById(`${this.id}-charge`).style.width='0%';
+                    if(this.mixer)this.mixer.update(dt);
+                    return;
+                }
                 const pSpeed = (this.pConfig.moveSpeed || MOVE_SPEED) + (this.fruitBuff ? this.fruitBuff.speed : 0);
                 const pJump = this.pConfig.jumpForce || JUMP_FORCE;
 
@@ -1949,10 +2169,8 @@
                 this.landingBlend = Math.max(0, this.landingBlend - dt);
                 if(activeKeys.up && this.onGround){this.beginJump(pJump);audioManager.play(this.id==='p1'?'p1_jump':'p2_jump',false,0.5);}
                 if(activeKeys.melee && !this.isAttacking){this.isAttacking=true;this.atkT=0.5;this.setAnimation(LOGICAL_STATE.MELEE);}
-                if(activeKeys.shoot){this.isCharging=true;this.charge=Math.min(100,this.charge+(100*dt));this.setAnimation(LOGICAL_STATE.SHOOT);}
-                else if(this.isCharging){this.shoot();this.isCharging=false;this.charge=0;}
 
-                if(!this.isAttacking&&!this.isCharging){
+                if(!this.isAttacking&&!this.isCharging&&!this.acidStreaming){
                     if(!this.onGround)this.setAnimation(LOGICAL_STATE.JUMP);
                 else if(this.landingBlend > 0) { /* finalizar o salto antes do blend */ }
                 else if(Math.abs(this.vx)>0)this.setAnimation(LOGICAL_STATE.RUN);
@@ -1985,7 +2203,7 @@
                 if(this.x+this.w<0)this.x=WORLD_WIDTH;else if(this.x>WORLD_WIDTH)this.x=-this.w;
                 if(this.y+this.h>GROUND_Y){this.y=GROUND_Y-this.h;this.vy=0;this.onGround=true;}
 
-                const isDown=activeKeys.down;
+                const isDown=activeKeys.down && !(weaponBehavior(this)==='acid' && this.isCharging);
 
                 colliders.forEach(p=>{
                     if(!p.type||p.type==='rect'){
@@ -2050,23 +2268,78 @@
                 }
             }
 
-            shoot(){
-                const activeBullets = bullets.filter(b => b.owner === this.id).length; if (activeBullets >= 4) return;
-                const ic=this.charge>90; const sx=this.facing===1?this.x+this.w:this.x; const sy=this.y+(this.h*0.4);
-
-                let projColor = this.c; let baseSize = 25; let speedMult = 1.0;
-                if (this.pConfig && this.pConfig.color) projColor = this.pConfig.color;
-                if (this.pConfig && this.pConfig.size) baseSize = this.pConfig.size;
-                if (this.pConfig && this.pConfig.projSpeed) speedMult = this.pConfig.projSpeed;
-
-                const finalSize = ic ? baseSize * 2 : baseSize; 
-                const shotMultiplier = this.fruitBuff ? this.fruitBuff.shot : 1;
-                const finalDamage = (ic ? 40 : 15) * shotMultiplier;
-                const finalSpeed = (ic ? 1500 : 900) * speedMult;
-
-                bullets.push(new Projectile(sx,sy,this.facing,finalDamage, finalSize, projColor, ic, this.id, this.pConfig)); 
-                bullets[bullets.length-1].sp = finalSpeed;
-                bullets[bullets.length-1].damageMultiplier = shotMultiplier;
+            stopLaser() {
+                if (!this.laser) return;
+                const elapsed=this.laser.elapsed;
+                this.laser.destroy();this.laser=null;
+                if(elapsed>7+1e-8)this.laserCooldown=5;
+                this.isCharging=false;this.charge=0;
+            }
+            updateWeaponInput(dt,input) {
+                this.laserCooldown=Math.max(0,this.laserCooldown-dt);
+                this.acidTimer=Math.max(0,this.acidTimer-dt);
+                const pressed=input.shoot&&!this.shootHeld;
+                const behavior=weaponBehavior(this);
+                this.acidStreaming=behavior==='acid' && input.shoot && !input.down && !this.isCharging;
+                if(this.laser) {
+                    if(pressed)this.stopLaser();else this.laser.update(dt,input);
+                    this.shootHeld=!!input.shoot;
+                    return true;
+                }
+                if(this.laserCooldown>0&&behavior==='laser') {
+                    this.isCharging=false;this.charge=0;this.shootHeld=!!input.shoot;return false;
+                }
+                if(behavior==='acid' && input.shoot && !input.down && !this.isCharging) {
+                    if(this.acidTimer<=0) {
+                        if(this.shoot(false))this.acidTimer=weaponNumber(weaponConfig(this),'acidInterval',0.35,0.15,1);
+                    }
+                    this.setAnimation(LOGICAL_STATE.SHOOT);
+                } else if(input.shoot) {
+                    this.isCharging=true;this.charge=Math.min(100,this.charge+100*dt);
+                    this.setAnimation(LOGICAL_STATE.SHOOT);
+                } else if(this.isCharging) {
+                    this.shoot();this.isCharging=false;this.charge=0;
+                }
+                this.shootHeld=!!input.shoot;
+                return !!this.laser;
+            }
+            refreshWeaponHUD() {
+                const el=document.getElementById(`${this.id}-weapon`);
+                const behavior=weaponBehavior(this);
+                el.innerText=this.laser ? `LASER ${this.laser.elapsed.toFixed(1)}s / 10s${this.laser.elapsed>=4?' • SUPERAQUECENDO!':''}` :
+                    this.laserCooldown>0 ? `Laser recuperando: ${this.laserCooldown.toFixed(1)}s` :
+                    behavior==='acid'?'Ácido: segure TIRO • BAIXO + TIRO: carregar':
+                    behavior==='laser'?'Laser: solte TIRO para iniciar • CIMA/BAIXO: mirar • TIRO: parar':'';
+                el.style.color=this.laser&&this.laser.elapsed>=4?'#ff785b':'#d4eeff';
+            }
+            shoot(forceCharged = null){
+                const config=weaponConfig(this),behavior=weaponBehavior(this);
+                const slots=new Set(bullets.filter(b=>b.active&&b.owner===this.id).map(b=>b.shotId??b));
+                if(slots.size>=4 || this.laser || (behavior==='laser'&&this.laserCooldown>0))return false;
+                const ic=forceCharged===null?this.charge>90:forceCharged;
+                if(behavior==='laser') {
+                    this.isAttacking=false;this.atkT=0;this.vx=0;this.vy=0;
+                    this.laser=new PlayerLaser(this,config,this.charge);return true;
+                }
+                const sx=this.facing===1?this.x+this.w:this.x,sy=this.y+this.h*0.4;
+                const color=config.color||this.c;
+                const baseSize=weaponNumber(config,'size',25,2,100);
+                const size=baseSize*(ic?2:1),multiplier=this.fruitBuff?this.fruitBuff.shot:1;
+                const damage=(ic?40:15)*multiplier;
+                const speed=(ic?1500:900)*weaponNumber(config,'projSpeed',1,0.1,5);
+                const fragment=behavior==='shotgun'||behavior==='acid';
+                const count=fragment?5:1,id=++shotSequence;
+                for(let i=0;i<count;i++) {
+                    const shot=new Projectile(sx,sy,this.facing,damage/count,fragment?size/3:size,color,ic,this.id,{...config,behavior,silent:i>0});
+                    shot.sp=speed;shot.damageMultiplier=multiplier;shot.shotId=id;
+                    shot.fragment=fragment;shot.fanAngle=fragment?(-25+i*50/(count-1))*Math.PI/180:0;
+                    if(behavior==='acid') {
+                        shot.motionVX=this.facing*weaponNumber(config,'acidSpeed',380,100,900)*Math.cos(shot.fanAngle);
+                        shot.motionVY=-weaponNumber(config,'acidArc',100,0,600)+Math.sin(shot.fanAngle)*220;
+                    }
+                    bullets.push(shot);
+                }
+                return true;
             }
             takeDamage(a) {
                 if (gameState !== 'PLAYING' || this.health <= 0) return;
@@ -2074,6 +2347,7 @@
                 document.getElementById(`${this.id}-health-fill`).style.width = this.health + '%';
                 audioManager.play('hit', false, 0.6);
                 if (this.health <= 0) {
+                    this.stopLaser();
                     if (!isSurvival()) startDuel(this);
                     else if (!this.lastChanceUsed) {
                         this.lastChanceUsed = true; showQuiz('survival-ko', this);
@@ -2082,6 +2356,7 @@
             }
             draw(c){
                 if (this.health <= 0 && isSurvival()) return;
+                if(this.laser)this.laser.draw(c);
                 drawPlayerFruitAura(c,this);
                 c.save(); c.fillStyle = "rgba(0,0,0,0.5)"; c.beginPath(); c.ellipse(this.x + this.w/2, this.y + this.h, 30, 10, 0, 0, Math.PI*2); c.fill(); c.restore();
             }
@@ -2103,6 +2378,21 @@
         }
 
         function updateCamera() {
+            if (gameMode === 'survival') {
+                // Exclusivo do solo: enquadrar todo o mapa sem cortar ou deformar o cenário.
+                camera.viewWidth = Math.max(WORLD_WIDTH, WORLD_HEIGHT / ASPECT_RATIO);
+                camera.targetViewWidth = camera.viewWidth;
+                camera.viewHeight = camera.viewWidth * ASPECT_RATIO;
+                camera.x = (WORLD_WIDTH - camera.viewWidth) / 2;
+                camera.y = (WORLD_HEIGHT - camera.viewHeight) / 2;
+                if (camera3D) {
+                    camera3D.left = camera.x; camera3D.right = camera.x + camera.viewWidth;
+                    camera3D.top = WORLD_HEIGHT - camera.y;
+                    camera3D.bottom = WORLD_HEIGHT - (camera.y + camera.viewHeight);
+                    camera3D.updateProjectionMatrix();
+                }
+                return;
+            }
             const tracked = isSurvival() ? livingPlayers() : [p1, p2].filter(Boolean);
             if (!tracked.length) return;
             const minX = Math.min(...tracked.map(p => p.x + p.w/2));
@@ -2133,6 +2423,7 @@
 
         function startDuel(loser) {
             if (gameState !== 'PLAYING') return; currentLoser = loser; currentWinner = (loser === p1) ? p2 : p1;
+            stopAllLasers();
             gameState = 'CINEMATIC'; cinematicTimer = 3.5; 
             bullets.forEach(b => b.destroy && b.destroy()); explosions.forEach(e => e.destroy && e.destroy());
             bullets = []; explosions = [];
@@ -2320,12 +2611,12 @@
 
                 for(let i=bullets.length-1;i>=0;i--){
                     for(let j=i-1;j>=0;j--){
-                        const b1=bullets[i],b2=bullets[j];if(!b1||!b2)continue;
+                        const b1=bullets[i],b2=bullets[j];if(!b1||!b2||!b1.active||!b2.active||b1.owner===b2.owner)continue;
                         if (isSurvival() && ((b1.owner === 'minion') === (b2.owner === 'minion'))) continue;
 
                         let collisionDist = b1.size + b2.size;
                         if(Math.hypot(b1.x-b2.x,b1.y-b2.y) < collisionDist){
-                            if(b1.ic&&b2.ic){explosions.push(new Explosion((b1.x+b2.x)/2,(b1.y+b2.y)/2,"orange", 150, 'minion')); b1.destroy(); b2.destroy(); bullets.splice(i,1);bullets.splice(j,1);break;}
+                            if(b1.ic&&b2.ic&&!b1.fragment&&!b2.fragment){explosions.push(new Explosion((b1.x+b2.x)/2,(b1.y+b2.y)/2,"orange", 150, 'minion')); b1.destroy(); b2.destroy(); bullets.splice(i,1);bullets.splice(j,1);break;}
                             else if(b1.ic&&!b2.ic){b2.destroy(); bullets.splice(j,1);i--;}else if(!b1.ic&&b2.ic){b1.destroy(); bullets.splice(i,1);break;}
                             else{b1.destroy(); b2.destroy(); bullets.splice(i,1);bullets.splice(j,1);break;}
                         }
@@ -2339,7 +2630,7 @@
 
                     if (b.active) {
                         [p1, p2].forEach(p => {
-                            if (p && p.health > 0 && b.x + b.size > p.x && b.x - b.size < p.x + p.w && b.y + b.size > p.y && b.y - b.size < p.y + p.h) {
+                            if (p && p.health > 0 && !hit && projectileHitsTarget(b,p)) {
                                 if (canDamage(b.owner, p)) { 
                                     p.takeDamage(b.damage); hit = true; 
                                     let rad = b.explosionRadius || 40;
@@ -2350,7 +2641,7 @@
 
                         if (!hit && b.owner !== 'minion') {
                             minions.forEach(m => { 
-                                if (m.health > 0 && b.x + b.size > m.x && b.x - b.size < m.x + m.w && b.y + b.size > m.y && b.y - b.size < m.y + m.h) { 
+                                if (m.health > 0 && !hit && projectileHitsTarget(b,m)) { 
                                     m.takeDamage(b.damage); hit = true; 
                                     let rad = b.explosionRadius || 40;
                                     explosions.push(new Explosion(b.x, b.y, b.c, rad, b.owner, 30*(b.damageMultiplier || 1)));
@@ -2360,6 +2651,7 @@
                         if(hit) b.active = false;
                     }
                     if (gameState !== 'PLAYING') return;
+                    if(b.expiresAfterMove)b.active=false;
                     if(!b.active) { b.destroy && b.destroy(); bullets.splice(i,1); }
                 }
 
