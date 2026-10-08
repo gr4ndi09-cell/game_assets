@@ -6,9 +6,11 @@
 
   "_comentario2": "ATRIBUTOS DA MAGIA / ARMA",
   "color": "#fc86f8",
-  "size": 25,
+  "size": 10,
   "projectile": {
     "shape": "cone",
+    "color": "#fc86f8",
+    "behavior": "shotgun",
     "trailLength": 5
   }
 }
