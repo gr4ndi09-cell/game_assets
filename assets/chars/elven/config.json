@@ -9,6 +9,8 @@
   "size": 20,
   "projectile": {
     "shape": "heart",
+     "behavior": "spiral",
+    "color": "#7c86ff",
     "trailLength": 8
   }
 }
