@@ -6,7 +6,7 @@
 
   "_comentario2": "ATRIBUTOS DA MAGIA / ARMA",
   "color": "#cccccc",
-  "size": 25,
+  "size": 30,
   "projectile": {
     "shape": "shuriken",
     "trailLength": 8
