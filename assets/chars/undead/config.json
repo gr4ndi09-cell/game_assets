@@ -8,7 +8,9 @@
   "color": "#7ced18",
   "size": 50,
   "projectile": {
-    "shape": "star",
+    "behavior": "acid",
+    "shape": "sphere",
+    "color": "#7CFF35"
     "trailLength": 10
   }
 }
