@@ -9,6 +9,8 @@
   "size": 30,
   "projectile": {
     "shape": "shuriken",
+    "behavior": "spiral",
+    "color": "#7cf502",
     "trailLength": 8
   }
 }
