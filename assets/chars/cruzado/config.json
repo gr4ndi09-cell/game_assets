@@ -9,6 +9,8 @@
   "size": 25,
   "projectile": {
     "shape": "cone",
+    "behavior": "shotgun",
+    "color": "#cccccc",
     "trailLength": 8
   }
 }
