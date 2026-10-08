@@ -9,6 +9,8 @@
   "size": 40,
   "projectile": {
     "shape": "crescent",
+    "behavior": "laser",
+    "color": "#027fc7",
     "trailLength": 8
   }
 }
