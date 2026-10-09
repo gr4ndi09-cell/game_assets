@@ -3,14 +3,13 @@
   "moveSpeed": 200,
   "jumpForce": 1900,
   "projSpeed": 1.5,
-
   "_comentario2": "ATRIBUTOS DA MAGIA / ARMA",
   "color": "#7ced18",
   "size": 50,
   "projectile": {
     "shape": "sphere",
     "behavior": "acid",
-    "color": "#7CFF35"
+    "color": "#7CFF35",
     "trailLength": 10
   }
 }
