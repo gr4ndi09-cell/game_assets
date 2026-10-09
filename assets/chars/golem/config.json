@@ -2,7 +2,7 @@
   "_comentario1": "ATRIBUTOS FÍSICOS",
   "moveSpeed": 500,
   "jumpForce": 1800,
-  "projSpeed": 1.2,
+  "projSpeed": 0.4,
 
   "_comentario2": "ATRIBUTOS DA MAGIA / ARMA",
   "color": "#027fc7",
