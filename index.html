@@ -220,7 +220,7 @@
             </div>
             <div id="ai-menu">
                 <input type="text" id="theme-input" value="Matemática Básica do Ensino Fundamental" placeholder="Tema do Quiz">
-                <button class="gemini-btn" onclick="generateQuestions()">Gerar Desafios ✨</button>
+                <button class="gemini-btn" data-own-sound onclick="generateQuestions()">Gerar Desafios ✨</button>
                 <div id="loader" style="display:none; color: cyan;">IA a processar...</div>
             </div>
             <div id="p2-hud">
@@ -683,7 +683,7 @@
 
         function endSurvival(won, reason) {
             stopAllLasers();
-            survival.won = won; survival.reason = reason; gameState = 'VICTORY';
+            survival.won = won; survival.reason = reason; gameState = 'VICTORY'; audioManager.theme('victory_theme');
             quizContext = null; document.getElementById('quiz-overlay').style.display = 'none';
             Object.keys(keys).forEach(k => keys[k] = false);
             updateSurvivalHUD();
@@ -759,44 +759,88 @@
 
         const audioManager = {
             sounds: {}, bgm: null, fadeInterval: null, bgmRequest: 0,
-            uiContext: null, uiClickBuffer: null, uiClickLoading: false,
-            load(key, url) { if(!url) return; const a = new Audio(); a.src = url; a.crossOrigin = "anonymous"; this.sounds[key] = a; },
-            // Cliques usam Web Audio para não abrir outro elemento de mídia a cada seleção.
-            playUiClick(volume = 0.7) {
+            uiContext: null, buffers: {}, impactTimes: new WeakMap(),
+            load(key, url) {
+                if(!url) return;
+                const a = new Audio(); a.crossOrigin = "anonymous"; a.src = url; this.sounds[key] = a;
+                this.buffer(url); // Pré-carrega sem tocar nem interromper o tema.
+            },
+            buffer(url) {
+                if (this.buffers[url]) return this.buffers[url];
                 const Context = window.AudioContext || window.webkitAudioContext;
-                if (!Context) return;
+                if (!Context) return Promise.resolve(null);
                 try {
                     const context = this.uiContext || (this.uiContext = new Context());
-                    if (context.state === 'suspended') context.resume().catch(()=>{});
-                    if (!this.uiClickBuffer && !this.uiClickLoading && this.sounds.ui_click) {
-                        this.uiClickLoading = true;
-                        fetch(this.sounds.ui_click.src).then(r => {
-                            if (!r.ok) throw new Error('Som de clique indisponível');
-                            return r.arrayBuffer();
-                        }).then(data => context.decodeAudioData(data)).then(buffer => {
-                            this.uiClickBuffer = buffer;
-                        }).catch(()=>{});
+                    this.buffers[url] = (async () => {
+                        const controller = new AbortController();
+                        const timeout = setTimeout(() => controller.abort(), 4000);
+                        try {
+                            const response = await fetch(url, {signal:controller.signal});
+                            if (!response.ok) return null;
+                            return await context.decodeAudioData(await response.arrayBuffer());
+                        } catch (_) { return null; }
+                        finally { clearTimeout(timeout); }
+                    })();
+                    return this.buffers[url];
+                } catch (_) { return Promise.resolve(null); }
+            },
+            async effect(candidates, volume = 0.7) {
+                // Arquivo específico -> padrão -> silêncio. Nada é sintetizado.
+                const started = performance.now();
+                try {
+                    const context = this.uiContext;
+                    if (!context) return;
+                    if (context.state === 'suspended') await context.resume();
+                    for (const key of candidates) {
+                        const sound = this.sounds[key]; if (!sound) continue;
+                        let timeout;
+                        const buffer = await Promise.race([
+                            this.buffer(sound.src),
+                            new Promise(resolve => { timeout = setTimeout(() => resolve(null), 180); })
+                        ]).finally(() => clearTimeout(timeout));
+                        if (performance.now() - started > 1200) return;
+                        if (!buffer) continue;
+                        const gain = context.createGain(); gain.gain.value = volume; gain.connect(context.destination);
+                        const source = context.createBufferSource(); source.buffer = buffer; source.connect(gain);
+                        source.onended = () => { source.disconnect(); gain.disconnect(); };
+                        source.start(); return;
                     }
-                    const gain = context.createGain(); gain.connect(context.destination);
-                    if (this.uiClickBuffer) {
-                        gain.gain.value = volume;
-                        const source = context.createBufferSource(); source.buffer = this.uiClickBuffer;
-                        source.connect(gain); source.onended = () => { source.disconnect(); gain.disconnect(); }; source.start();
-                    } else {
-                        // Clique discreto enquanto o arquivo carrega ou quando estiver offline.
-                        const oscillator = context.createOscillator(); oscillator.type = 'sine';
-                        oscillator.frequency.setValueAtTime(900,context.currentTime);
-                        gain.gain.setValueAtTime(volume*0.12,context.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.001,context.currentTime+0.035);
-                        oscillator.connect(gain); oscillator.onended = () => { oscillator.disconnect(); gain.disconnect(); };
-                        oscillator.start(); oscillator.stop(context.currentTime+0.04);
-                    }
-                } catch(e) { /* Um efeito de interface nunca deve interromper a música. */ }
+                } catch (_) { /* Áudio indisponível nunca bloqueia o jogo. */ }
+            },
+            playUiClick(volume = 0.7) { this.effect(['ui_click'], volume); },
+            shot(type, owner, charged = false) {
+                this.effect([`shot_${type}`, ...(charged ? [`${owner}_charge`] : []), 'shot_common'], 0.4);
+            },
+            impact(target, type) {
+                const now = performance.now();
+                if (now - (this.impactTimes.get(target) ?? -Infinity) < 120) return;
+                this.impactTimes.set(target, now);
+                this.effect([`hit_${type}`, 'hit'], 0.6);
+            },
+            async theme(key) {
+                this.stopBGM();
+                const request = this.bgmRequest;
+                for (const candidate of [key, 'bgm_titulo']) {
+                    if (request !== this.bgmRequest) return;
+                    const sound = this.sounds[candidate]; if (!sound) continue;
+                    this.bgm = sound; sound.loop = true; sound.volume = 0.5;
+                    let timeout;
+                    try {
+                        await Promise.race([
+                            sound.play(),
+                            new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('audio timeout')), 4000); })
+                        ]);
+                        return;
+                    } catch (_) {
+                        if (request !== this.bgmRequest) return;
+                        sound.pause(); sound.currentTime = 0; this.bgm = null;
+                    } finally { clearTimeout(timeout); }
+                }
             },
             play(key, loop = false, volume = 1.0) {
                 if (key === 'ui_click') { this.playUiClick(volume); return; }
                 const snd = this.sounds[key]; if (!snd) return;
-                if (!loop) { const c = snd.cloneNode(); c.volume = volume; c.play().catch(()=>{}); return; }
+                if (!loop) { this.effect([key], volume); return; }
                 if (this.bgm === snd) {
                     if (snd.paused) snd.play().catch(()=>{});
                     return;
@@ -847,13 +891,29 @@
         audioManager.load('bgm_titulo', `${REPO_ROOT}/sounds/common/titulo.mp4`);
         audioManager.load('ui_click', `${REPO_ROOT}/sounds/common/click.mp3`);
 
-        // ESPIÃO DE CLIQUES GLOBAIS (Sonoriza qualquer interação de botão)
+        // Altere somente este catálogo se quiser usar outros nomes/extensões.
+        const AUDIO_EVENTS = {
+            select_character: `${REPO_ROOT}/sounds/common/select_character.mp3`,
+            select_stage: `${REPO_ROOT}/sounds/common/select_stage.mp3`,
+            quiz_generate: `${REPO_ROOT}/sounds/common/quiz_generate.mp3`,
+            quiz_correct: `${REPO_ROOT}/sounds/common/quiz_correct.mp3`,
+            ko_theme: `${REPO_ROOT}/sounds/common/ko_theme.mp3`,
+            victory_theme: `${REPO_ROOT}/sounds/common/victory_theme.mp3`
+        };
+        for (const type of ['straight', 'shotgun', 'spiral', 'acid', 'laser']) {
+            AUDIO_EVENTS[`shot_${type}`] = `${REPO_ROOT}/sound/gameplay/shot_${type}.mp3`;
+            AUDIO_EVENTS[`hit_${type}`] = `${REPO_ROOT}/sound/gameplay/hit_${type}.mp3`;
+        }
+        Object.entries(AUDIO_EVENTS).forEach(([key,url]) => audioManager.load(key,url));
+        audioManager.load('shot_common', COMMON_SOUNDS.shot);
+        audioManager.load('hit', COMMON_SOUNDS.hit);
+
         window.addEventListener('click', (e) => {
             audioManager.resumeMenuMusic();
-            // Dispara som se clicar num botão genérico, num card de seleção ou num input de texto
-            if (e.target.closest('button') || e.target.closest('.select-card') || e.target.tagName.toLowerCase() === 'input') {
-                audioManager.play('ui_click', false, 0.7);
-            }
+            // Eventos dedicados já cuidam do próprio áudio; erro do quiz é silencioso.
+            if (e.target.closest('[data-own-sound], .select-card, .opt-btn')) return;
+            if (e.target.closest('button') || e.target.tagName.toLowerCase() === 'input')
+                audioManager.playUiClick(0.7);
         });
 
         function initThreeJS() {
@@ -1361,7 +1421,8 @@
         }
 
         class Explosion { 
-            constructor(x,y,c, maxRadius = 150, owner = 'environment', damage = 30){
+            constructor(x,y,c, maxRadius = 150, owner = 'environment', damage = 30, hitType = null){
+                this.hitType = hitType;
                 this.damage = damage;
                 this.owner = owner;
                 this.x=x;this.y=y;this.c=c;this.r=0;this.mr=maxRadius;this.l=1.0;
@@ -1400,8 +1461,8 @@
                 if(this.light) this.light.intensity = Math.max(0, this.l * 10.0);
 
                 if(!this.dd && this.r > this.mr && this.mr > 50){
-                    [p1,p2].forEach(p=>{if(!p || (isSurvival() && !canDamage(this.owner, p)))return;let dx=(p.x+p.w/2)-this.x;let dy=(p.y+p.h/2)-this.y;if(Math.sqrt(dx*dx+dy*dy)<this.mr+50)p.takeDamage(this.damage);});
-                    minions.forEach(m=>{if(isSurvival() && !canDamage(this.owner,m))return;let dx=(m.x+m.w/2)-this.x;let dy=(m.y+m.h/2)-this.y;if(Math.sqrt(dx*dx+dy*dy)<this.mr+50)m.takeDamage(this.damage);});
+                    [p1,p2].forEach(p=>{if(!p || (isSurvival() && !canDamage(this.owner, p)))return;let dx=(p.x+p.w/2)-this.x;let dy=(p.y+p.h/2)-this.y;if(Math.sqrt(dx*dx+dy*dy)<this.mr+50)p.takeDamage(this.damage, this.hitType);});
+                    minions.forEach(m=>{if(isSurvival() && !canDamage(this.owner,m))return;let dx=(m.x+m.w/2)-this.x;let dy=(m.y+m.h/2)-this.y;if(Math.sqrt(dx*dx+dy*dy)<this.mr+50)m.takeDamage(this.damage, this.hitType);});
                     this.dd=true;
                 }
             } 
@@ -1589,6 +1650,7 @@
         class PlayerLaser {
             constructor(player, config, charge) {
                 this.player=player;this.owner=player.id;this.config=config;
+                audioManager.shot('laser', player.id, charge > 0);
                 this.elapsed=0;this.angle=0;this.active=true;this.facing=player.facing;
                 this.x=player.facing===1?player.x+player.w:player.x;this.y=player.y+player.h*0.4;
                 this.endX=this.x;this.endY=this.y;
@@ -1625,7 +1687,7 @@
                 // Ticks de 300 ms, após quatro segundos; aumenta 2 HP a cada 1,2 s.
                 while(this.active && this.nextSelfTick<=this.elapsed+1e-8) {
                     const damage=3+2*Math.floor((this.nextSelfTick-4+1e-8)/1.2);
-                    this.nextSelfTick+=0.3;p.takeDamage(damage);
+                    this.nextSelfTick+=0.3;p.takeDamage(damage, 'laser');
                     if(gameState!=='PLAYING' || p.health<=0)return;
                 }
                 this.hitAccumulator+=step;
@@ -1634,7 +1696,7 @@
                     // Buff de fruta só vale enquanto estiver ativo, inclusive no feixe contínuo.
                     const damage=this.damagePerSecond*0.1*(p.fruitBuff?p.fruitBuff.shot:1);
                     for(const target of [p1,p2,...minions]) {
-                        if(canDamage(this.owner,target)&&segmentHitsBox(this.x,this.y,this.endX,this.endY,target,this.width/2))target.takeDamage(damage);
+                        if(canDamage(this.owner,target)&&segmentHitsBox(this.x,this.y,this.endX,this.endY,target,this.width/2))target.takeDamage(damage, 'laser');
                         if(gameState!=='PLAYING')return;
                     }
                 }
@@ -1659,7 +1721,7 @@
         class Projectile { 
             constructor(x,y,f,d,s,c,ic=false, owner='player', config={}){
                 this.x=x; this.y=y; this.vx=f; this.damage=d; this.size=s; this.c=c; this.active=true; this.ic=ic; this.owner=owner; this.trail=[]; this.p=[]; this.sp=900+(ic?600:0);
-                if(!config.silent && (owner==='p1' || owner==='p2')) audioManager.play(ic?(c==='#ff3e3e'?'p1_charge':'p2_charge'):'shot_common',false,0.4);
+                if(!config.silent && (owner==='p1' || owner==='p2')) audioManager.shot(config.behavior || 'straight', owner, ic);
 
                 this.behavior=config.behavior || 'straight';this.config=config;this.age=0;
                 this.originX=x;this.originY=y;this.previousX=x;this.previousY=y;
@@ -2004,7 +2066,7 @@
                     });
                 }
             }
-            takeDamage(a) { if(gameState !== 'PLAYING' || this.health <= 0)return; this.health -= a; this.dF = 0.2; if (this.health <= 0) { this.health = 0; dropMinionFruit(this); scene3D.remove(this.meshGroup); } }
+            takeDamage(a, hitType = null) { if(gameState !== 'PLAYING' || this.health <= 0)return; this.health -= a; this.dF = 0.2; audioManager.impact(this, hitType); if (this.health <= 0) { this.health = 0; dropMinionFruit(this); scene3D.remove(this.meshGroup); } }
             draw(ctx) { }
         }
 
@@ -2363,11 +2425,11 @@
                 }
                 return true;
             }
-            takeDamage(a) {
+            takeDamage(a, hitType = null) {
                 if (gameState !== 'PLAYING' || this.health <= 0) return;
                 this.health = Math.max(0, this.health - a); this.dF = 0.2;
                 document.getElementById(`${this.id}-health-fill`).style.width = this.health + '%';
-                audioManager.play('hit', false, 0.6);
+                audioManager.impact(this, hitType);
                 if (this.health <= 0) {
                     this.stopLaser();
                     if (!isSurvival()) startDuel(this);
@@ -2446,7 +2508,7 @@
         function startDuel(loser) {
             if (gameState !== 'PLAYING') return; currentLoser = loser; currentWinner = (loser === p1) ? p2 : p1;
             stopAllLasers();
-            gameState = 'CINEMATIC'; cinematicTimer = 3.5; 
+            gameState = 'CINEMATIC'; cinematicTimer = 3.5; audioManager.theme('ko_theme'); 
             bullets.forEach(b => b.destroy && b.destroy()); explosions.forEach(e => e.destroy && e.destroy());
             bullets = []; explosions = [];
         }
@@ -2459,6 +2521,7 @@
             const q = pool[Math.floor(Math.random() * pool.length)];
             const isFruitQuiz = mode === 'fruit' || mode === 'drop-fruit';
             const restoredHealth = mode === 'drop-fruit' ? droppedFruitHealth(player,fruitType) : recoveryHealth(player, mode);
+            if (gameState === 'CINEMATIC') audioManager.stopBGM();
             quizContext = { mode, player, fruitType }; gameState = 'QUIZ';
             Object.keys(keys).forEach(k => keys[k] = false);
             document.querySelectorAll('.touch-btn.active').forEach(b => b.classList.remove('active'));
@@ -2482,6 +2545,7 @@
                 Object.keys(keys).forEach(k => keys[k] = false); resetJoystick();
                 if (mode !== 'drop-fruit') mysticFruit.lastSpawnTime = Date.now();
                 gameState = 'PLAYING'; lastTime = 0;
+                audioManager.play('stage_ambience', true, 0.5);
                 if (isSurvival()) updateSurvivalHUD();
                 document.getElementById(`${player.id}-health-fill`).style.width = player.health + '%';
             };
@@ -2498,14 +2562,14 @@
                             player.vx = 0; player.vy = 0; player.isCharging = false; player.charge = 0;
                             player.isAttacking = false; player.atkT = 0; player.meshGroup.visible = true;
                         }
-                        resume(); if (mode !== 'drop-fruit') showMessage(mode === 'fruit' ? `✅ ${player.id.toUpperCase()} recuperou energia!` : '✅ Resposta correta! Combate retomado!');
+                        resume(); audioManager.effect(['quiz_correct', 'ui_click']); if (mode !== 'drop-fruit') showMessage(mode === 'fruit' ? `✅ ${player.id.toUpperCase()} recuperou energia!` : '✅ Resposta correta! Combate retomado!');
                     } else {
                         // Correção local imediata: não depende da conexão para retomar a luta.
                         tutor.style.display = 'block'; tutor.innerText = `A resposta correta é: ${q.options[q.correct]}.`;
                         next.style.display = 'block'; next.innerText = isFruitQuiz ? 'Continuar combate' : mode === 'survival-ko' ? 'Continuar' : 'Aceitar o Destino';
                         next.onclick = isFruitQuiz ? resume : () => {
                             overlay.style.display = 'none'; quizContext = null;
-                            if (mode === 'survival-ko') eliminateSurvivor(player); else gameState = 'VICTORY';
+                            if (mode === 'survival-ko') eliminateSurvivor(player); else { gameState = 'VICTORY'; audioManager.theme('victory_theme'); }
                         };
                     }
                 };
@@ -2673,9 +2737,9 @@
                         [p1, p2].forEach(p => {
                             if (p && p.health > 0 && !hit && projectileHitsTarget(b,p)) {
                                 if (canDamage(b.owner, p)) { 
-                                    p.takeDamage(b.damage); hit = true; 
+                                    p.takeDamage(b.damage, b.behavior); hit = true; 
                                     let rad = b.explosionRadius || 40;
-                                    explosions.push(new Explosion(b.x, b.y, b.c, rad, b.owner, 30*(b.damageMultiplier || 1)));
+                                    explosions.push(new Explosion(b.x, b.y, b.c, rad, b.owner, 30*(b.damageMultiplier || 1), b.behavior));
                                 }
                             }
                         });
@@ -2683,9 +2747,9 @@
                         if (!hit && b.owner !== 'minion') {
                             minions.forEach(m => { 
                                 if (m.health > 0 && !hit && projectileHitsTarget(b,m)) { 
-                                    m.takeDamage(b.damage); hit = true; 
+                                    m.takeDamage(b.damage, b.behavior); hit = true; 
                                     let rad = b.explosionRadius || 40;
-                                    explosions.push(new Explosion(b.x, b.y, b.c, rad, b.owner, 30*(b.damageMultiplier || 1)));
+                                    explosions.push(new Explosion(b.x, b.y, b.c, rad, b.owner, 30*(b.damageMultiplier || 1), b.behavior));
                                 } 
                             });
                         }
@@ -2873,7 +2937,7 @@
                 const card = document.createElement('div'); card.className = 'select-card'; if (item === currentSelected) card.classList.add('selected');
                 const img = document.createElement('img'); img.src = item.portrait; img.className = list === STAGES_DB ? 'stage-img' : 'char-img';
                 img.onerror = () => { img.style.display = 'none'; card.innerText = item.name; };
-                card.appendChild(img); card.onclick = () => { onSelect(item); Array.from(container.children).forEach(c => c.classList.remove('selected')); card.classList.add('selected'); };
+                card.appendChild(img); card.onclick = () => { audioManager.effect([list === STAGES_DB ? 'select_stage' : 'select_character', 'ui_click']); onSelect(item); Array.from(container.children).forEach(c => c.classList.remove('selected')); card.classList.add('selected'); };
                 container.appendChild(card);
             });
         }
@@ -2964,6 +3028,7 @@
         }
 
         async function generateQuestions() {
+            audioManager.effect(['quiz_generate', 'ui_click']);
             const theme = document.getElementById('theme-input').value || 'História'; document.getElementById('loader').style.display = 'block';
             try { 
                 const result = await geminiFetch(`Gere 5 perguntas sobre "${theme}". Formato JSON obrigatório: { "questions": [{ "q": "p", "options": ["o1","o2","o3","o4"], "correct": 0 }] }`, "És um professor sábio. Responde estritamente em JSON."); 
