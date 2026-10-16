@@ -713,7 +713,7 @@
             player.health = 0; player.meshGroup.visible = false;
             document.getElementById(`${player.id}-health-fill`).style.width = '0%';
             if (!livingPlayers().length) endSurvival(false, 'A equipe foi derrotada.');
-            else { gameState = 'PLAYING'; lastTime = 0; showMessage(`${player.id.toUpperCase()} eliminado. O aliado continua!`); }
+            else { gameState = 'PLAYING'; lastTime = 0; audioManager.playAmbience(); showMessage(`${player.id.toUpperCase()} eliminado. O aliado continua!`); }
             updateSurvivalHUD();
         }
 
@@ -827,6 +827,55 @@
                 } catch (_) { /* Áudio indisponível nunca bloqueia o jogo. */ }
             },
             playUiClick(volume = 0.7) { this.effect(['ui_click'], volume); },
+            ambience: null, ambienceVolume: 0.5, activeLoops: new Set(), combatAudioPaused: false,
+            playAmbience(volume = 0.5) {
+                const sound = this.sounds.stage_ambience; if (!sound) return;
+                this.ambience = sound; this.ambienceVolume = volume;
+                sound.loop = true; sound.volume = volume;
+                if (sound.paused) sound.play().catch(()=>{});
+                this.setCombatAudioPaused(false);
+            },
+            duckAmbience() {
+                if (this.ambience) this.ambience.volume = this.ambienceVolume * 0.25;
+                this.setCombatAudioPaused(true);
+            },
+            stopAmbience() {
+                if (this.ambience) { this.ambience.pause(); this.ambience.currentTime = 0; this.ambience = null; }
+            },
+            setCombatAudioPaused(paused) {
+                this.combatAudioPaused = paused;
+                for (const handle of this.activeLoops)
+                    if (handle.gain) handle.gain.gain.value = paused ? 0 : handle.volume;
+            },
+            startLoop(candidates, volume = 0.4) {
+                // Cada feixe possui seu próprio som; cancelar também invalida carregamentos pendentes.
+                const handle = {stopped:false, source:null, gain:null, volume, stop:()=>{
+                    if (handle.stopped) return;
+                    handle.stopped = true; this.activeLoops.delete(handle);
+                    if (handle.source) { try { handle.source.stop(); } catch (_) {} handle.source.disconnect(); }
+                    if (handle.gain) handle.gain.disconnect();
+                }};
+                this.activeLoops.add(handle);
+                (async()=>{
+                    try {
+                        const context = this.uiContext; if (!context) return;
+                        if (context.state === 'suspended') await context.resume();
+                        for (const key of candidates) {
+                            if (handle.stopped) return;
+                            const sound = this.sounds[key]; if (!sound) continue;
+                            const buffer = await this.buffer(sound.src);
+                            if (handle.stopped) return;
+                            if (!buffer) continue;
+                            const gain = context.createGain();
+                            gain.gain.value = this.combatAudioPaused ? 0 : volume; gain.connect(context.destination);
+                            const source = context.createBufferSource(); source.buffer = buffer; source.loop = true;
+                            source.connect(gain); handle.source = source; handle.gain = gain;
+                            source.start(); return;
+                        }
+                    } catch (_) { /* Sem arquivo disponível, o feixe continua silencioso. */ }
+                })();
+                return handle;
+            },
             shot(type, owner, charged = false) {
                 this.effect([`shot_${type}`, ...(charged ? [`${owner}_charge`] : []), 'shot_common'], 0.4);
             },
@@ -837,6 +886,10 @@
                 this.effect([`hit_${type}`, 'hit'], 0.6);
             },
             async theme(key) {
+                if (key === 'victory_theme') {
+                    this.stopAmbience();
+                    for (const handle of [...this.activeLoops]) handle.stop();
+                } else { this.duckAmbience(); }
                 this.stopBGM();
                 const request = this.bgmRequest;
                 for (const candidate of [key, 'bgm_titulo']) {
@@ -857,6 +910,7 @@
                 }
             },
             play(key, loop = false, volume = 1.0) {
+                if (key === 'stage_ambience' && loop) { this.playAmbience(volume); return; }
                 if (key === 'ui_click') { this.playUiClick(volume); return; }
                 const snd = this.sounds[key]; if (!snd) return;
                 if (!loop) { this.effect([key], volume); return; }
@@ -920,8 +974,8 @@
             victory_theme: `${REPO_ROOT}/sounds/common/victory_theme.mp3`
         };
         for (const type of ['straight', 'shotgun', 'spiral', 'acid', 'laser']) {
-            AUDIO_EVENTS[`shot_${type}`] = `${REPO_ROOT}/sound/gameplay/shot_${type}.mp3`;
-            AUDIO_EVENTS[`hit_${type}`] = `${REPO_ROOT}/sound/gameplay/hit_${type}.mp3`;
+            AUDIO_EVENTS[`shot_${type}`] = `${REPO_ROOT}/sounds/gameplay/shot_${type}.mp3`;
+            AUDIO_EVENTS[`hit_${type}`] = `${REPO_ROOT}/sounds/gameplay/hit_${type}.mp3`;
         }
         Object.entries(AUDIO_EVENTS).forEach(([key,url]) => audioManager.load(key,url));
         audioManager.load('shot_common', COMMON_SOUNDS.shot);
@@ -1669,7 +1723,7 @@
         class PlayerLaser {
             constructor(player, config, charge) {
                 this.player=player;this.owner=player.id;this.config=config;
-                audioManager.shot('laser', player.id, charge > 0);
+                this.audioLoop = audioManager.startLoop(['shot_laser', ...(charge > 0 ? [`${player.id}_charge`] : []), 'shot_common'], 0.4);
                 this.elapsed=0;this.angle=0;this.active=true;this.facing=player.facing;
                 this.x=player.facing===1?player.x+player.w:player.x;this.y=player.y+player.h*0.4;
                 this.endX=this.x;this.endY=this.y;
@@ -1733,6 +1787,7 @@
             }
             destroy() {
                 if(!this.active)return;this.active=false;
+                if(this.audioLoop)this.audioLoop.stop();
                 this.lights.forEach(light=>{scene3D.remove(light);if(light.dispose)light.dispose();});
             }
         }
@@ -2538,6 +2593,7 @@
             const isFruitQuiz = mode === 'fruit' || mode === 'drop-fruit';
             const restoredHealth = mode === 'drop-fruit' ? droppedFruitHealth(player,fruitType) : recoveryHealth(player, mode);
             if (gameState === 'CINEMATIC') audioManager.stopBGM();
+            audioManager.duckAmbience();
             quizContext = { mode, player, fruitType }; gameState = 'QUIZ';
             Object.keys(keys).forEach(k => keys[k] = false);
             document.querySelectorAll('.touch-btn.active').forEach(b => b.classList.remove('active'));
