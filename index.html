@@ -371,12 +371,12 @@
         const CHARACTERS_DB = [
             { id: 'tiger', name: 'Tiger', portrait: `${REPO_ROOT}/chars/tiger/portrait.png`, folder: `${REPO_ROOT}/chars/tiger`, audio: { jump: `${REPO_ROOT}/chars/tiger/audio/jump.mp3`, charge_shot: `${REPO_ROOT}/chars/tiger/audio/charge_shot.mp3` } },
             { id: 'cruzado', name: 'Cruzado', portrait: `${REPO_ROOT}/chars/cruzado/portrait.png`, folder: `${REPO_ROOT}/chars/cruzado`, audio: { jump: `${REPO_ROOT}/chars/cruzado/audio/jump.mp3`, charge_shot: `${REPO_ROOT}/chars/cruzado/audio/charge_shot.mp3` } },
-            { id: 'undead', name: 'Undead', portrait: `${REPO_ROOT}/chars/undead/portrait.png`, folder: `${REPO_ROOT}/chars/undead`, audio: { jump: `${REPO_ROOT}/sounds/common/hit.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } },
-            { id: 'goblin', name: 'Goblin', portrait: `${REPO_ROOT}/chars/goblin/portrait.png`, folder: `${REPO_ROOT}/chars/goblin`, audio: { jump: `${REPO_ROOT}/sounds/common/hit.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } },
-            { id: 'golem', name: 'Golem', portrait: `${REPO_ROOT}/chars/golem/portrait.png`, folder: `${REPO_ROOT}/chars/golem`, audio: { jump: `${REPO_ROOT}/sounds/common/hit.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } },
-            { id: 'elven', name: 'Elven', portrait: `${REPO_ROOT}/chars/elven/portrait.png`, folder: `${REPO_ROOT}/chars/elven`, audio: { jump: `${REPO_ROOT}/sounds/common/hit.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } },
-            { id: 'spartan', name: 'Spartan', portrait: `${REPO_ROOT}/chars/spartan/portrait.png`, folder: `${REPO_ROOT}/chars/spartan`, audio: { jump: `${REPO_ROOT}/sounds/common/hit.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } },
-            { id: 'forester', name: 'Forester', portrait: `${REPO_ROOT}/chars/forester/portrait.png`, folder: `${REPO_ROOT}/chars/forester`, audio: { jump: `${REPO_ROOT}/sounds/common/hit.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } }
+            { id: 'undead', name: 'Undead', portrait: `${REPO_ROOT}/chars/undead/portrait.png`, folder: `${REPO_ROOT}/chars/undead`, audio: { jump: `${REPO_ROOT}/sounds/common/jump.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } },
+            { id: 'goblin', name: 'Goblin', portrait: `${REPO_ROOT}/chars/goblin/portrait.png`, folder: `${REPO_ROOT}/chars/goblin`, audio: { jump: `${REPO_ROOT}/sounds/common/jump.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } },
+            { id: 'golem', name: 'Golem', portrait: `${REPO_ROOT}/chars/golem/portrait.png`, folder: `${REPO_ROOT}/chars/golem`, audio: { jump: `${REPO_ROOT}/sounds/common/jump.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } },
+            { id: 'elven', name: 'Elven', portrait: `${REPO_ROOT}/chars/elven/portrait.png`, folder: `${REPO_ROOT}/chars/elven`, audio: { jump: `${REPO_ROOT}/sounds/common/jump.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } },
+            { id: 'spartan', name: 'Spartan', portrait: `${REPO_ROOT}/chars/spartan/portrait.png`, folder: `${REPO_ROOT}/chars/spartan`, audio: { jump: `${REPO_ROOT}/sounds/common/jump.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } },
+            { id: 'forester', name: 'Forester', portrait: `${REPO_ROOT}/chars/forester/portrait.png`, folder: `${REPO_ROOT}/chars/forester`, audio: { jump: `${REPO_ROOT}/sounds/common/jump.mp3`, charge_shot: `${REPO_ROOT}/sounds/common/shot.mp3` } }
         ];
 
         const STAGES_DB = [
@@ -1064,8 +1064,8 @@
             victory_theme: `${REPO_ROOT}/sounds/common/victory_theme.mp3`
         };
         for (const type of ['straight', 'shotgun', 'spiral', 'acid', 'laser']) {
-            AUDIO_EVENTS[`shot_${type}`] = `${REPO_ROOT}/sound/gameplay/shot_${type}.mp3`;
-            AUDIO_EVENTS[`hit_${type}`] = `${REPO_ROOT}/sound/gameplay/hit_${type}.mp3`;
+            AUDIO_EVENTS[`shot_${type}`] = `${REPO_ROOT}/sounds/gameplay/shot_${type}.mp3`;
+            AUDIO_EVENTS[`hit_${type}`] = `${REPO_ROOT}/sounds/gameplay/hit_${type}.mp3`;
         }
         Object.entries(AUDIO_EVENTS).forEach(([key,url]) => audioManager.load(key,url));
         audioManager.load('shot_common', COMMON_SOUNDS.shot);
