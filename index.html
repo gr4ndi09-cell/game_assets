@@ -171,8 +171,15 @@
         .hud-portrait.eliminated img { filter:grayscale(1); opacity:.4; }
         .fighter-status { text-align:center; font-size:10px; line-height:1.2; color:#e2e9ef; text-shadow:0 1px 3px black; }
         .fighter-status:empty { display:none; }
-        #event-ai-tag { position:fixed; right:max(14px,env(safe-area-inset-right)); bottom:max(12px,env(safe-area-inset-bottom)); z-index:550; width:clamp(155px,24vw,230px); height:auto; max-height:60px; object-fit:contain; pointer-events:none; filter:drop-shadow(0 2px 5px #000b); }
-        #event-ai-tag[hidden] { display:none; }
+        #event-footer { position:fixed; right:max(12px,env(safe-area-inset-right)); bottom:max(12px,env(safe-area-inset-bottom)); z-index:550; display:flex; align-items:center; gap:10px; }
+        #event-footer[hidden] { display:none; }
+        #event-ai-tag { display:block; width:min(230px,calc(100vw - 194px)); height:auto; max-height:60px; object-fit:contain; pointer-events:none; filter:drop-shadow(0 2px 5px #000b); }
+        #event-vote-link { position:relative; display:flex; align-items:center; justify-content:center; box-sizing:border-box; width:150px; height:75px; flex:0 0 150px; border:2px solid #ffe18b; border-radius:10px; background:#071a2b; color:#ffe9a5; box-shadow:0 0 14px #ffc85788,inset 0 0 12px #29e4ff33; text-decoration:none; cursor:pointer; pointer-events:auto; font-weight:800; font-size:16px; text-align:center; }
+        #event-vote-link:hover { border-color:white; box-shadow:0 0 20px #ffc857bb; }
+        #event-vote-link:focus-visible { outline:3px solid cyan; outline-offset:4px; }
+        #event-vote-image { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; border-radius:8px; }
+        #event-vote-image[hidden] { display:none; }
+        #victory-ui { bottom:115px; }
         #selection-screen { padding-bottom:100px; }
         #quiz-selection-screen { padding-bottom:85px; }
         .hud-portrait { flex:none; }
@@ -264,7 +271,13 @@
         </div>
     </section>
 
-    <img id="event-ai-tag" src="https://raw.githubusercontent.com/gr4ndi09-cell/game_assets/main/assets/cenarios/start/iatag.png" alt="Desenvolvido com auxílio de Inteligência Artificial" draggable="false">
+    <div id="event-footer">
+        <img id="event-ai-tag" src="https://raw.githubusercontent.com/gr4ndi09-cell/game_assets/main/assets/cenarios/start/iatag.png" alt="Desenvolvido com auxílio de Inteligência Artificial" draggable="false">
+        <a id="event-vote-link" href="https://conexao-game-jam.web.app/" target="_blank" rel="noopener noreferrer" aria-label="Votar no evento Conexão Game Jam — abre em nova aba">
+            <span id="event-vote-fallback" aria-hidden="true">VOTE NO JOGO</span>
+            <img id="event-vote-image" src="https://raw.githubusercontent.com/gr4ndi09-cell/game_assets/main/assets/cenarios/start/voto.png" width="150" height="75" alt="" draggable="false" onload="document.getElementById('event-vote-fallback').hidden=true" onerror="this.hidden=true">
+        </a>
+    </div>
 
     <div id="game-container">
         <button id="fullscreen-btn">Tela Cheia</button>
@@ -475,7 +488,7 @@
 
         function initBootSequence() {
             gameState = 'BOOT';
-            document.getElementById('event-ai-tag').hidden=false;
+            document.getElementById('event-footer').hidden=false;
             document.getElementById('loading-text').innerText = "A carregar abertura...";
 
             let loadedCount = 0;
@@ -524,7 +537,7 @@
         }
 
         function startOpeningSequence() {
-            document.getElementById('event-ai-tag').hidden=true;
+            document.getElementById('event-footer').hidden=true;
             isOpeningFinished = false;
             // Desliga os botões do Title Screen
             document.getElementById('boot-options').style.display = 'none';
@@ -2811,6 +2824,7 @@
         }
 
         function drawVictory() {
+            document.getElementById('event-footer').hidden=false;
             ctx.fillStyle = "black"; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
             if (isSurvival()) {
                 victoryUI.style.display = 'flex';
@@ -3171,7 +3185,7 @@
         }
 
         function initSelectionScreen() {
-            document.getElementById('event-ai-tag').hidden=false;
+            document.getElementById('event-footer').hidden=false;
             renderSelectionList(CHARACTERS_DB, 'p1-select-container', (char) => selectedP1 = char, selectedP1);
             renderSelectionList(CHARACTERS_DB, 'p2-select-container', (char) => selectedP2 = char, selectedP2);
             renderSelectionList(STAGES_DB, 'stage-select-container', (stage) => selectedStage = stage, selectedStage);
@@ -3182,7 +3196,7 @@
             if (gameState !== 'QUIZ_SELECTION') return;
             cancelQuizBankLoad();
             gameState = 'LOADING';
-            document.getElementById('event-ai-tag').hidden=true;
+            document.getElementById('event-footer').hidden=true;
             document.getElementById('quiz-selection-screen').style.display = 'none';
             questionDeck = []; lastQuestion = null;
             // Pára a música de título do menu imediatamente e corta o fade
